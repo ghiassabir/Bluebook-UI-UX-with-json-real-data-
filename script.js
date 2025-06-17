@@ -1,4 +1,4 @@
-// --- script.js (Phase 2 - Revision 1 - Full Code) ---
+// --- script.js (Phase 2 - Revision 2 - Full Code) ---
 
 // --- Utility Functions (Define these FIRST) ---
 function toggleModal(modalElement, show) {
@@ -25,7 +25,7 @@ const moduleMetadata = {
         name: "Reading & Writing - Module 1",
         type: "RW",
         directions: "The questions in this section address a number of important reading and writing skills. Each question includes one or more passages, which may include a table or graph. Read each passage and question carefully, and then choose the best answer to the question based on the passage(s). All questions in this section are multiple-choice with four answer choices. Each question has a single best answer.",
-        passageText: "<p>This is a placeholder passage for Reading & Writing Module 1. It would appear here if the module requires a general passage not tied to individual questions in the JSON. For example, some say the world will end in fire, Some say in ice. From what I’ve tasted of desire I hold with those who favor fire. But if it had to perish twice, I think I know enough of hate To say that for destruction ice Is also great And would suffice.</p>", 
+        // passageText: "<p>...</p>", // REMOVED - Assuming question_text in JSON contains all necessary passage/stimulus for RW
         spr_directions: null,
         spr_examples_table: null
     },
@@ -33,7 +33,7 @@ const moduleMetadata = {
         name: "Math - Module 1",
         type: "Math",
         directions: "The questions in this section address a number of important math skills. You may use the calculator for any question in this section. For student-produced response questions, additional directions are provided with the question.",
-        passageText: null,
+        passageText: null, // Math modules typically don't have overarching passages
         spr_directions: `<h3>Student-produced response directions</h3><ul><li>If you find <strong>more than one correct answer</strong>, enter only one answer.</li><li>You can enter up to 5 characters for a <strong>positive</strong> answer and up to 6 characters (including the negative sign) for a <strong>negative</strong> answer.</li><li>If your answer is a <strong>fraction</strong> that doesn’t fit in the provided space, enter the decimal equivalent.</li><li>If your answer is a <strong>decimal</strong> that doesn’t fit in the provided space, enter it by truncating or rounding at the fourth digit.</li><li>If your answer is a <strong>mixed number</strong> (such as 3 <span style="font-size: 0.7em; vertical-align: super;">1</span>/<span style="font-size: 0.7em; vertical-align: sub;">2</span>), enter it as an improper fraction (7/2) or its decimal equivalent (3.5).</li><li>Don’t enter <strong>symbols</strong> such as a percent sign, comma, or dollar sign.</li></ul>`,
         spr_examples_table: `<table class="spr-examples-table"><thead><tr><th>Answer</th><th>Acceptable ways to enter answer</th><th>Unacceptable: will NOT receive credit</th></tr></thead><tbody><tr><td>3.5</td><td>3.5<br/>7/2</td><td>3 1/2</td></tr><tr><td>2/3</td><td>2/3<br/>.666<br/>.667</td><td>0.66<br/>0.67</td></tr><tr><td>-15</td><td>-15</td><td></td></tr></tbody></table>`
     }
@@ -55,7 +55,7 @@ async function loadQuizData(quizName) {
         }
         currentQuizQuestions = data;
         console.log(`Successfully loaded ${currentQuizQuestions.length} questions for quiz: ${quizName}`);
-        console.log(`currentQuizQuestions populated with ${currentQuizQuestions.length} items. First item:`, currentQuizQuestions.length > 0 ? currentQuizQuestions[0] : 'empty');
+        // console.log(`currentQuizQuestions populated with ${currentQuizQuestions.length} items. First item:`, currentQuizQuestions.length > 0 ? currentQuizQuestions[0] : 'empty');
         return true;
     } catch (error) {
         console.error("Error loading quiz data:", error);
@@ -65,7 +65,7 @@ async function loadQuizData(quizName) {
     }
 }
 
-// --- DOM Elements (ensure all are defined) ---
+// --- DOM Elements ---
 const allAppViews = document.querySelectorAll('.app-view');
 const homeViewEl = document.getElementById('home-view');
 const testInterfaceViewEl = document.getElementById('test-interface-view');
@@ -106,7 +106,7 @@ const referenceSheetCloseBtn = document.getElementById('reference-sheet-close-bt
 const crossOutToolBtnMain = document.getElementById('cross-out-tool-btn-main');
 const sectionTitleHeader = document.getElementById('section-title-header'); 
 const passageContentEl = document.getElementById('passage-content');
-const questionTextMainEl = document.getElementById('question-text-main');
+const questionTextMainEl = document.getElementById('question-text-main'); // This is in the RIGHT pane
 const questionNumberBoxMainEl = document.getElementById('question-number-box-main');
 const markReviewCheckboxMain = document.getElementById('mark-review-checkbox-main');
 const flagIconMain = document.getElementById('flag-icon-main');
@@ -174,7 +174,6 @@ function populateQNavGrid() {
     
     const moduleInfo = getCurrentModule();
     if(!moduleInfo) {
-        console.warn("populateQNavGrid: No moduleInfo found.");
         qNavTitle.textContent = "Questions";
         return;
     }
@@ -226,7 +225,6 @@ function renderReviewPage() {
     
     const moduleInfo = getCurrentModule();
     if(!moduleInfo) {
-        console.warn("renderReviewPage: No moduleInfo found.");
          if(reviewPageSectionName) reviewPageSectionName.textContent = "Section Review";
         return;
     }
@@ -260,7 +258,7 @@ function renderReviewPage() {
             btn.innerHTML += `<span class="review-flag-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg></span>`;
         }
         btn.addEventListener('click', () => {
-            currentQuestionNumber = i; // No time recording here as we are just viewing
+            currentQuestionNumber = i; 
             showView('test-interface-view');
         });
         reviewPageQNavGrid.appendChild(btn);
@@ -270,8 +268,16 @@ function renderReviewPage() {
 
 let confettiAnimationId; 
 const confettiParticles = []; 
-function startConfetti() { /* ... (existing unchanged, assuming it works) ... */ }
-function stopConfetti() { /* ... (existing unchanged, assuming it works) ... */ }
+function startConfetti() { 
+    const canvas = confettiCanvas; if (!canvas) return;
+    const ctx = canvas.getContext('2d'); canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+    const colors = ["#facc15", "#ef4444", "#2563eb", "#10b981", "#ec4899"];
+    class Particle { constructor(x, y) { this.x = x; this.y = y; this.size = Math.random() * 7 + 3; this.weight = Math.random() * 1.5 + 0.5; this.directionX = (Math.random() * 2 - 1) * 2; this.color = colors[Math.floor(Math.random() * colors.length)]; } update() { this.y += this.weight; this.x += this.directionX; if (this.y > canvas.height) { this.y = 0 - this.size; this.x = Math.random() * canvas.width; } if (this.x > canvas.width) { this.x = 0 - this.size; } if (this.x < 0 - this.size ) { this.x = canvas.width; } } draw() { ctx.fillStyle = this.color; ctx.beginPath(); ctx.rect(this.x, this.y, this.size, this.size * 1.5); ctx.closePath(); ctx.fill(); } }
+    function initConfetti() { confettiParticles.length = 0; for (let i = 0; i < 150; i++) confettiParticles.push(new Particle(Math.random() * canvas.width, Math.random() * canvas.height - canvas.height)); }
+    function animateConfetti() { if(!finishedViewEl || !finishedViewEl.classList.contains('active')) return; ctx.clearRect(0,0,canvas.width, canvas.height); confettiParticles.forEach(p => { p.update(); p.draw(); }); confettiAnimationId = requestAnimationFrame(animateConfetti); }
+    initConfetti(); animateConfetti();
+}
+function stopConfetti() { if (confettiAnimationId) cancelAnimationFrame(confettiAnimationId); if (confettiCanvas && confettiCanvas.getContext('2d')) confettiCanvas.getContext('2d').clearRect(0,0,confettiCanvas.width, confettiCanvas.height); }
 
 function handleTimerToggle(textEl, iconEl, btnEl) {
     if (!textEl || !iconEl || !btnEl) return;
@@ -321,9 +327,9 @@ function loadQuestion() {
     const currentModuleInfo = getCurrentModule(); 
     const currentQuestionDetails = getCurrentQuestionData(); 
 
-    console.log(`loadQuestion START: currentModuleIndex=${currentModuleIndex}, currentQuestionNumber=${currentQuestionNumber}`);
-    console.log(`loadQuestion START: currentModuleInfo:`, currentModuleInfo ? JSON.parse(JSON.stringify(currentModuleInfo)) : "null/undefined");
-    console.log(`loadQuestion START: currentQuestionDetails:`, currentQuestionDetails ? JSON.parse(JSON.stringify(currentQuestionDetails)) : "null/undefined");
+    // console.log(`loadQuestion START: currentModuleIndex=${currentModuleIndex}, currentQuestionNumber=${currentQuestionNumber}`);
+    // console.log(`loadQuestion START: currentModuleInfo:`, currentModuleInfo ? JSON.parse(JSON.stringify(currentModuleInfo)) : "null/undefined");
+    // console.log(`loadQuestion START: currentQuestionDetails:`, currentQuestionDetails ? JSON.parse(JSON.stringify(currentQuestionDetails)) : "null/undefined");
     
     if (!currentModuleInfo || !currentQuestionDetails) {
         console.error("loadQuestion: ModuleInfo or Question data is null/undefined. Aborting question load.");
@@ -336,17 +342,10 @@ function loadQuestion() {
         updateNavigation_OLD();
         return;
     }
-
-    const debugKey = getAnswerStateKey(currentModuleIndex, currentQuestionNumber);
-    console.log(`loadQuestion: Key for getAnswerState = "${debugKey}"`);
-    // console.log(`loadQuestion: userAnswers object before getAnswerState:`, JSON.parse(JSON.stringify(userAnswers))); // Can be very verbose
     
     const answerState = getAnswerState(); 
-    
-    console.log(`loadQuestion: answerState object AFTER getAnswerState:`, answerState ? JSON.parse(JSON.stringify(answerState)) : "undefined");
-
     if (!answerState) { 
-        console.error(`loadQuestion: getAnswerState() returned undefined for key "${debugKey}". This should not happen.`);
+        console.error(`loadQuestion: getAnswerState() returned undefined. This should not happen.`);
         if (questionTextMainEl) questionTextMainEl.innerHTML = "<p>Error: Could not retrieve answer state.</p>";
         return; 
     }
@@ -354,8 +353,7 @@ function loadQuestion() {
 
     if(sectionTitleHeader) sectionTitleHeader.textContent = `Section ${currentModuleIndex + 1}: ${currentModuleInfo.name}`;
     if(questionNumberBoxMainEl) questionNumberBoxMainEl.textContent = currentQuestionDetails.question_number || currentQuestionNumber;
-    // Question text will be placed based on pane logic below
-
+    
     const isMathTypeModule = currentModuleInfo.type === "Math";
     if(highlightsNotesBtn) highlightsNotesBtn.classList.toggle('hidden', isMathTypeModule);
     if(calculatorBtnHeader) calculatorBtnHeader.classList.toggle('hidden', !isMathTypeModule);
@@ -385,6 +383,7 @@ function loadQuestion() {
 
 
     if (currentQuestionDetails.question_type === 'student_produced_response') {
+        // SPR Question: Instructions Left, Question & Input Right
         mainContentAreaDynamic.classList.remove('single-pane');
         sprInstructionsPane.style.display = 'flex';
         passagePane.style.display = 'none'; 
@@ -397,20 +396,15 @@ function loadQuestion() {
         if(sprAnswerPreviewMain) sprAnswerPreviewMain.textContent = `Answer Preview: ${answerState.spr_answer || ''}`;
         answerOptionsMainEl.style.display = 'none';
 
-    } else if (currentModuleInfo.type === "RW") { // All R&W MCQs will attempt this layout
+    } else if (currentModuleInfo.type === "RW" && currentQuestionDetails.question_type.includes('multiple_choice')) {
+        // Reading & Writing MCQ: Question Text (which includes passage) Left, Options Right
         mainContentAreaDynamic.classList.remove('single-pane');
-        passagePane.style.display = 'flex'; // Show left pane
+        passagePane.style.display = 'flex'; // Show left pane for question_text
         paneDivider.style.display = 'block'; // Show divider
         
-        let combinedLeftPaneContent = "";
-        if (currentModuleInfo.passageText) { // Module-level passage first
-            combinedLeftPaneContent += currentModuleInfo.passageText;
-        }
-        // Append actual question text to the left pane
-        combinedLeftPaneContent += (currentQuestionDetails.question_text || '<p>Question text missing.</p>'); 
-        if(passageContentEl) passageContentEl.innerHTML = combinedLeftPaneContent;
+        if(passageContentEl) passageContentEl.innerHTML = currentQuestionDetails.question_text || '<p>Question text missing.</p>';
 
-        if(questionTextMainEl) questionTextMainEl.innerHTML = ''; // Clear question text from right pane, as it's now on left
+        if(questionTextMainEl) questionTextMainEl.innerHTML = ''; // Clear question text from right pane as it's on left
         answerOptionsMainEl.style.display = 'flex'; // Options will be in the right pane
         sprInputContainerMain.style.display = 'none';
 
@@ -427,7 +421,10 @@ function loadQuestion() {
 
     // Render MCQ Options if applicable
     if (currentQuestionDetails.question_type && currentQuestionDetails.question_type.includes('multiple_choice')) {
-        answerOptionsMainEl.innerHTML = ''; // Clear previous options
+        // answerOptionsMainEl was already targeted and set to display:flex or display:none above.
+        // Ensure it's cleared if we are re-populating:
+        if (answerOptionsMainEl) answerOptionsMainEl.innerHTML = ''; 
+        
         const options = {};
         if (currentQuestionDetails.option_a !== undefined && currentQuestionDetails.option_a !== null) options['A'] = currentQuestionDetails.option_a;
         if (currentQuestionDetails.option_b !== undefined && currentQuestionDetails.option_b !== null) options['B'] = currentQuestionDetails.option_b;
@@ -451,7 +448,6 @@ function loadQuestion() {
             const answerLetterDiv = document.createElement('div');
             answerLetterDiv.className = 'answer-letter';
             if (isSelected && !isCrossedOut) answerLetterDiv.classList.add('selected');
-            // if (isCrossedOut) answerLetterDiv.classList.add('crossed-out'); // Already handled by optionDiv's class for letter styling
             answerLetterDiv.textContent = key;
 
             const answerTextSpan = document.createElement('span');
@@ -478,12 +474,12 @@ function loadQuestion() {
                 undoBtn.dataset.action = 'undo-cross-out';
                 containerDiv.appendChild(undoBtn);
             }
-            answerOptionsMainEl.appendChild(containerDiv);
+            if (answerOptionsMainEl) answerOptionsMainEl.appendChild(containerDiv);
         }
     }
     
     if (typeof MathJax !== "undefined" && MathJax.typesetPromise) {
-        console.log("Calling MathJax.typesetPromise for main content area (Phase 2.1)");
+        // console.log("Calling MathJax.typesetPromise for main content area (Phase 2.2)");
         MathJax.typesetPromise([passageContentEl, questionTextMainEl, answerOptionsMainEl, sprInstructionsContent]).catch(function (err) {
             console.error('MathJax Typesetting Error:', err);
         });
@@ -500,9 +496,6 @@ function recordTimeOnCurrentQuestion() {
         const answerState = getAnswerState(); 
         if (answerState) { 
             answerState.timeSpent = (parseFloat(answerState.timeSpent) || 0) + timeSpentSeconds;
-            // console.log(`Time recorded for Q#${currentQuestionNumber} (key ${getAnswerStateKey()}): ${timeSpentSeconds.toFixed(2)}s. Total: ${answerState.timeSpent.toFixed(2)}s`);
-        } else {
-            // console.warn(`Could not record time for Q#${currentQuestionNumber}: answerState was undefined.`);
         }
     }
     questionStartTime = 0; 
@@ -517,7 +510,6 @@ if(answerOptionsMainEl) answerOptionsMainEl.addEventListener('click', function(e
     const action = target.dataset.action || (target.closest('[data-action]') ? target.closest('[data-action]').dataset.action : null);
     
     if (action !== 'cross-out-individual' && action !== 'undo-cross-out' && target.closest('.answer-option')) {
-        // Only record time if it's a selection attempt, not just cross-out interaction
         recordTimeOnCurrentQuestion(); 
     }
 
@@ -529,7 +521,6 @@ if(answerOptionsMainEl) answerOptionsMainEl.addEventListener('click', function(e
 function handleAnswerSelect(optionKey) {
     const answerState = getAnswerState();
     if (!answerState || answerState.crossedOut.includes(optionKey) || isCrossOutToolActive) {
-         console.log(`Selection blocked: crossedOut=${answerState ? answerState.crossedOut.includes(optionKey) : 'N/A'}, isCrossOutToolActive=${isCrossOutToolActive}`);
         return;
     }
     answerState.selected = optionKey;
@@ -555,7 +546,6 @@ if(crossOutToolBtnMain) crossOutToolBtnMain.addEventListener('click', () => {
     const currentQData = getCurrentQuestionData();
     if (currentQData && currentQData.question_type === 'student_produced_response') return;
     isCrossOutToolActive = !isCrossOutToolActive;
-    console.log("Cross-out tool active:", isCrossOutToolActive);
     loadQuestion();
 });
 if(sprInputFieldMain) sprInputFieldMain.addEventListener('input', (event) => {
@@ -563,10 +553,10 @@ if(sprInputFieldMain) sprInputFieldMain.addEventListener('input', (event) => {
     if (!answerState) return;
     answerState.spr_answer = event.target.value;
     if(sprAnswerPreviewMain) sprAnswerPreviewMain.textContent = `Answer Preview: ${event.target.value}`;
-    recordTimeOnCurrentQuestion(); // Record time on SPR input change
+    recordTimeOnCurrentQuestion(); 
 });
 
-function updateNavigation_OLD() {
+function updateNavigation_OLD() { // Renamed to avoid conflict with future full updateNavigation
     if (!getCurrentModule() || !currentQuizQuestions || currentQuizQuestions.length === 0 ) { 
         if(backBtnFooter) backBtnFooter.disabled = true;
         if(nextBtnFooter) nextBtnFooter.disabled = true;
@@ -692,10 +682,10 @@ if(highlightsNotesBtn && passageContentEl) {
         isHighlightingActive = !isHighlightingActive;
         highlightsNotesBtn.classList.toggle('active', isHighlightingActive);
         if (isHighlightingActive) {
-            passageContentEl.addEventListener('mouseup', handleTextSelection);
+            document.addEventListener('mouseup', handleTextSelection); // Listen on document for broader selection
             if(mainContentAreaDynamic) mainContentAreaDynamic.classList.add('highlight-active'); 
         } else {
-            passageContentEl.removeEventListener('mouseup', handleTextSelection);
+            document.removeEventListener('mouseup', handleTextSelection);
             if(mainContentAreaDynamic) mainContentAreaDynamic.classList.remove('highlight-active'); 
         }
     });
@@ -704,8 +694,13 @@ function handleTextSelection() {
     if (!isHighlightingActive) return;
     const selection = window.getSelection();
     if (!selection.rangeCount || selection.isCollapsed) return;
+    
     const range = selection.getRangeAt(0);
-    if (!passageContentEl.contains(range.commonAncestorContainer) && !questionTextMainEl.contains(range.commonAncestorContainer) ) return; // Allow highlighting in both panes if visible
+    // Check if selection is within passagePane or questionPane's questionTextMainEl
+    const isWithinPassage = passagePane && passagePane.style.display !== 'none' && passagePane.contains(range.commonAncestorContainer);
+    const isWithinQuestionText = questionTextMainEl && questionTextMainEl.contains(range.commonAncestorContainer);
+
+    if (!isWithinPassage && !isWithinQuestionText) return;
 
     const span = document.createElement('span');
     span.className = 'text-highlight';
