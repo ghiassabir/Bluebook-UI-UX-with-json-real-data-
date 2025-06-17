@@ -778,7 +778,7 @@ if(reviewBackBtnFooter) {
     });
 }
 
-/*
+
 if(startTestPreviewBtn) 
 if(returnToHomeBtn) returnToHomeBtn.addEventListener('click', () => showView('home-view')); 
 if(calculatorBtnHeader) calculatorBtnHeader.addEventListener('click', () => toggleModal(calculatorOverlay, true));
