@@ -1,4 +1,4 @@
-// --- script.js (Phase 3 - Navigation, QNav, Review Page) ---
+// --- script.js (Phase 3 - CORRECTED - All Listeners Restored) ---
 
 // --- Utility Functions (Define these FIRST) ---
 function toggleModal(modalElement, show) {
@@ -166,60 +166,6 @@ function getAnswerState(moduleIdx = currentModuleIndex, qNum = currentQuestionNu
     return userAnswers[key];
 }
 
-// COMMENTED: Old populateQNavGrid, to be replaced with Phase 3 version
-/*
-function populateQNavGrid() {
-    if (!qNavGridMain || !qNavTitle) { console.error("QNav grid or title element not found for populating."); return; }
-    qNavGridMain.innerHTML = '';
-    
-    const moduleInfo = getCurrentModule();
-    if(!moduleInfo) {
-        qNavTitle.textContent = "Questions";
-        return;
-    }
-    qNavTitle.textContent = `Section ${currentModuleIndex + 1}: ${moduleInfo.name} Questions`;
-
-    const totalQuestionsInModule = currentQuizQuestions.length;
-
-    for (let i = 1; i <= totalQuestionsInModule; i++) {
-        const qState = getAnswerState(currentModuleIndex, i);
-        const questionDataForButton = currentQuizQuestions[i-1]; 
-        
-        const btn = document.createElement('button');
-        btn.className = 'qnav-grid-btn';
-        if (i === currentQuestionNumber) {
-            btn.classList.add('current');
-            btn.innerHTML = `<span class="q-num-current-dot"></span>`;
-        } else {
-            btn.textContent = i;
-        }
-
-        let isUnanswered = true; 
-        if (questionDataForButton) { 
-            if (questionDataForButton.question_type === 'student_produced_response') { 
-                isUnanswered = !qState.spr_answer;
-            } else { 
-                isUnanswered = !qState.selected;
-            }
-        }
-
-        if (isUnanswered && i !== currentQuestionNumber) btn.classList.add('unanswered');
-        if (qState.marked) btn.innerHTML += `<span class="review-flag-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg></span>`;
-        
-        btn.dataset.question = i;
-        btn.addEventListener('click', () => {
-            recordTimeOnCurrentQuestion();
-            currentQuestionNumber = i;
-            isCrossOutToolActive = false; 
-            isHighlightingActive = false; if(highlightsNotesBtn) highlightsNotesBtn.classList.remove('active');
-            loadQuestion();
-            toggleModal(qNavPopup, false);
-        });
-        qNavGridMain.appendChild(btn);
-    }
-}
-*/
-// CHANGED: Phase 3 - Fully adapt populateQNavGrid
 function populateQNavGrid() {
     if (!qNavGridMain || !qNavTitle) { 
         console.error("QNav grid or title element not found for populating."); 
@@ -238,16 +184,15 @@ function populateQNavGrid() {
     const totalQuestionsInModule = currentQuizQuestions.length;
 
     for (let i = 1; i <= totalQuestionsInModule; i++) {
-        const qState = getAnswerState(currentModuleIndex, i); // Uses currentModuleIndex and i (1-indexed)
+        const qState = getAnswerState(currentModuleIndex, i); 
         const questionDataForButton = currentQuizQuestions[i - 1]; 
         
         const btn = document.createElement('button');
         btn.className = 'qnav-grid-btn';
         if (i === currentQuestionNumber) {
             btn.classList.add('current');
-            btn.innerHTML = `<span class="q-num-current-dot"></span>`; // Display dot for current
+            btn.innerHTML = `<span class="q-num-current-dot"></span>`; 
         } else {
-            // Use question_number from JSON for display if available, else fallback to i
             btn.textContent = questionDataForButton?.question_number || i;
         }
 
@@ -267,10 +212,10 @@ function populateQNavGrid() {
              btn.innerHTML += `<span class="review-flag-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg></span>`;
         }
         
-        btn.dataset.question = i; // Store 1-indexed number for navigation
+        btn.dataset.question = i; 
         btn.addEventListener('click', () => {
             recordTimeOnCurrentQuestion();
-            currentQuestionNumber = parseInt(btn.dataset.question); // Navigate to this 1-indexed number
+            currentQuestionNumber = parseInt(btn.dataset.question); 
             isCrossOutToolActive = false; 
             isHighlightingActive = false; if(highlightsNotesBtn) highlightsNotesBtn.classList.remove('active');
             loadQuestion();
@@ -280,19 +225,6 @@ function populateQNavGrid() {
     }
 }
 
-
-// COMMENTED: Old renderReviewPage, to be replaced with Phase 3 version
-/*
-function renderReviewPage() {
-    if (!reviewPageViewEl || !reviewPageViewEl.classList.contains('active')) return;
-    console.log("Rendering Review Page (stub)...");
-    const moduleInfo = getCurrentModule(); 
-    if(!moduleInfo) return;
-    if(reviewPageSectionName) reviewPageSectionName.textContent = `Section ${currentModuleIndex + 1}: ${moduleInfo.name} Questions`;
-    updateNavigation(); 
-}
-*/
-// CHANGED: Phase 3 - Fully adapt renderReviewPage
 function renderReviewPage() {
     if (!reviewPageViewEl || !reviewPageViewEl.classList.contains('active')) return;
     console.log("Rendering Review Page (Phase 3)...");
@@ -302,7 +234,7 @@ function renderReviewPage() {
          if(reviewPageSectionName) reviewPageSectionName.textContent = "Section Review";
          if(reviewPageQNavGrid) reviewPageQNavGrid.innerHTML = '<p>No questions to review for this module.</p>';
          console.warn("renderReviewPage: No module info or questions for current module.");
-        updateNavigation(); // Call the new updateNavigation
+        updateNavigation(); 
         return;
     }
     if(reviewPageSectionName) reviewPageSectionName.textContent = `Section ${currentModuleIndex + 1}: ${moduleInfo.name} Questions`;
@@ -319,7 +251,7 @@ function renderReviewPage() {
         const qDataForBtn = currentQuizQuestions[i-1];
         const btn = document.createElement('button');
         btn.className = 'qnav-grid-btn';
-        btn.textContent = qDataForBtn?.question_number || i; // Display question_number from JSON
+        btn.textContent = qDataForBtn?.question_number || i; 
 
         let isUnanswered = true;
         if (qDataForBtn) {
@@ -334,22 +266,37 @@ function renderReviewPage() {
         if (qState.marked) {
             btn.innerHTML += `<span class="review-flag-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg></span>`;
         }
-        btn.dataset.question = i; // Store 1-indexed number for navigation
+        btn.dataset.question = i; 
         btn.addEventListener('click', () => {
-            currentQuestionNumber = parseInt(btn.dataset.question); // Navigate to this 1-indexed number
+            currentQuestionNumber = parseInt(btn.dataset.question); 
             showView('test-interface-view');
         });
         reviewPageQNavGrid.appendChild(btn);
     }
-    updateNavigation(); // Call the new updateNavigation
+    updateNavigation(); 
 }
 
 
 let confettiAnimationId; 
 const confettiParticles = []; 
-function startConfetti() { /* ... (no change) ... */ }
-function stopConfetti() { /* ... (no change) ... */ }
-function handleTimerToggle(textEl, iconEl, btnEl) { /* ... (no change) ... */ }
+function startConfetti() { 
+    const canvas = confettiCanvas; if (!canvas) return;
+    const ctx = canvas.getContext('2d'); canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+    const colors = ["#facc15", "#ef4444", "#2563eb", "#10b981", "#ec4899"];
+    class Particle { constructor(x, y) { this.x = x; this.y = y; this.size = Math.random() * 7 + 3; this.weight = Math.random() * 1.5 + 0.5; this.directionX = (Math.random() * 2 - 1) * 2; this.color = colors[Math.floor(Math.random() * colors.length)]; } update() { this.y += this.weight; this.x += this.directionX; if (this.y > canvas.height) { this.y = 0 - this.size; this.x = Math.random() * canvas.width; } if (this.x > canvas.width) { this.x = 0 - this.size; } if (this.x < 0 - this.size ) { this.x = canvas.width; } } draw() { ctx.fillStyle = this.color; ctx.beginPath(); ctx.rect(this.x, this.y, this.size, this.size * 1.5); ctx.closePath(); ctx.fill(); } }
+    function initConfetti() { confettiParticles.length = 0; for (let i = 0; i < 150; i++) confettiParticles.push(new Particle(Math.random() * canvas.width, Math.random() * canvas.height - canvas.height)); }
+    function animateConfetti() { if(!finishedViewEl || !finishedViewEl.classList.contains('active')) return; ctx.clearRect(0,0,canvas.width, canvas.height); confettiParticles.forEach(p => { p.update(); p.draw(); }); confettiAnimationId = requestAnimationFrame(animateConfetti); }
+    initConfetti(); animateConfetti();
+}
+function stopConfetti() { if (confettiAnimationId) cancelAnimationFrame(confettiAnimationId); if (confettiCanvas && confettiCanvas.getContext('2d')) confettiCanvas.getContext('2d').clearRect(0,0,confettiCanvas.width, confettiCanvas.height); }
+
+function handleTimerToggle(textEl, iconEl, btnEl) {
+    if (!textEl || !iconEl || !btnEl) return;
+    isTimerHidden = !isTimerHidden; 
+    textEl.classList.toggle('hidden', isTimerHidden); 
+    iconEl.classList.toggle('hidden', !isTimerHidden);
+    btnEl.textContent = isTimerHidden ? '[Show]' : '[Hide]';
+}
 
 // --- View Management ---
 function showView(viewId) {
@@ -370,7 +317,6 @@ function showView(viewId) {
         renderReviewPage();
     } else if (viewId === 'finished-view') {
         startConfetti();
-        // In Phase 4, call submitQuizData() here
         console.log("Test finished. Submission would happen here.");
     } else if (viewId === 'home-view') {
         stopConfetti();
@@ -380,13 +326,10 @@ function showView(viewId) {
         currentQuestionNumber = 1;
         userAnswers = {};
     }
-    // COMMENTED: Old call to updateNavigation_OLD
-    // updateNavigation_OLD();
-    // CHANGED: Call new updateNavigation
     updateNavigation();
 }
 
-// --- Core UI Update `loadQuestion()` (from Phase 2.2 - no functional changes in this phase) ---
+// --- Core UI Update `loadQuestion()` ---
 function loadQuestion() {
     if (!testInterfaceViewEl.classList.contains('active')) {
         return;
@@ -404,9 +347,6 @@ function loadQuestion() {
             currentQFooterEl.textContent = currentQuestionNumber;
             totalQFooterEl.textContent = currentQuizQuestions ? currentQuizQuestions.length : 0;
         }
-        // COMMENTED: Old call to updateNavigation_OLD
-        // updateNavigation_OLD();
-        // CHANGED: Call new updateNavigation
         updateNavigation();
         return;
     }
@@ -541,9 +481,6 @@ function loadQuestion() {
     } else {
         console.warn("MathJax or MathJax.typesetPromise not available.");
     }
-    // COMMENTED: Old call to updateNavigation_OLD
-    // updateNavigation_OLD();
-    // CHANGED: Call new updateNavigation
     updateNavigation();
 }
 
@@ -560,41 +497,71 @@ function recordTimeOnCurrentQuestion() {
 }
 
 // --- Event Listeners ---
-if(answerOptionsMainEl) answerOptionsMainEl.addEventListener('click', function(event) { /* ... (no change from P2.2) ... */ });
-function handleAnswerSelect(optionKey) { /* ... (no change from P2.2) ... */ }
-function handleAnswerCrossOut(optionKey) { /* ... (no change from P2.2) ... */ }
-function handleAnswerUndoCrossOut(optionKey) { /* ... (no change from P2.2) ... */ }
-if(crossOutToolBtnMain) crossOutToolBtnMain.addEventListener('click', () => { /* ... (no change from P2.2) ... */ });
-if(sprInputFieldMain) sprInputFieldMain.addEventListener('input', (event) => { /* ... (no change from P2.2) ... */ });
+if(answerOptionsMainEl) {
+    answerOptionsMainEl.addEventListener('click', function(event) {
+        const target = event.target;
+        const answerContainer = target.closest('.answer-option-container');
+        if (!answerContainer) return;
+        const optionKey = answerContainer.dataset.optionKey;
+        const action = target.dataset.action || (target.closest('[data-action]') ? target.closest('[data-action]').dataset.action : null);
+        
+        if (action !== 'cross-out-individual' && action !== 'undo-cross-out' && target.closest('.answer-option')) {
+            recordTimeOnCurrentQuestion(); 
+        }
 
-
-// COMMENTED: updateNavigation_OLD function (no longer needed)
-/*
-function updateNavigation_OLD() { 
-    if (!getCurrentModule() || !currentQuizQuestions || currentQuizQuestions.length === 0 ) { 
-        if(backBtnFooter) backBtnFooter.disabled = true;
-        if(nextBtnFooter) nextBtnFooter.disabled = true;
-        if(currentQFooterEl) currentQFooterEl.textContent = '0';
-        if(totalQFooterEl) totalQFooterEl.textContent = '0';
+        if (action === 'cross-out-individual') handleAnswerCrossOut(optionKey);
+        else if (action === 'undo-cross-out') handleAnswerUndoCrossOut(optionKey);
+        else if (target.closest('.answer-option')) handleAnswerSelect(optionKey);
+    });
+}
+function handleAnswerSelect(optionKey) {
+    const answerState = getAnswerState();
+    if (!answerState || answerState.crossedOut.includes(optionKey) || isCrossOutToolActive) {
         return;
     }
-    const totalQuestionsInModule = currentQuizQuestions.length;
-    if(currentQFooterEl) currentQFooterEl.textContent = currentQuestionNumber;
-    if(totalQFooterEl) totalQFooterEl.textContent = totalQuestionsInModule;
-    if(backBtnFooter) backBtnFooter.disabled = (currentQuestionNumber === 1);
-    if(nextBtnFooter) {
-        if (currentView === 'test-interface-view') {
-            nextBtnFooter.textContent = (currentQuestionNumber === totalQuestionsInModule) ? "Review Section" : "Next";
-            nextBtnFooter.disabled = false;
-        } else if (currentView === 'review-page-view') {
-            nextBtnFooter.textContent = (currentModuleIndex === currentTestFlow.length - 1) ? "Finish Test" : "Next Module";
-            nextBtnFooter.disabled = false;
-        }
-    }
+    answerState.selected = optionKey;
+    loadQuestion(); 
 }
-*/
+function handleAnswerCrossOut(optionKey) {
+     const answerState = getAnswerState();
+     if (!answerState) return;
+     if (!answerState.crossedOut.includes(optionKey)) {
+         answerState.crossedOut.push(optionKey);
+         if (answerState.selected === optionKey) answerState.selected = null; 
+         loadQuestion();
+     }
+}
+function handleAnswerUndoCrossOut(optionKey) {
+     const answerState = getAnswerState();
+     if (!answerState) return;
+     answerState.crossedOut = answerState.crossedOut.filter(opt => opt !== optionKey);
+     loadQuestion();
+}
 
-// CHANGED: Phase 3 - Implement new updateNavigation function
+if(crossOutToolBtnMain) {
+    crossOutToolBtnMain.addEventListener('click', () => {
+        const currentQData = getCurrentQuestionData();
+        if (currentQData && currentQData.question_type === 'student_produced_response') return;
+        isCrossOutToolActive = !isCrossOutToolActive;
+        loadQuestion();
+    });
+}
+if(sprInputFieldMain) {
+    sprInputFieldMain.addEventListener('input', (event) => {
+        const answerState = getAnswerState();
+        if (!answerState) return;
+        answerState.spr_answer = event.target.value;
+        if(sprAnswerPreviewMain) sprAnswerPreviewMain.textContent = `Answer Preview: ${event.target.value}`;
+        // Note: Time for SPR is tricky; it's continuous. Might record on blur or with each input.
+        // For now, time is recorded when navigating away or submitting.
+    });
+    sprInputFieldMain.addEventListener('blur', () => { // Record time when user clicks away
+        recordTimeOnCurrentQuestion();
+        questionStartTime = Date.now(); // Restart timer for further interaction if they come back
+    });
+}
+
+
 function updateNavigation() {
     if (!backBtnFooter || !nextBtnFooter || !currentQFooterEl || !totalQFooterEl) {
         console.error("Navigation elements missing.");
@@ -604,14 +571,10 @@ function updateNavigation() {
     const moduleIsLoaded = currentQuizQuestions && currentQuizQuestions.length > 0;
     const totalQuestionsInModule = moduleIsLoaded ? currentQuizQuestions.length : 0;
 
-    // Update question counter
     currentQFooterEl.textContent = moduleIsLoaded ? currentQuestionNumber : '0';
     totalQFooterEl.textContent = totalQuestionsInModule;
+    backBtnFooter.disabled = (currentQuestionNumber === 1);
 
-    // Back button logic
-    backBtnFooter.disabled = (currentQuestionNumber === 1); // Disabled on first Q of any module
-
-    // Next button logic (test-interface-view)
     if (currentView === 'test-interface-view') {
         if (!moduleIsLoaded) {
             nextBtnFooter.textContent = "Next";
@@ -619,22 +582,20 @@ function updateNavigation() {
         } else if (currentQuestionNumber < totalQuestionsInModule) {
             nextBtnFooter.textContent = "Next";
             nextBtnFooter.disabled = false;
-        } else { // Last question of the current module
+        } else { 
             nextBtnFooter.textContent = "Review Section";
             nextBtnFooter.disabled = false;
         }
-        // Hide review page specific buttons if they exist in the same DOM structure
         if (reviewBackBtnFooter) reviewBackBtnFooter.style.display = 'none';
         if (reviewNextBtnFooter) reviewNextBtnFooter.style.display = 'none';
-        nextBtnFooter.style.display = 'inline-block'; // Ensure main next button is visible
-        backBtnFooter.style.display = 'inline-block'; // Ensure main back button is visible
+        nextBtnFooter.style.display = 'inline-block'; 
+        backBtnFooter.style.display = 'inline-block'; 
 
     } 
-    // Next/Back button logic (review-page-view)
     else if (currentView === 'review-page-view') {
         if (reviewBackBtnFooter) {
              reviewBackBtnFooter.style.display = 'inline-block';
-             reviewBackBtnFooter.disabled = false; // Always enabled to go back to test interface
+             reviewBackBtnFooter.disabled = false; 
         }
         if (reviewNextBtnFooter) {
             reviewNextBtnFooter.style.display = 'inline-block';
@@ -645,58 +606,25 @@ function updateNavigation() {
             }
             reviewNextBtnFooter.disabled = false;
         }
-        // Hide test interface specific buttons
         if (nextBtnFooter) nextBtnFooter.style.display = 'none';
         if (backBtnFooter) backBtnFooter.style.display = 'none';
     } else {
-        // For other views like home, finished, module-over
-        if (nextBtnFooter) nextBtnFooter.style.display = 'inline-block'; // Default state or hide as needed
+        if (nextBtnFooter) nextBtnFooter.style.display = 'inline-block'; 
         if (backBtnFooter) backBtnFooter.style.display = 'inline-block';
         if (reviewBackBtnFooter) reviewBackBtnFooter.style.display = 'none';
         if (reviewNextBtnFooter) reviewNextBtnFooter.style.display = 'none';
-         if (nextBtnFooter) nextBtnFooter.disabled = true; // Sensible default for non-test views
+         if (nextBtnFooter) nextBtnFooter.disabled = true; 
          if (backBtnFooter) backBtnFooter.disabled = true;
     }
 }
 
-
-// COMMENTED: Old nextBtnFooter click listener structure (partially adapted in P2.2)
-
-if(nextBtnFooter) nextBtnFooter.addEventListener('click', () => {
-    recordTimeOnCurrentQuestion(); 
-    const totalQuestionsInModule = currentQuizQuestions.length;
-
-    if (currentView === 'review-page-view') {
-        currentModuleIndex++;
-        if (currentModuleIndex < currentTestFlow.length) {
-            showView('module-over-view'); 
-            setTimeout(async () => {
-                currentQuestionNumber = 1;
-                const success = await loadQuizData(currentTestFlow[currentModuleIndex]);
-                if(success) showView('test-interface-view');
-                else showView('home-view');
-            }, 1500);
-        } else {
-            showView('finished-view');
-        }
-    } else if (currentQuestionNumber < totalQuestionsInModule) {
-        currentQuestionNumber++;
-        isCrossOutToolActive = false; isHighlightingActive = false; if(highlightsNotesBtn) highlightsNotesBtn.classList.remove('active');
-        loadQuestion();
-    } else if (currentQuestionNumber === totalQuestionsInModule) {
-        showView('review-page-view');
-    }
-});
-
-
-// CHANGED: Phase 3 - Update nextBtnFooter click listener for test-interface-view
 if(nextBtnFooter) {
-    nextBtnFooter.removeEventListener('click', nextButtonClickHandler); // Remove old if any from P2.2
+    nextBtnFooter.removeEventListener('click', nextButtonClickHandler); 
     nextBtnFooter.addEventListener('click', nextButtonClickHandler);
 }
 
 function nextButtonClickHandler() {
-    if (currentView !== 'test-interface-view') return; // This button is for test interface view
+    if (currentView !== 'test-interface-view') return; 
 
     recordTimeOnCurrentQuestion(); 
     const totalQuestionsInModule = currentQuizQuestions.length;
@@ -707,47 +635,39 @@ function nextButtonClickHandler() {
         isHighlightingActive = false; if(highlightsNotesBtn) highlightsNotesBtn.classList.remove('active');
         loadQuestion();
     } else if (currentQuestionNumber === totalQuestionsInModule) {
-        // Reached the end of questions in the current module
         showView('review-page-view');
     }
 }
 
-
-// CHANGED: Phase 3 - Add reviewNextBtnFooter click listener for review-page-view
 if(reviewNextBtnFooter) {
-    reviewNextBtnFooter.addEventListener('click', async () => { // Make async for loadQuizData
+    reviewNextBtnFooter.addEventListener('click', async () => { 
         if (currentView !== 'review-page-view') return;
-
-        recordTimeOnCurrentQuestion(); // Record time for the last question viewed if any interaction happened
+        recordTimeOnCurrentQuestion(); 
 
         currentModuleIndex++;
         if (currentModuleIndex < currentTestFlow.length) {
             showView('module-over-view'); 
-            // Consider making module-over-view a bit more robust or shorter timeout
             setTimeout(async () => {
-                currentQuestionNumber = 1; // Reset for the new module
+                currentQuestionNumber = 1; 
                 const success = await loadQuizData(currentTestFlow[currentModuleIndex]);
                 if (success && currentQuizQuestions.length > 0) {
-                    populateQNavGrid(); // Re-populate QNav for new module
+                    populateQNavGrid(); 
                     showView('test-interface-view');
                 } else {
                     console.error("Failed to load next module or module has no questions.");
                     alert("Error loading the next module. Returning to home.");
-                    showView('home-view'); // Fallback
+                    showView('home-view'); 
                 }
-            }, 1000); // Shorter timeout
+            }, 1000); 
         } else {
-            // All modules in currentTestFlow are completed
             console.log("All modules finished. Transitioning to finished view.");
-            // submitQuizData(); // Will be called in Phase 4 from showView('finished-view')
             showView('finished-view');
         }
     });
 }
 
-
-if(backBtnFooter) { // Main back button for test interface
-    backBtnFooter.removeEventListener('click', backButtonClickHandler); // Remove old if any
+if(backBtnFooter) { 
+    backBtnFooter.removeEventListener('click', backButtonClickHandler); 
     backBtnFooter.addEventListener('click', backButtonClickHandler);
 }
 
@@ -763,57 +683,203 @@ function backButtonClickHandler() {
     }
 }
 
+if(reviewDirectionsBtn) {
+    reviewDirectionsBtn.addEventListener('click', () => {
+        const moduleInfo = getCurrentModule();
+        if(moduleInfo && directionsModalTitle) directionsModalTitle.textContent = `Section ${currentModuleIndex + 1}: ${moduleInfo.name} Directions`;
+        if(moduleInfo && directionsModalText) directionsModalText.innerHTML = moduleInfo.directions || "General directions";
+        toggleModal(directionsModal, true);
+    });
+}
 
-if(reviewDirectionsBtn) reviewDirectionsBtn.addEventListener('click', () => { /* ... (no change from P2.2) ... */ });
-if(reviewTimerToggleBtn && reviewTimerText && reviewTimerClockIcon) reviewTimerToggleBtn.addEventListener('click', () => handleTimerToggle(reviewTimerText, reviewTimerClockIcon, reviewTimerToggleBtn));
+if(reviewTimerToggleBtn && reviewTimerText && reviewTimerClockIcon) {
+    reviewTimerToggleBtn.addEventListener('click', () => handleTimerToggle(reviewTimerText, reviewTimerClockIcon, reviewTimerToggleBtn));
+}
 
-// CHANGED: Phase 3 - Update reviewBackBtnFooter listener
 if(reviewBackBtnFooter) {
     reviewBackBtnFooter.addEventListener('click', () => {
         if (currentView !== 'review-page-view') return;
-        // This button should simply take the user back to the test interface,
-        // usually to the last question they were on or the first.
-        // `loadQuestion` will handle displaying the currentQuestionNumber.
         showView('test-interface-view');
     });
 }
 
-
-if(startTestPreviewBtn) 
+// --- Event Listeners for other UI elements (Restored and Verified) ---
 if(returnToHomeBtn) returnToHomeBtn.addEventListener('click', () => showView('home-view')); 
+
 if(calculatorBtnHeader) calculatorBtnHeader.addEventListener('click', () => toggleModal(calculatorOverlay, true));
 if(calculatorCloseBtn) calculatorCloseBtn.addEventListener('click', () => toggleModal(calculatorOverlay, false));
 if(referenceBtnHeader) referenceBtnHeader.addEventListener('click', () => toggleModal(referenceSheetPanel, true));
 if(referenceSheetCloseBtn) referenceSheetCloseBtn.addEventListener('click', () => toggleModal(referenceSheetPanel, false));
+
 let isCalcDragging = false; let currentX_calc_drag, currentY_calc_drag, initialX_calc_drag, initialY_calc_drag, xOffset_calc_drag = 0, yOffset_calc_drag = 0;
-if(calculatorHeaderDraggable) 
-if(highlightsNotesBtn && passageContentEl) 
-function handleTextSelection() 
-if(directionsBtn) directionsBtn.addEventListener('click', () => { });
+if(calculatorHeaderDraggable) {
+    calculatorHeaderDraggable.addEventListener('mousedown', (e) => { 
+        initialX_calc_drag = e.clientX - xOffset_calc_drag; 
+        initialY_calc_drag = e.clientY - yOffset_calc_drag; 
+        if (e.target === calculatorHeaderDraggable || e.target.tagName === 'STRONG') isCalcDragging = true; 
+    });
+    document.addEventListener('mousemove', (e) => { 
+        if (isCalcDragging) { 
+            e.preventDefault(); 
+            currentX_calc_drag = e.clientX - initialX_calc_drag; 
+            currentY_calc_drag = e.clientY - initialY_calc_drag; 
+            xOffset_calc_drag = currentX_calc_drag; 
+            yOffset_calc_drag = currentY_calc_drag; 
+            if(calculatorOverlay) calculatorOverlay.style.transform = `translate3d(${currentX_calc_drag}px, ${currentY_calc_drag}px, 0)`;
+        } 
+    });
+    document.addEventListener('mouseup', () => isCalcDragging = false );
+}
+
+if(highlightsNotesBtn && (passageContentEl || questionTextMainEl) ) { // Check both potential highlight areas
+    highlightsNotesBtn.addEventListener('click', () => {
+        isHighlightingActive = !isHighlightingActive;
+        highlightsNotesBtn.classList.toggle('active', isHighlightingActive);
+        if (isHighlightingActive) {
+            document.addEventListener('mouseup', handleTextSelection); 
+            if(mainContentAreaDynamic) mainContentAreaDynamic.classList.add('highlight-active'); 
+        } else {
+            document.removeEventListener('mouseup', handleTextSelection);
+            if(mainContentAreaDynamic) mainContentAreaDynamic.classList.remove('highlight-active'); 
+        }
+    });
+}
+
+function handleTextSelection() {
+    if (!isHighlightingActive) return;
+    const selection = window.getSelection();
+    if (!selection.rangeCount || selection.isCollapsed) return;
+    
+    const range = selection.getRangeAt(0);
+    const container = range.commonAncestorContainer;
+
+    // Ensure selection is within an active, relevant pane
+    const isWithinPassagePane = passagePane && passagePane.style.display !== 'none' && passagePane.contains(container);
+    const isWithinQuestionTextPane = questionPane && questionPane.contains(container) && questionTextMainEl.contains(container); // More specific
+    
+    if (!isWithinPassagePane && !isWithinQuestionTextPane) {
+         // If not in passage or question text, but in SPR instructions pane, allow highlighting too
+        const isWithinSprInstructions = sprInstructionsPane && sprInstructionsPane.style.display !== 'none' && sprInstructionsPane.contains(container);
+        if (!isWithinSprInstructions) return;
+    }
+
+    const span = document.createElement('span');
+    span.className = 'text-highlight';
+    try {
+        range.surroundContents(span);
+    } catch (e) { 
+        span.appendChild(range.extractContents());
+        range.insertNode(span);
+        console.warn("Highlighting across complex nodes, used extract/insert fallback.", e);
+    }
+    selection.removeAllRanges();
+}
+
+if(directionsBtn) {
+    directionsBtn.addEventListener('click', () => {
+        console.log("Directions button click handler initiated."); // Debug log
+        const moduleInfo = getCurrentModule();
+        if(moduleInfo && directionsModalTitle) directionsModalTitle.textContent = `Section ${currentModuleIndex + 1}: ${moduleInfo.name} Directions`; 
+        if(moduleInfo && directionsModalText) directionsModalText.innerHTML = moduleInfo.directions || "General directions"; 
+        toggleModal(directionsModal, true); 
+    });
+}
 if(directionsModalCloseBtn) directionsModalCloseBtn.addEventListener('click', () => toggleModal(directionsModal, false));
 if(directionsModal) directionsModal.addEventListener('click', (e) => { if (e.target === directionsModal) toggleModal(directionsModal, false); });
 
-// CHANGED: Phase 3 - Update QNav related listeners for robustness
-if(qNavBtnFooter) qNavBtnFooter.addEventListener('click', () => { 
-    if (currentQuizQuestions.length > 0) { // Only populate and show if questions are loaded
-        populateQNavGrid(); 
-        toggleModal(qNavPopup, true); 
-    } else {
-        console.warn("QNav button clicked, but no questions loaded for the current module.");
+if(qNavBtnFooter) {
+    qNavBtnFooter.addEventListener('click', () => { 
+        console.log("QNav Footer button click handler initiated."); // Debug log
+        if (currentQuizQuestions.length > 0) { 
+            populateQNavGrid(); 
+            toggleModal(qNavPopup, true); 
+        } else {
+            console.warn("QNav button clicked, but no questions loaded for the current module.");
+        }
+    });
+}
+if(qNavCloseBtn) qNavCloseBtn.addEventListener('click', () => toggleModal(qNavPopup, false));
+if(qNavGotoReviewBtn) {
+    qNavGotoReviewBtn.addEventListener('click', () => { 
+        toggleModal(qNavPopup, false); 
+        if (currentQuizQuestions.length > 0) { 
+            showView('review-page-view'); 
+        }
+    }); 
+}
+
+if(markReviewCheckboxMain) {
+    markReviewCheckboxMain.addEventListener('change', () => {
+        const answerState = getAnswerState();
+        if (!answerState) return;
+        answerState.marked = markReviewCheckboxMain.checked;
+        if(flagIconMain) {
+            flagIconMain.style.fill = answerState.marked ? 'var(--bluebook-red-flag)' : 'none';
+            flagIconMain.style.color = answerState.marked ? 'var(--bluebook-red-flag)' : '#9ca3af';
+        }
+        // Also update QNav grid if it's visible or when it's next populated
+        if (qNavPopup && qNavPopup.classList.contains('visible')) {
+            populateQNavGrid();
+        }
+    });
+}
+
+if(timerToggleBtn) timerToggleBtn.addEventListener('click', () => handleTimerToggle(timerTextEl, timerClockIconEl, timerToggleBtn));
+// reviewTimerToggleBtn listener is already correctly set up for the review page specifically.
+
+if(moreBtn) {
+    moreBtn.addEventListener('click', (e) => { 
+        e.stopPropagation(); 
+        if(moreMenuDropdown) moreMenuDropdown.classList.toggle('visible'); 
+    });
+}
+// Body click to close More Menu
+document.body.addEventListener('click', (e) => { 
+    if (moreMenuDropdown && moreBtn && !moreBtn.contains(e.target) && !moreMenuDropdown.contains(e.target) && moreMenuDropdown.classList.contains('visible')) {
+        moreMenuDropdown.classList.remove('visible'); 
     }
 });
-if(qNavCloseBtn) qNavCloseBtn.addEventListener('click', () => toggleModal(qNavPopup, false));
-if(qNavGotoReviewBtn) qNavGotoReviewBtn.addEventListener('click', () => { 
-    toggleModal(qNavPopup, false); 
-    if (currentQuizQuestions.length > 0) { // Only go to review if there's something to review
-        showView('review-page-view'); 
-    }
-}); 
-*/
-// CHANGED: Phase 3 - Update startTestPreviewBtn listener for robustness
+if(moreMenuDropdown) moreMenuDropdown.addEventListener('click', (e) => e.stopPropagation()); 
+
+if(moreUnscheduledBreakBtn) {
+    moreUnscheduledBreakBtn.addEventListener('click', () => { 
+        toggleModal(unscheduledBreakConfirmModal, true); 
+        if(moreMenuDropdown) moreMenuDropdown.classList.remove('visible'); 
+        if(understandLoseTimeCheckbox) understandLoseTimeCheckbox.checked = false; 
+        if(unscheduledBreakConfirmBtn) unscheduledBreakConfirmBtn.disabled = true; 
+    });
+}
+if(understandLoseTimeCheckbox) {
+    understandLoseTimeCheckbox.addEventListener('change', () => { 
+        if(unscheduledBreakConfirmBtn) unscheduledBreakConfirmBtn.disabled = !understandLoseTimeCheckbox.checked; 
+    });
+}
+if(unscheduledBreakCancelBtn) unscheduledBreakCancelBtn.addEventListener('click', () => toggleModal(unscheduledBreakConfirmModal, false));
+if(unscheduledBreakConfirmBtn) {
+    unscheduledBreakConfirmBtn.addEventListener('click', () => { 
+        alert("Unscheduled Break screen: Future"); 
+        toggleModal(unscheduledBreakConfirmModal, false); 
+    });
+}
+
+if(moreExitExamBtn) {
+    moreExitExamBtn.addEventListener('click', () => { 
+        toggleModal(exitExamConfirmModal, true); 
+        if(moreMenuDropdown) moreMenuDropdown.classList.remove('visible'); 
+    });
+}
+if(exitExamCancelBtn) exitExamCancelBtn.addEventListener('click', () => toggleModal(exitExamConfirmModal, false));
+if(exitExamConfirmBtn) {
+    exitExamConfirmBtn.addEventListener('click', () => { 
+        toggleModal(exitExamConfirmModal, false); 
+        showView('home-view'); 
+    });
+}
+
+// Initial start button listener
 if(startTestPreviewBtn) {
     startTestPreviewBtn.addEventListener('click', async () => {
-        console.log("Start Test Preview button clicked (Phase 3)."); // Added more specific log
+        console.log("Start Test Preview button clicked (Phase 3 - Corrected)."); 
         currentModuleIndex = 0;
         currentQuestionNumber = 1;
         userAnswers = {};
@@ -825,30 +891,29 @@ if(startTestPreviewBtn) {
         if(calculatorOverlay) calculatorOverlay.classList.remove('visible');
         if(referenceSheetPanel) referenceSheetPanel.classList.remove('visible');
 
-        // Ensure currentTestFlow is correctly initialized for a new test run
         currentTestFlow = ["DT-T0-RW-M1", "DT-T0-MT-M1"]; 
-        console.log("Test flow set to:", currentTestFlow); // Log the test flow
+        console.log("Test flow set to:", currentTestFlow); 
 
         if (currentTestFlow.length > 0) {
             const firstQuizName = currentTestFlow[currentModuleIndex];
-            console.log(`Attempting to load first quiz: ${firstQuizName}`); // Log which quiz is being loaded
+            console.log(`Attempting to load first quiz: ${firstQuizName}`); 
 
             startTestPreviewBtn.textContent = "Loading...";
             startTestPreviewBtn.disabled = true;
             
-            const success = await loadQuizData(firstQuizName); // Wait for data loading
+            const success = await loadQuizData(firstQuizName); 
             
-            startTestPreviewBtn.textContent = "Start"; // Reset button text regardless of success/failure for retry
-            startTestPreviewBtn.disabled = false; // Re-enable button
+            startTestPreviewBtn.textContent = "Start"; 
+            startTestPreviewBtn.disabled = false; 
 
             if (success && currentQuizQuestions.length > 0) {
                 console.log("Initial quiz data loaded successfully. Showing test interface.");
-                populateQNavGrid(); // Populate QNav for the first module
-                showView('test-interface-view'); // This calls loadQuestion and updateNavigation
+                populateQNavGrid(); 
+                showView('test-interface-view'); 
             } else {
                 console.error("Failed to load initial quiz data or no questions found after attempting load.");
                 alert("Could not start the test. Please check the console for errors. Ensure JSON files are accessible and GITHUB_JSON_BASE_URL is correct.");
-                showView('home-view'); // Revert to home view on failure
+                showView('home-view'); 
             }
         } else {
             console.error("Test flow is empty. Cannot start test.");
@@ -857,25 +922,6 @@ if(startTestPreviewBtn) {
     });
 }
 
-
-if(markReviewCheckboxMain) markReviewCheckboxMain.addEventListener('change', () => { /* ... (no change from P2.2) ... */ });
-if(timerToggleBtn) timerToggleBtn.addEventListener('click', () => handleTimerToggle(timerTextEl, timerClockIconEl, timerToggleBtn));
-if(reviewTimerToggleBtn && reviewTimerText && reviewTimerClockIcon) reviewTimerToggleBtn.addEventListener('click', () => handleTimerToggle(reviewTimerText, reviewTimerClockIcon, reviewTimerToggleBtn));
-if(moreBtn) moreBtn.addEventListener('click', (e) => { /* ... (no change from P2.2) ... */ });
-document.body.addEventListener('click', (e) => { /* ... (no change from P2.2) ... */ });
-if(moreMenuDropdown) moreMenuDropdown.addEventListener('click', (e) => e.stopPropagation()); 
-if(moreUnscheduledBreakBtn) moreUnscheduledBreakBtn.addEventListener('click', () => { /* ... (no change from P2.2) ... */ });
-if(understandLoseTimeCheckbox) understandLoseTimeCheckbox.addEventListener('change', () => { /* ... (no change from P2.2) ... */ });
-if(unscheduledBreakCancelBtn) unscheduledBreakCancelBtn.addEventListener('click', () => toggleModal(unscheduledBreakConfirmModal, false));
-if(unscheduledBreakConfirmBtn) unscheduledBreakConfirmBtn.addEventListener('click', () => { /* ... (no change from P2.2) ... */ });
-if(moreExitExamBtn) moreExitExamBtn.addEventListener('click', () => { /* ... (no change from P2.2) ... */ });
-if(exitExamCancelBtn) exitExamCancelBtn.addEventListener('click', () => toggleModal(exitExamConfirmModal, false));
-if(exitExamConfirmBtn) exitExamConfirmBtn.addEventListener('click', () => { /* ... (no change from P2.2) ... */ });
-
-// Ensure initial UI state is correct when the page loads
 document.addEventListener('DOMContentLoaded', () => {
-    // COMMENTED: Old initial call to showView, now handled by HTML default and start button
-    // showView('home-view');
-    // CHANGED: Call updateNavigation on DOMContentLoaded to set initial button states
-    updateNavigation();
+    updateNavigation(); // Set initial button states
 });
