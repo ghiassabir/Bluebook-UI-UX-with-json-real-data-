@@ -4,7 +4,7 @@
 // IMPORTANT: Update this URL to the RAW link of the FOLDER containing your JSON files on GitHub.
 // It should end with a trailing slash '/'. Example:
 // const GITHUB_JSON_BASE_URL = 'https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO_NAME/main/data/json/';
-const GITHUB_JSON_BASE_URL = 'https://raw.githubusercontent.com/ghiassabir/Bluebook-UI-UX-with-json-real-data/main/data/json/'; // USE YOUR ACTUAL PATH
+const GITHUB_JSON_BASE_URL = 'https://raw.githubusercontent.com/ghiassabir/Bluebook-UI-UX-with-json-real-data-/main/data/json/'; // USE YOUR ACTUAL PATH
 const APPS_SCRIPT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwAA7VRzbnJy4XMLJUMlS6X4aqUC2acuQQLbOL1VbV--m6sdXUJ17MswbI855eFTSxd/exec';
 
 // --- DOM ELEMENT REFERENCES ---
