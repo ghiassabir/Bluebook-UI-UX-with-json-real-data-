@@ -188,19 +188,26 @@
         const exitExamCancelBtn = document.getElementById('exit-exam-cancel-btn');
 
         // --- Helper Functions (Defined before other functions that use them) ---
-        // getCurrentModule and getCurrentQuestionData will be adapted in Phase 2
-        function getCurrentModule_OLD() { return testData.modules[currentModuleIndex]; }
-        function getCurrentQuestionData_OLD() {
-             const module = getCurrentModule_OLD();
-             return module && module.questions && module.questions[currentQuestionNumber - 1] ? module.questions[currentQuestionNumber - 1] : {};
+           function getCurrentModule() {
+        if (currentTestFlow.length > 0 && currentModuleIndex < currentTestFlow.length) {
+            const currentQuizName = currentTestFlow[currentModuleIndex];
+            return moduleMetadata[currentQuizName] || null;
         }
+        return null;
+    }
+
+    function getCurrentQuestionData() {
+        if (currentQuizQuestions && currentQuizQuestions.length > 0 && currentQuestionNumber > 0 && currentQuestionNumber <= currentQuizQuestions.length) {
+            return currentQuizQuestions[currentQuestionNumber - 1];
+        }
+        return null;
+    }
 
         function getAnswerStateKey(moduleIdx = currentModuleIndex, qNum = currentQuestionNumber) { return `${moduleIdx}-${qNum}`; }
         function getAnswerState(moduleIdx = currentModuleIndex, qNum = currentQuestionNumber) {
             const key = getAnswerStateKey(moduleIdx, qNum);
             // In Phase 2, this will also include timeSpent
-            if (!userAnswers[key]) userAnswers[key] = { selected: null, spr_answer: '', marked: false, crossedOut: [] };
-            return userAnswers[key];
+            if (!userAnswers[key]) userAnswers[key] = { selected: null, spr_answer: '', marked: false, crossedOut: [], timeSpent: 0 }; // Added timeSpent
         }
         
         function populateQNavGrid() {
@@ -256,7 +263,7 @@
             if(reviewPageSectionName) reviewPageSectionName.textContent = `Section ${currentModuleIndex + 1}: ${moduleInfo.name} Questions`;
             
             // ... (rest of the logic will be similar to populateQNavGrid but for review page)
-            updateNavigation();
+            updateNavigation_OLD(); // Use _OLD version for now
         }
 
         let confettiAnimationId; 
@@ -319,132 +326,156 @@
         }
         
         // --- Core UI Update `loadQuestion()` ---
-        // THIS FUNCTION WILL BE HEAVILY MODIFIED IN PHASE 2
-        function loadQuestion() {
-            if (!testInterfaceViewEl.classList.contains('active')) {
-                // ... (existing logic for review page header sync)
-                return;
-            }
-
-            // const module = getCurrentModule_OLD(); // OLD, will change
-            // const questionData = getCurrentQuestionData_OLD(); // OLD, will change
-
-            // --- START Tentative Phase 1/2 adaptation attempt ---
-            if (currentQuizQuestions.length === 0 || !currentQuizQuestions[currentQuestionNumber-1]) {
-                console.warn("loadQuestion: currentQuizQuestions is empty or question not found for currentQuestionNumber:", currentQuestionNumber);
-                if (questionTextMainEl) questionTextMainEl.innerHTML = "<p>Error: No question data loaded or question index out of bounds.</p>";
-                if (answerOptionsMainEl) answerOptionsMainEl.innerHTML = "";
-                if(totalQFooterEl) totalQFooterEl.textContent = '0';
-                updateNavigation_OLD(); // Call old nav until it's updated
-                return;
-            }
-
-            const questionData = currentQuizQuestions[currentQuestionNumber-1];
-            const moduleInfo = moduleMetadata[currentTestFlow[currentModuleIndex]];
-            
-            if (!moduleInfo || !questionData) {
-                 console.error("loadQuestion: ModuleInfo or Question data invalid. currentModuleIndex:", currentModuleIndex, "currentQuestionNumber:", currentQuestionNumber);
-                 if (questionTextMainEl) questionTextMainEl.innerHTML = "<p>Error: Critical data missing for question display.</p>";
-                 if (answerOptionsMainEl) answerOptionsMainEl.innerHTML = "";
-                 showView('home-view'); return;
-            }
-            // --- END Tentative ---
-
-
-            const answerState = getAnswerState(); // Uses currentModuleIndex, currentQuestionNumber
-
-            // Below is mostly OLD logic based on testData, will be replaced in Phase 2
-            const isMathModule = moduleInfo.type === "Math"; // Adapted for moduleInfo
-            if(highlightsNotesBtn) highlightsNotesBtn.classList.toggle('hidden', isMathModule);
-            if(calculatorBtnHeader) calculatorBtnHeader.classList.toggle('hidden', !isMathModule);
-            if(referenceBtnHeader) referenceBtnHeader.classList.toggle('hidden', !isMathModule);
-            // Assuming questionData.question_type will exist after JSON loading
-            if(crossOutToolBtnMain) crossOutToolBtnMain.classList.toggle('hidden', questionData.question_type === 'student_produced_response'); // Adapted
-
-            if(sectionTitleHeader) sectionTitleHeader.textContent = `Section ${currentModuleIndex + 1}: ${moduleInfo.name}`; // Adapted
-            if(questionNumberBoxMainEl) questionNumberBoxMainEl.textContent = currentQuestionNumber; // Adapted (using 1-indexed currentQuestionNumber)
-            if(questionTextMainEl) questionTextMainEl.innerHTML = `<p>${questionData.question_text || 'Question text missing.'}</p>`; // Adapted
-
-            if(markReviewCheckboxMain) markReviewCheckboxMain.checked = answerState.marked;
-            if(flagIconMain) { /* ... */ }
-
-            if(mainContentAreaDynamic) mainContentAreaDynamic.classList.toggle('cross-out-active', isCrossOutToolActive && questionData.question_type !== 'student_produced_response');
-            if(crossOutToolBtnMain) crossOutToolBtnMain.classList.toggle('active', isCrossOutToolActive && questionData.question_type !== 'student_produced_response');
-
-            if(passagePane) passagePane.style.display = 'none'; 
-            if(sprInstructionsPane) sprInstructionsPane.style.display = 'none';
-            if(paneDivider) paneDivider.style.display = 'none';
-            if(mainContentAreaDynamic) mainContentAreaDynamic.classList.remove('single-pane');
-
-
-            // Example of how question_type from JSON would be used (incomplete for Phase 1)
-            if (questionData.question_type === 'multiple_choice' && moduleInfo.passageText) { // Simplified: if R&W and passage in metadata
-                if(passagePane) passagePane.style.display = 'flex';
-                if(paneDivider) paneDivider.style.display = 'block';
-                if(passageContentEl) passageContentEl.innerHTML = moduleInfo.passageText || ''; // Use passage from metadata
-                if(answerOptionsMainEl) answerOptionsMainEl.style.display = 'flex';
-                if(sprInputContainerMain) sprInputContainerMain.style.display = 'none';
-            } else if (questionData.question_type === 'multiple_choice') { // mcq-single (no passage)
-                if(mainContentAreaDynamic) mainContentAreaDynamic.classList.add('single-pane');
-                if(answerOptionsMainEl) answerOptionsMainEl.style.display = 'flex';
-                if(sprInputContainerMain) sprInputContainerMain.style.display = 'none';
-            } else if (questionData.question_type === 'student_produced_response') {
-                if(sprInstructionsPane) sprInstructionsPane.style.display = 'flex'; 
-                if(paneDivider) paneDivider.style.display = 'block';
-                if(sprInstructionsContent) sprInstructionsContent.innerHTML = (moduleInfo.spr_directions || '') + (moduleInfo.spr_examples_table || ''); // Use SPR info from metadata
-                if(answerOptionsMainEl) answerOptionsMainEl.style.display = 'none';
-                if(sprInputContainerMain) sprInputContainerMain.style.display = 'block';
-                if(sprInputFieldMain) sprInputFieldMain.value = answerState.spr_answer || '';
-                if(sprAnswerPreviewMain) sprAnswerPreviewMain.textContent = `Answer Preview: ${answerState.spr_answer || ''}`;
-            }
-
-            // Options rendering will need significant update for JSON structure in Phase 2
-            if (questionData.option_a && answerOptionsMainEl) { 
-                answerOptionsMainEl.innerHTML = ''; 
-                const options = {};
-                if (questionData.option_a) options['A'] = questionData.option_a;
-                if (questionData.option_b) options['B'] = questionData.option_b;
-                if (questionData.option_c) options['C'] = questionData.option_c;
-                if (questionData.option_d) options['D'] = questionData.option_d;
-
-                for (const [key, value] of Object.entries(options)) {
-                    // ... (existing option rendering logic, largely compatible)
-                    const isSelected = answerState.selected === key;
-                    const isCrossedOut = answerState.crossedOut.includes(key);
-                    const containerDiv = document.createElement('div');
-                    containerDiv.className = 'answer-option-container';
-                    containerDiv.dataset.optionKey = key; 
-                    const optionDiv = document.createElement('div');
-                    optionDiv.className = `answer-option ${isSelected && !isCrossedOut ? 'selected' : ''} ${isCrossedOut ? 'crossed-out' : ''}`;
-                    const answerLetterDiv = document.createElement('div');
-                    answerLetterDiv.className = `answer-letter ${isSelected && !isCrossedOut ? 'selected' : ''} ${isCrossedOut ? 'crossed-out' : ''}`;
-                    answerLetterDiv.textContent = key;
-                    const answerTextSpan = document.createElement('span');
-                    answerTextSpan.className = 'answer-text';
-                    if (isCrossedOut) answerTextSpan.classList.add('text-dimmed-for-crossout');
-                    answerTextSpan.textContent = value; // MathJax will process this
-                    optionDiv.appendChild(answerLetterDiv);
-                    optionDiv.appendChild(answerTextSpan);
-                    containerDiv.appendChild(optionDiv);
-                    // ... (cross-out button logic)
-                    answerOptionsMainEl.appendChild(containerDiv);
-                }
-            } else if (questionData.question_type !== 'student_produced_response' && answerOptionsMainEl) { 
-                 answerOptionsMainEl.innerHTML = '';
-            }
-            
-            // MathJax call (Phase 1: ensure it's called, even if content is partial)
-            if (typeof MathJax !== "undefined" && MathJax.typesetPromise) {
-                console.log("Calling MathJax.typesetPromise for main content area");
-                MathJax.typesetPromise([passageContentEl, questionTextMainEl, answerOptionsMainEl, sprInstructionsContent]).catch(function (err) {
-                    console.error('MathJax Typesetting Error:', err);
-                });
-            } else {
-                console.warn("MathJax or MathJax.typesetPromise not available.");
-            }
-
-            updateNavigation_OLD(); // OLD navigation logic for now
+            // --- Core UI Update `loadQuestion()` ---
+    function loadQuestion() {
+        if (!testInterfaceViewEl.classList.contains('active')) {
+            // Logic for review page header sync (if needed, currently handled by showView indirectly)
+            return;
         }
+
+        const moduleInfo = getCurrentModule();
+        const questionData = getCurrentQuestionData();
+
+        if (!moduleInfo || !questionData) {
+            console.error("loadQuestion: ModuleInfo or Question data invalid. currentModuleIndex:", currentModuleIndex, "currentQuestionNumber:", currentQuestionNumber, "currentQuizQuestions length:", currentQuizQuestions.length);
+            if (questionTextMainEl) questionTextMainEl.innerHTML = "<p>Error: Critical data missing for question display.</p>";
+            if (answerOptionsMainEl) answerOptionsMainEl.innerHTML = "";
+            if(totalQFooterEl && currentQFooterEl) {
+                currentQFooterEl.textContent = currentQuestionNumber;
+                totalQFooterEl.textContent = currentQuizQuestions ? currentQuizQuestions.length : 0;
+            }
+            // Consider showing an error view or navigating home if this happens
+            // showView('home-view'); 
+            updateNavigation_OLD(); // Call old nav until it's updated
+            return;
+        }
+
+        const answerState = getAnswerState();
+        answerState.timeSpent = parseFloat(answerState.timeSpent) || 0; // Ensure timeSpent is a number
+
+        // --- Update Header and Question Identifiers ---
+        if(sectionTitleHeader) sectionTitleHeader.textContent = `Section ${currentModuleIndex + 1}: ${moduleInfo.name}`;
+        if(questionNumberBoxMainEl) questionNumberBoxMainEl.textContent = questionData.question_number || currentQuestionNumber; // Use question_number from JSON if available
+        if(questionTextMainEl) questionTextMainEl.innerHTML = questionData.question_text || '<p>Question text missing.</p>'; // Ensure it's treated as HTML
+
+        // --- UI Toggles based on Module Type ---
+        const isMathTypeModule = moduleInfo.type === "Math";
+        if(highlightsNotesBtn) highlightsNotesBtn.classList.toggle('hidden', isMathTypeModule);
+        if(calculatorBtnHeader) calculatorBtnHeader.classList.toggle('hidden', !isMathTypeModule);
+        if(referenceBtnHeader) referenceBtnHeader.classList.toggle('hidden', !isMathTypeModule);
+        if(crossOutToolBtnMain) crossOutToolBtnMain.classList.toggle('hidden', questionData.question_type === 'student_produced_response');
+
+        // --- Mark for Review ---
+        if(markReviewCheckboxMain) markReviewCheckboxMain.checked = answerState.marked;
+        if(flagIconMain) {
+            flagIconMain.style.fill = answerState.marked ? 'var(--bluebook-red-flag)' : 'none';
+            flagIconMain.style.color = answerState.marked ? 'var(--bluebook-red-flag)' : '#9ca3af';
+        }
+
+        // --- Cross-Out Tool State ---
+        if(mainContentAreaDynamic) mainContentAreaDynamic.classList.toggle('cross-out-active', isCrossOutToolActive && questionData.question_type !== 'student_produced_response');
+        if(crossOutToolBtnMain) crossOutToolBtnMain.classList.toggle('active', isCrossOutToolActive && questionData.question_type !== 'student_produced_response');
+
+        // --- Pane Configuration based on Question Type ---
+        passagePane.style.display = 'none';
+        sprInstructionsPane.style.display = 'none';
+        paneDivider.style.display = 'none';
+        mainContentAreaDynamic.classList.remove('single-pane');
+        answerOptionsMainEl.style.display = 'none';
+        sprInputContainerMain.style.display = 'none';
+
+        if (questionData.question_type === 'student_produced_response') {
+            sprInstructionsPane.style.display = 'flex';
+            paneDivider.style.display = 'block';
+            if(sprInstructionsContent) sprInstructionsContent.innerHTML = (moduleInfo.spr_directions || '') + (moduleInfo.spr_examples_table || '');
+            
+            answerOptionsMainEl.style.display = 'none';
+            sprInputContainerMain.style.display = 'block';
+            if(sprInputFieldMain) sprInputFieldMain.value = answerState.spr_answer || '';
+            if(sprAnswerPreviewMain) sprAnswerPreviewMain.textContent = `Answer Preview: ${answerState.spr_answer || ''}`;
+        } else if (moduleInfo.type === "RW" && moduleInfo.passageText) { // Assumes RW modules with passageText in metadata are passage-based
+            passagePane.style.display = 'flex';
+            paneDivider.style.display = 'block';
+            if(passageContentEl) passageContentEl.innerHTML = moduleInfo.passageText;
+            
+            answerOptionsMainEl.style.display = 'flex';
+            sprInputContainerMain.style.display = 'none';
+        } else { // Default to single-pane MCQ (e.g., Math MCQs, or R&W MCQs without a module-level passage)
+            mainContentAreaDynamic.classList.add('single-pane');
+            answerOptionsMainEl.style.display = 'flex';
+            sprInputContainerMain.style.display = 'none';
+        }
+
+        // --- Render MCQ Options ---
+        if (questionData.question_type === 'multiple_choice' || questionData.question_type === 'multiple_choice_passage') { // Or any other MCQ type from your JSON
+            answerOptionsMainEl.innerHTML = '';
+            const options = {};
+            if (questionData.option_a !== undefined && questionData.option_a !== null) options['A'] = questionData.option_a;
+            if (questionData.option_b !== undefined && questionData.option_b !== null) options['B'] = questionData.option_b;
+            if (questionData.option_c !== undefined && questionData.option_c !== null) options['C'] = questionData.option_c;
+            if (questionData.option_d !== undefined && questionData.option_d !== null) options['D'] = questionData.option_d;
+            // Add option_e if it exists in your JSON schema
+
+            for (const [key, value] of Object.entries(options)) {
+                const isSelected = answerState.selected === key;
+                const isCrossedOut = answerState.crossedOut.includes(key);
+                
+                const containerDiv = document.createElement('div');
+                containerDiv.className = 'answer-option-container';
+                containerDiv.dataset.optionKey = key;
+
+                const optionDiv = document.createElement('div');
+                optionDiv.className = `answer-option ${isSelected && !isCrossedOut ? 'selected' : ''} ${isCrossedOut ? 'crossed-out' : ''}`;
+                
+                const answerLetterDiv = document.createElement('div');
+                answerLetterDiv.className = `answer-letter`; // Base class
+                if (isSelected && !isCrossedOut) answerLetterDiv.classList.add('selected');
+                if (isCrossedOut) answerLetterDiv.classList.add('crossed-out');
+                answerLetterDiv.textContent = key;
+
+                const answerTextSpan = document.createElement('span');
+                answerTextSpan.className = 'answer-text';
+                if (isCrossedOut) answerTextSpan.classList.add('text-dimmed-for-crossout');
+                answerTextSpan.innerHTML = value; // Use innerHTML as options can contain MathJax/HTML
+
+                optionDiv.appendChild(answerLetterDiv);
+                optionDiv.appendChild(answerTextSpan);
+                containerDiv.appendChild(optionDiv);
+
+                if (isCrossOutToolActive && !isCrossedOut) {
+                    const crossOutBtnIndividual = document.createElement('button');
+                    crossOutBtnIndividual.className = 'individual-cross-out-btn';
+                    crossOutBtnIndividual.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
+                    crossOutBtnIndividual.title = `Cross out option ${key}`;
+                    crossOutBtnIndividual.dataset.action = 'cross-out-individual';
+                    containerDiv.appendChild(crossOutBtnIndividual);
+                } else if (isCrossedOut) {
+                    const undoBtn = document.createElement('button');
+                    undoBtn.className = 'undo-cross-out-btn';
+                    undoBtn.textContent = 'Undo';
+                    undoBtn.title = `Undo cross out for option ${key}`;
+                    undoBtn.dataset.action = 'undo-cross-out';
+                    containerDiv.appendChild(undoBtn);
+                }
+                answerOptionsMainEl.appendChild(containerDiv);
+            }
+        }
+        
+        // --- MathJax Typesetting ---
+        if (typeof MathJax !== "undefined" && MathJax.typesetPromise) {
+            console.log("Calling MathJax.typesetPromise for main content area");
+            MathJax.typesetPromise([passageContentEl, questionTextMainEl, answerOptionsMainEl, sprInstructionsContent]).catch(function (err) {
+                console.error('MathJax Typesetting Error:', err);
+            });
+        } else {
+            console.warn("MathJax or MathJax.typesetPromise not available.");
+        }
+
+        // --- Start Timer for this Question ---
+        // (To be implemented more robustly with recordAnswer in Phase 3/4)
+        // For now, just ensures updateNavigation is called.
+        updateNavigation_OLD(); // OLD navigation logic for now
+    }
         
         // --- Event Listeners (Ensure elements exist before adding listeners) ---
         if(answerOptionsMainEl) answerOptionsMainEl.addEventListener('click', function(event) {
