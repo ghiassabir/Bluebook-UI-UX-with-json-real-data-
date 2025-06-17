@@ -1,28 +1,35 @@
-// --- script.js (Phase 2 - Full Version) ---
+// --- script.js (Phase 2 - Revision 1 - Full Code) ---
 
 // --- Utility Functions (Define these FIRST) ---
 function toggleModal(modalElement, show) {
     if (!modalElement) {
-        // console.error("toggleModal called with null modalElement for ID:", modalElement ? modalElement.id : 'UNKNOWN');
         return;
     }
     modalElement.classList.toggle('visible', show);
 }
 
-// --- PHASE 1 & 2: NEW DATA STRUCTURES & LOADING ---
-let currentQuizQuestions = []; // Will hold questions for the active module
-let currentTestFlow = [];      // Array of quiz_names for the current test flow
+// --- GLOBAL CONFIGURATION & STATE ---
+let currentQuizQuestions = []; 
+let currentTestFlow = [];      
+let currentView = 'home';
+let currentModuleIndex = 0;
+let currentQuestionNumber = 1; 
+let userAnswers = {}; 
+let isTimerHidden = false;
+let isCrossOutToolActive = false;
+let isHighlightingActive = false;
+let questionStartTime = 0; 
 
 const moduleMetadata = {
     "DT-T0-RW-M1": {
         name: "Reading & Writing - Module 1",
         type: "RW",
         directions: "The questions in this section address a number of important reading and writing skills. Each question includes one or more passages, which may include a table or graph. Read each passage and question carefully, and then choose the best answer to the question based on the passage(s). All questions in this section are multiple-choice with four answer choices. Each question has a single best answer.",
-        passageText: "<p>This is a placeholder passage for Reading & Writing Module 1. It would appear here if the module requires a general passage not tied to individual questions in the JSON. For example, some say the world will end in fire, Some say in ice. From what I’ve tasted of desire I hold with those who favor fire. But if it had to perish twice, I think I know enough of hate To say that for destruction ice Is also great And would suffice.</p>", // Example placeholder
+        passageText: "<p>This is a placeholder passage for Reading & Writing Module 1. It would appear here if the module requires a general passage not tied to individual questions in the JSON. For example, some say the world will end in fire, Some say in ice. From what I’ve tasted of desire I hold with those who favor fire. But if it had to perish twice, I think I know enough of hate To say that for destruction ice Is also great And would suffice.</p>", 
         spr_directions: null,
         spr_examples_table: null
     },
-    "DT-T0-MT-M1": { // Placeholder for the Math module
+    "DT-T0-MT-M1": { 
         name: "Math - Module 1",
         type: "Math",
         directions: "The questions in this section address a number of important math skills. You may use the calculator for any question in this section. For student-produced response questions, additional directions are provided with the question.",
@@ -30,10 +37,9 @@ const moduleMetadata = {
         spr_directions: `<h3>Student-produced response directions</h3><ul><li>If you find <strong>more than one correct answer</strong>, enter only one answer.</li><li>You can enter up to 5 characters for a <strong>positive</strong> answer and up to 6 characters (including the negative sign) for a <strong>negative</strong> answer.</li><li>If your answer is a <strong>fraction</strong> that doesn’t fit in the provided space, enter the decimal equivalent.</li><li>If your answer is a <strong>decimal</strong> that doesn’t fit in the provided space, enter it by truncating or rounding at the fourth digit.</li><li>If your answer is a <strong>mixed number</strong> (such as 3 <span style="font-size: 0.7em; vertical-align: super;">1</span>/<span style="font-size: 0.7em; vertical-align: sub;">2</span>), enter it as an improper fraction (7/2) or its decimal equivalent (3.5).</li><li>Don’t enter <strong>symbols</strong> such as a percent sign, comma, or dollar sign.</li></ul>`,
         spr_examples_table: `<table class="spr-examples-table"><thead><tr><th>Answer</th><th>Acceptable ways to enter answer</th><th>Unacceptable: will NOT receive credit</th></tr></thead><tbody><tr><td>3.5</td><td>3.5<br/>7/2</td><td>3 1/2</td></tr><tr><td>2/3</td><td>2/3<br/>.666<br/>.667</td><td>0.66<br/>0.67</td></tr><tr><td>-15</td><td>-15</td><td></td></tr></tbody></table>`
     }
-    // Add other quiz_names and their metadata here as needed
 };
 
-const GITHUB_JSON_BASE_URL = 'https://raw.githubusercontent.com/ghiassabir/Bluebook-UI-UX-with-json-real-data-/main/data/json/'; // Ensure this matches your repo with trailing hyphen if present
+const GITHUB_JSON_BASE_URL = 'https://raw.githubusercontent.com/ghiassabir/Bluebook-UI-UX-with-json-real-data-/main/data/json/'; 
 
 async function loadQuizData(quizName) {
     const url = `${GITHUB_JSON_BASE_URL}${quizName}.json`;
@@ -54,22 +60,12 @@ async function loadQuizData(quizName) {
     } catch (error) {
         console.error("Error loading quiz data:", error);
         alert(`Failed to load quiz data for ${quizName}: ${error.message}. Please check the console and ensure the JSON file is accessible and the GITHUB_JSON_BASE_URL is correct.`);
-        currentQuizQuestions = []; // Ensure it's empty on failure
+        currentQuizQuestions = []; 
         return false;
     }
 }
 
-// --- State ---
-let currentView = 'home';
-let currentModuleIndex = 0;
-let currentQuestionNumber = 1; // 1-indexed for display and user understanding
-let userAnswers = {};
-let isTimerHidden = false;
-let isCrossOutToolActive = false;
-let isHighlightingActive = false;
-let questionStartTime = 0; // For time tracking per question
-
-// --- DOM Elements ---
+// --- DOM Elements (ensure all are defined) ---
 const allAppViews = document.querySelectorAll('.app-view');
 const homeViewEl = document.getElementById('home-view');
 const testInterfaceViewEl = document.getElementById('test-interface-view');
@@ -77,84 +73,69 @@ const moduleOverViewEl = document.getElementById('module-over-view');
 const finishedViewEl = document.getElementById('finished-view');
 const reviewPageViewEl = document.getElementById('review-page-view');
 const confettiCanvas = document.getElementById('confetti-canvas');
-
 const startTestPreviewBtn = document.getElementById('start-test-preview-btn');
 const returnToHomeBtn = document.getElementById('return-to-home-btn');
-
 const reviewPageSectionName = document.getElementById('review-page-section-name');
 const reviewPageQNavGrid = document.getElementById('review-page-qnav-grid');
 const reviewDirectionsBtn = document.getElementById('review-directions-btn');
-const reviewTimerText = document.getElementById('review-timer-text');
-const reviewTimerClockIcon = document.getElementById('review-timer-clock-icon');
-const reviewTimerToggleBtn = document.getElementById('review-timer-toggle-btn');
+const reviewTimerText = document.getElementById('review-timer-text'); 
+const reviewTimerClockIcon = document.getElementById('review-timer-clock-icon'); 
+const reviewTimerToggleBtn = document.getElementById('review-timer-toggle-btn'); 
 const reviewBackBtnFooter = document.getElementById('review-back-btn-footer');
 const reviewNextBtnFooter = document.getElementById('review-next-btn-footer');
-
-const appWrapper = document.querySelector('.app-wrapper');
+const appWrapper = document.querySelector('.app-wrapper'); 
 const mainContentAreaDynamic = document.getElementById('main-content-area-dynamic');
 const passagePane = document.getElementById('passage-pane');
 const sprInstructionsPane = document.getElementById('spr-instructions-pane');
 const sprInstructionsContent = document.getElementById('spr-instructions-content');
 const paneDivider = document.getElementById('pane-divider-draggable');
 const questionPane = document.getElementById('question-pane');
-
 const highlightsNotesBtn = document.getElementById('highlights-notes-btn');
 const calculatorBtnHeader = document.getElementById('calculator-btn');
 const referenceBtnHeader = document.getElementById('reference-btn');
-
 const answerArea = document.getElementById('answer-area');
 const answerOptionsMainEl = document.getElementById('answer-options-main');
 const sprInputContainerMain = document.getElementById('spr-input-container-main');
 const sprInputFieldMain = document.getElementById('spr-input-field-main');
 const sprAnswerPreviewMain = document.getElementById('spr-answer-preview-main');
-
 const calculatorOverlay = document.getElementById('calculator-overlay-main');
 const calculatorHeaderDraggable = document.getElementById('calculator-header-draggable');
 const calculatorCloseBtn = document.getElementById('calculator-overlay-close-btn');
-
 const referenceSheetPanel = document.getElementById('reference-sheet-panel-main');
 const referenceSheetCloseBtn = document.getElementById('reference-sheet-close-btn');
-
 const crossOutToolBtnMain = document.getElementById('cross-out-tool-btn-main');
-const sectionTitleHeader = document.getElementById('section-title-header');
+const sectionTitleHeader = document.getElementById('section-title-header'); 
 const passageContentEl = document.getElementById('passage-content');
 const questionTextMainEl = document.getElementById('question-text-main');
 const questionNumberBoxMainEl = document.getElementById('question-number-box-main');
 const markReviewCheckboxMain = document.getElementById('mark-review-checkbox-main');
 const flagIconMain = document.getElementById('flag-icon-main');
-
-const qNavBtnFooter = document.getElementById('qNavBtnFooter');
-const currentQFooterEl = document.getElementById('current-q-footer');
+const qNavBtnFooter = document.getElementById('qNavBtnFooter'); 
+const currentQFooterEl = document.getElementById('current-q-footer'); 
 const totalQFooterEl = document.getElementById('total-q-footer');
 const backBtnFooter = document.getElementById('back-btn-footer');
 const nextBtnFooter = document.getElementById('next-btn-footer');
-
-const directionsBtn = document.getElementById('directions-btn');
+const directionsBtn = document.getElementById('directions-btn'); 
 const directionsModal = document.getElementById('directions-modal');
 const directionsModalTitle = document.getElementById('directions-modal-title');
 const directionsModalText = document.getElementById('directions-modal-text');
 const directionsModalCloseBtn = document.getElementById('directions-modal-close-btn');
-
 const qNavPopup = document.getElementById('qnav-popup');
 const qNavTitle = document.getElementById('qnav-title');
 const qNavGridMain = document.getElementById('qnav-grid-main');
 const qNavCloseBtn = document.getElementById('qnav-close-btn');
 const qNavGotoReviewBtn = document.getElementById('qnav-goto-review-btn');
-
-const timerTextEl = document.getElementById('timer-text');
+const timerTextEl = document.getElementById('timer-text'); 
 const timerClockIconEl = document.getElementById('timer-clock-icon');
 const timerToggleBtn = document.getElementById('timer-toggle-btn');
-
-const moreBtn = document.getElementById('more-btn');
+const moreBtn = document.getElementById('more-btn'); 
 const moreMenuDropdown = document.getElementById('more-menu-dropdown');
 const moreUnscheduledBreakBtn = document.getElementById('more-unscheduled-break');
 const moreExitExamBtn = document.getElementById('more-exit-exam');
-
 const unscheduledBreakConfirmModal = document.getElementById('unscheduled-break-confirm-modal');
 const understandLoseTimeCheckbox = document.getElementById('understand-lose-time-checkbox');
 const unscheduledBreakConfirmBtn = document.getElementById('unscheduled-break-confirm-btn');
 const unscheduledBreakCancelBtn = document.getElementById('unscheduled-break-cancel-btn');
-
 const exitExamConfirmModal = document.getElementById('exit-exam-confirm-modal');
 const exitExamConfirmBtn = document.getElementById('exit-exam-confirm-btn');
 const exitExamCancelBtn = document.getElementById('exit-exam-cancel-btn');
@@ -176,13 +157,6 @@ function getCurrentQuestionData() {
 }
 
 function getAnswerStateKey(moduleIdx = currentModuleIndex, qNum = currentQuestionNumber) {
-    // Using question_id from JSON if available for more robust keying, otherwise fallback.
-    // This needs currentQuizQuestions to be populated for the specific module.
-    // For now, stick to moduleIdx-qNum for simplicity in early phases.
-    // const questionData = currentQuizQuestions[qNum - 1];
-    // if (questionData && questionData.question_id) {
-    //     return `${moduleIdx}-${questionData.question_id}`;
-    // }
     return `${moduleIdx}-${qNum}`;
 }
 
@@ -209,7 +183,7 @@ function populateQNavGrid() {
     const totalQuestionsInModule = currentQuizQuestions.length;
 
     for (let i = 1; i <= totalQuestionsInModule; i++) {
-        const qState = getAnswerState(currentModuleIndex, i); // i is 1-indexed
+        const qState = getAnswerState(currentModuleIndex, i);
         const questionDataForButton = currentQuizQuestions[i-1]; 
         
         const btn = document.createElement('button');
@@ -221,11 +195,11 @@ function populateQNavGrid() {
             btn.textContent = i;
         }
 
-        let isUnanswered = true; // Default to unanswered
-        if (questionDataForButton) { // Check if question data exists
+        let isUnanswered = true; 
+        if (questionDataForButton) { 
             if (questionDataForButton.question_type === 'student_produced_response') { 
                 isUnanswered = !qState.spr_answer;
-            } else { // MCQ types
+            } else { 
                 isUnanswered = !qState.selected;
             }
         }
@@ -235,7 +209,7 @@ function populateQNavGrid() {
         
         btn.dataset.question = i;
         btn.addEventListener('click', () => {
-            recordTimeOnCurrentQuestion(); // Record time before jumping
+            recordTimeOnCurrentQuestion();
             currentQuestionNumber = i;
             isCrossOutToolActive = false; 
             isHighlightingActive = false; if(highlightsNotesBtn) highlightsNotesBtn.classList.remove('active');
@@ -286,19 +260,26 @@ function renderReviewPage() {
             btn.innerHTML += `<span class="review-flag-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg></span>`;
         }
         btn.addEventListener('click', () => {
-            currentQuestionNumber = i;
+            currentQuestionNumber = i; // No time recording here as we are just viewing
             showView('test-interface-view');
         });
         reviewPageQNavGrid.appendChild(btn);
     }
-    updateNavigation_OLD(); // Use _OLD version for now
+    updateNavigation_OLD(); 
 }
 
-let confettiAnimationId;
-const confettiParticles = [];
-function startConfetti() { /* ... (existing unchanged) ... */ }
-function stopConfetti() { /* ... (existing unchanged) ... */ }
-function handleTimerToggle(textEl, iconEl, btnEl) { /* ... (existing unchanged) ... */ }
+let confettiAnimationId; 
+const confettiParticles = []; 
+function startConfetti() { /* ... (existing unchanged, assuming it works) ... */ }
+function stopConfetti() { /* ... (existing unchanged, assuming it works) ... */ }
+
+function handleTimerToggle(textEl, iconEl, btnEl) {
+    if (!textEl || !iconEl || !btnEl) return;
+    isTimerHidden = !isTimerHidden; 
+    textEl.classList.toggle('hidden', isTimerHidden); 
+    iconEl.classList.toggle('hidden', !isTimerHidden);
+    btnEl.textContent = isTimerHidden ? '[Show]' : '[Hide]';
+}
 
 // --- View Management ---
 function showView(viewId) {
@@ -335,14 +316,14 @@ function loadQuestion() {
     if (!testInterfaceViewEl.classList.contains('active')) {
         return;
     }
-    questionStartTime = Date.now(); // Start timer for this question
+    questionStartTime = Date.now(); 
 
     const currentModuleInfo = getCurrentModule(); 
     const currentQuestionDetails = getCurrentQuestionData(); 
 
     console.log(`loadQuestion START: currentModuleIndex=${currentModuleIndex}, currentQuestionNumber=${currentQuestionNumber}`);
-    console.log(`loadQuestion START: currentModuleInfo:`, currentModuleInfo ? JSON.parse(JSON.stringify(currentModuleInfo)) : null);
-    console.log(`loadQuestion START: currentQuestionDetails:`, currentQuestionDetails ? JSON.parse(JSON.stringify(currentQuestionDetails)) : null);
+    console.log(`loadQuestion START: currentModuleInfo:`, currentModuleInfo ? JSON.parse(JSON.stringify(currentModuleInfo)) : "null/undefined");
+    console.log(`loadQuestion START: currentQuestionDetails:`, currentQuestionDetails ? JSON.parse(JSON.stringify(currentQuestionDetails)) : "null/undefined");
     
     if (!currentModuleInfo || !currentQuestionDetails) {
         console.error("loadQuestion: ModuleInfo or Question data is null/undefined. Aborting question load.");
@@ -358,11 +339,11 @@ function loadQuestion() {
 
     const debugKey = getAnswerStateKey(currentModuleIndex, currentQuestionNumber);
     console.log(`loadQuestion: Key for getAnswerState = "${debugKey}"`);
-    console.log(`loadQuestion: userAnswers object before getAnswerState:`, JSON.parse(JSON.stringify(userAnswers)));
+    // console.log(`loadQuestion: userAnswers object before getAnswerState:`, JSON.parse(JSON.stringify(userAnswers))); // Can be very verbose
     
     const answerState = getAnswerState(); 
     
-    console.log(`loadQuestion: answerState object AFTER getAnswerState:`, answerState ? JSON.parse(JSON.stringify(answerState)) : undefined);
+    console.log(`loadQuestion: answerState object AFTER getAnswerState:`, answerState ? JSON.parse(JSON.stringify(answerState)) : "undefined");
 
     if (!answerState) { 
         console.error(`loadQuestion: getAnswerState() returned undefined for key "${debugKey}". This should not happen.`);
@@ -373,7 +354,7 @@ function loadQuestion() {
 
     if(sectionTitleHeader) sectionTitleHeader.textContent = `Section ${currentModuleIndex + 1}: ${currentModuleInfo.name}`;
     if(questionNumberBoxMainEl) questionNumberBoxMainEl.textContent = currentQuestionDetails.question_number || currentQuestionNumber;
-    if(questionTextMainEl) questionTextMainEl.innerHTML = currentQuestionDetails.question_text || '<p>Question text missing.</p>';
+    // Question text will be placed based on pane logic below
 
     const isMathTypeModule = currentModuleInfo.type === "Math";
     if(highlightsNotesBtn) highlightsNotesBtn.classList.toggle('hidden', isMathTypeModule);
@@ -390,44 +371,69 @@ function loadQuestion() {
     if(mainContentAreaDynamic) mainContentAreaDynamic.classList.toggle('cross-out-active', isCrossOutToolActive && currentQuestionDetails.question_type !== 'student_produced_response');
     if(crossOutToolBtnMain) crossOutToolBtnMain.classList.toggle('active', isCrossOutToolActive && currentQuestionDetails.question_type !== 'student_produced_response');
 
+    // Reset panes and content areas initially
     passagePane.style.display = 'none';
+    if (passageContentEl) passageContentEl.innerHTML = ''; 
     sprInstructionsPane.style.display = 'none';
+    if (sprInstructionsContent) sprInstructionsContent.innerHTML = ''; 
+    if (questionTextMainEl) questionTextMainEl.innerHTML = ''; 
+    if (answerOptionsMainEl) answerOptionsMainEl.innerHTML = ''; 
     paneDivider.style.display = 'none';
     mainContentAreaDynamic.classList.remove('single-pane');
-    answerOptionsMainEl.style.display = 'none';
-    sprInputContainerMain.style.display = 'none';
+    answerOptionsMainEl.style.display = 'none'; 
+    sprInputContainerMain.style.display = 'none'; 
+
 
     if (currentQuestionDetails.question_type === 'student_produced_response') {
+        mainContentAreaDynamic.classList.remove('single-pane');
         sprInstructionsPane.style.display = 'flex';
+        passagePane.style.display = 'none'; 
         paneDivider.style.display = 'block';
-        if(sprInstructionsContent) sprInstructionsContent.innerHTML = (currentModuleInfo.spr_directions || '') + (currentModuleInfo.spr_examples_table || '');
+        if(sprInstructionsContent) sprInstructionsContent.innerHTML = (currentModuleInfo.spr_directions || 'SPR Directions Missing') + (currentModuleInfo.spr_examples_table || '');
         
-        answerOptionsMainEl.style.display = 'none';
+        if(questionTextMainEl) questionTextMainEl.innerHTML = currentQuestionDetails.question_text || '<p>Question text missing.</p>';
         sprInputContainerMain.style.display = 'block';
         if(sprInputFieldMain) sprInputFieldMain.value = answerState.spr_answer || '';
         if(sprAnswerPreviewMain) sprAnswerPreviewMain.textContent = `Answer Preview: ${answerState.spr_answer || ''}`;
-    } else if (currentModuleInfo.type === "RW" && currentModuleInfo.passageText) {
-        passagePane.style.display = 'flex';
-        paneDivider.style.display = 'block';
-        if(passageContentEl) passageContentEl.innerHTML = currentModuleInfo.passageText;
+        answerOptionsMainEl.style.display = 'none';
+
+    } else if (currentModuleInfo.type === "RW") { // All R&W MCQs will attempt this layout
+        mainContentAreaDynamic.classList.remove('single-pane');
+        passagePane.style.display = 'flex'; // Show left pane
+        paneDivider.style.display = 'block'; // Show divider
         
-        answerOptionsMainEl.style.display = 'flex';
+        let combinedLeftPaneContent = "";
+        if (currentModuleInfo.passageText) { // Module-level passage first
+            combinedLeftPaneContent += currentModuleInfo.passageText;
+        }
+        // Append actual question text to the left pane
+        combinedLeftPaneContent += (currentQuestionDetails.question_text || '<p>Question text missing.</p>'); 
+        if(passageContentEl) passageContentEl.innerHTML = combinedLeftPaneContent;
+
+        if(questionTextMainEl) questionTextMainEl.innerHTML = ''; // Clear question text from right pane, as it's now on left
+        answerOptionsMainEl.style.display = 'flex'; // Options will be in the right pane
         sprInputContainerMain.style.display = 'none';
-    } else { 
+
+    } else { // Math MCQs or other types that default to single-pane
         mainContentAreaDynamic.classList.add('single-pane');
-        answerOptionsMainEl.style.display = 'flex';
+        passagePane.style.display = 'none';
+        sprInstructionsPane.style.display = 'none';
+        paneDivider.style.display = 'none';
+
+        if(questionTextMainEl) questionTextMainEl.innerHTML = currentQuestionDetails.question_text || '<p>Question text missing.</p>';
+        answerOptionsMainEl.style.display = 'flex'; 
         sprInputContainerMain.style.display = 'none';
     }
 
+    // Render MCQ Options if applicable
     if (currentQuestionDetails.question_type && currentQuestionDetails.question_type.includes('multiple_choice')) {
-        answerOptionsMainEl.innerHTML = '';
+        answerOptionsMainEl.innerHTML = ''; // Clear previous options
         const options = {};
         if (currentQuestionDetails.option_a !== undefined && currentQuestionDetails.option_a !== null) options['A'] = currentQuestionDetails.option_a;
         if (currentQuestionDetails.option_b !== undefined && currentQuestionDetails.option_b !== null) options['B'] = currentQuestionDetails.option_b;
         if (currentQuestionDetails.option_c !== undefined && currentQuestionDetails.option_c !== null) options['C'] = currentQuestionDetails.option_c;
         if (currentQuestionDetails.option_d !== undefined && currentQuestionDetails.option_d !== null) options['D'] = currentQuestionDetails.option_d;
-        if (currentQuestionDetails.option_e !== undefined && currentQuestionDetails.option_e !== null && currentQuestionDetails.option_e.trim() !== "") options['E'] = currentQuestionDetails.option_e;
-
+        if (currentQuestionDetails.option_e !== undefined && currentQuestionDetails.option_e !== null && String(currentQuestionDetails.option_e).trim() !== "") options['E'] = currentQuestionDetails.option_e;
 
         for (const [key, value] of Object.entries(options)) {
             const isSelected = answerState.selected === key;
@@ -445,7 +451,7 @@ function loadQuestion() {
             const answerLetterDiv = document.createElement('div');
             answerLetterDiv.className = 'answer-letter';
             if (isSelected && !isCrossedOut) answerLetterDiv.classList.add('selected');
-            if (isCrossedOut) answerLetterDiv.classList.add('crossed-out'); // Ensure this is applied for styling
+            // if (isCrossedOut) answerLetterDiv.classList.add('crossed-out'); // Already handled by optionDiv's class for letter styling
             answerLetterDiv.textContent = key;
 
             const answerTextSpan = document.createElement('span');
@@ -477,7 +483,7 @@ function loadQuestion() {
     }
     
     if (typeof MathJax !== "undefined" && MathJax.typesetPromise) {
-        console.log("Calling MathJax.typesetPromise for main content area (Phase 2 full)");
+        console.log("Calling MathJax.typesetPromise for main content area (Phase 2.1)");
         MathJax.typesetPromise([passageContentEl, questionTextMainEl, answerOptionsMainEl, sprInstructionsContent]).catch(function (err) {
             console.error('MathJax Typesetting Error:', err);
         });
@@ -488,20 +494,19 @@ function loadQuestion() {
 }
 
 function recordTimeOnCurrentQuestion() {
-    if (questionStartTime > 0 && currentQuizQuestions.length > 0) {
+    if (questionStartTime > 0 && currentQuizQuestions.length > 0 && currentQuestionNumber <= currentQuizQuestions.length) {
         const endTime = Date.now();
         const timeSpentSeconds = (endTime - questionStartTime) / 1000;
-        const answerState = getAnswerState(); // Gets for currentModuleIndex, currentQuestionNumber
-        if (answerState) { // Ensure answerState is not undefined
+        const answerState = getAnswerState(); 
+        if (answerState) { 
             answerState.timeSpent = (parseFloat(answerState.timeSpent) || 0) + timeSpentSeconds;
-            console.log(`Time recorded for Q#${currentQuestionNumber} (key ${getAnswerStateKey()}): ${timeSpentSeconds.toFixed(2)}s. Total: ${answerState.timeSpent.toFixed(2)}s`);
+            // console.log(`Time recorded for Q#${currentQuestionNumber} (key ${getAnswerStateKey()}): ${timeSpentSeconds.toFixed(2)}s. Total: ${answerState.timeSpent.toFixed(2)}s`);
         } else {
-            console.warn(`Could not record time for Q#${currentQuestionNumber}: answerState was undefined.`);
+            // console.warn(`Could not record time for Q#${currentQuestionNumber}: answerState was undefined.`);
         }
     }
-    questionStartTime = 0; // Reset for next question
+    questionStartTime = 0; 
 }
-
 
 // --- Event Listeners ---
 if(answerOptionsMainEl) answerOptionsMainEl.addEventListener('click', function(event) {
@@ -511,7 +516,10 @@ if(answerOptionsMainEl) answerOptionsMainEl.addEventListener('click', function(e
     const optionKey = answerContainer.dataset.optionKey;
     const action = target.dataset.action || (target.closest('[data-action]') ? target.closest('[data-action]').dataset.action : null);
     
-    recordTimeOnCurrentQuestion(); // Record time when an interaction occurs
+    if (action !== 'cross-out-individual' && action !== 'undo-cross-out' && target.closest('.answer-option')) {
+        // Only record time if it's a selection attempt, not just cross-out interaction
+        recordTimeOnCurrentQuestion(); 
+    }
 
     if (action === 'cross-out-individual') handleAnswerCrossOut(optionKey);
     else if (action === 'undo-cross-out') handleAnswerUndoCrossOut(optionKey);
@@ -520,7 +528,10 @@ if(answerOptionsMainEl) answerOptionsMainEl.addEventListener('click', function(e
 
 function handleAnswerSelect(optionKey) {
     const answerState = getAnswerState();
-    if (!answerState || answerState.crossedOut.includes(optionKey) || isCrossOutToolActive) return;
+    if (!answerState || answerState.crossedOut.includes(optionKey) || isCrossOutToolActive) {
+         console.log(`Selection blocked: crossedOut=${answerState ? answerState.crossedOut.includes(optionKey) : 'N/A'}, isCrossOutToolActive=${isCrossOutToolActive}`);
+        return;
+    }
     answerState.selected = optionKey;
     loadQuestion(); 
 }
@@ -544,6 +555,7 @@ if(crossOutToolBtnMain) crossOutToolBtnMain.addEventListener('click', () => {
     const currentQData = getCurrentQuestionData();
     if (currentQData && currentQData.question_type === 'student_produced_response') return;
     isCrossOutToolActive = !isCrossOutToolActive;
+    console.log("Cross-out tool active:", isCrossOutToolActive);
     loadQuestion();
 });
 if(sprInputFieldMain) sprInputFieldMain.addEventListener('input', (event) => {
@@ -551,10 +563,11 @@ if(sprInputFieldMain) sprInputFieldMain.addEventListener('input', (event) => {
     if (!answerState) return;
     answerState.spr_answer = event.target.value;
     if(sprAnswerPreviewMain) sprAnswerPreviewMain.textContent = `Answer Preview: ${event.target.value}`;
+    recordTimeOnCurrentQuestion(); // Record time on SPR input change
 });
 
 function updateNavigation_OLD() {
-    if (!getCurrentModule() || currentQuizQuestions.length === 0 ) { 
+    if (!getCurrentModule() || !currentQuizQuestions || currentQuizQuestions.length === 0 ) { 
         if(backBtnFooter) backBtnFooter.disabled = true;
         if(nextBtnFooter) nextBtnFooter.disabled = true;
         if(currentQFooterEl) currentQFooterEl.textContent = '0';
@@ -581,7 +594,7 @@ function updateNavigation_OLD() {
 }
 
 if(nextBtnFooter) nextBtnFooter.addEventListener('click', () => {
-    recordTimeOnCurrentQuestion(); // Record time for the current question
+    recordTimeOnCurrentQuestion(); 
     const totalQuestionsInModule = currentQuizQuestions.length;
 
     if (currentView === 'review-page-view') {
@@ -606,7 +619,7 @@ if(nextBtnFooter) nextBtnFooter.addEventListener('click', () => {
     }
 });
 if(backBtnFooter) backBtnFooter.addEventListener('click', () => {
-    recordTimeOnCurrentQuestion(); // Record time for the current question
+    recordTimeOnCurrentQuestion(); 
     if (currentQuestionNumber > 1) {
         currentQuestionNumber--;
         isCrossOutToolActive = false; isHighlightingActive = false; if(highlightsNotesBtn) highlightsNotesBtn.classList.remove('active');
@@ -620,7 +633,7 @@ if(reviewDirectionsBtn) reviewDirectionsBtn.addEventListener('click', () => {
     if(moduleInfo && directionsModalText) directionsModalText.innerHTML = moduleInfo.directions || "General directions";
     toggleModal(directionsModal, true);
 });
-if(reviewTimerToggleBtn) reviewTimerToggleBtn.addEventListener('click', () => handleTimerToggle(reviewTimerText, reviewTimerClockIcon, reviewTimerToggleBtn));
+if(reviewTimerToggleBtn && reviewTimerText && reviewTimerClockIcon) reviewTimerToggleBtn.addEventListener('click', () => handleTimerToggle(reviewTimerText, reviewTimerClockIcon, reviewTimerToggleBtn));
 if(reviewBackBtnFooter) reviewBackBtnFooter.addEventListener('click', () => showView('test-interface-view') );
 
 if(startTestPreviewBtn) {
@@ -632,7 +645,7 @@ if(startTestPreviewBtn) {
         isTimerHidden = false;
         isCrossOutToolActive = false;
         isHighlightingActive = false;
-        questionStartTime = 0; // Reset question start time
+        questionStartTime = 0; 
         if(highlightsNotesBtn) highlightsNotesBtn.classList.remove('active');
         if(calculatorOverlay) calculatorOverlay.classList.remove('visible');
         if(referenceSheetPanel) referenceSheetPanel.classList.remove('visible');
@@ -674,8 +687,37 @@ if(calculatorHeaderDraggable) {
     document.addEventListener('mouseup', () => isCalcDragging = false );
 }
 
-if(highlightsNotesBtn && passageContentEl) { /* ... (existing unchanged) ... */ }
-function handleTextSelection() { /* ... (existing unchanged) ... */ }
+if(highlightsNotesBtn && passageContentEl) { 
+    highlightsNotesBtn.addEventListener('click', () => {
+        isHighlightingActive = !isHighlightingActive;
+        highlightsNotesBtn.classList.toggle('active', isHighlightingActive);
+        if (isHighlightingActive) {
+            passageContentEl.addEventListener('mouseup', handleTextSelection);
+            if(mainContentAreaDynamic) mainContentAreaDynamic.classList.add('highlight-active'); 
+        } else {
+            passageContentEl.removeEventListener('mouseup', handleTextSelection);
+            if(mainContentAreaDynamic) mainContentAreaDynamic.classList.remove('highlight-active'); 
+        }
+    });
+}
+function handleTextSelection() {
+    if (!isHighlightingActive) return;
+    const selection = window.getSelection();
+    if (!selection.rangeCount || selection.isCollapsed) return;
+    const range = selection.getRangeAt(0);
+    if (!passageContentEl.contains(range.commonAncestorContainer) && !questionTextMainEl.contains(range.commonAncestorContainer) ) return; // Allow highlighting in both panes if visible
+
+    const span = document.createElement('span');
+    span.className = 'text-highlight';
+    try {
+        range.surroundContents(span);
+    } catch (e) { 
+        span.appendChild(range.extractContents());
+        range.insertNode(span);
+        console.warn("Highlighting across complex nodes, used extract/insert fallback.", e);
+    }
+    selection.removeAllRanges();
+}
 
 if(directionsBtn) directionsBtn.addEventListener('click', () => {
     const moduleInfo = getCurrentModule();
@@ -707,11 +749,11 @@ if(moreBtn) moreBtn.addEventListener('click', (e) => { e.stopPropagation(); if(m
 document.body.addEventListener('click', (e) => { if (moreMenuDropdown && moreBtn && !moreBtn.contains(e.target) && !moreMenuDropdown.contains(e.target) && moreMenuDropdown.classList.contains('visible')) moreMenuDropdown.classList.remove('visible'); });
 if(moreMenuDropdown) moreMenuDropdown.addEventListener('click', (e) => e.stopPropagation());
 
-if(moreUnscheduledBreakBtn) moreUnscheduledBreakBtn.addEventListener('click', () => { /* ... (existing unchanged) ... */ });
-if(understandLoseTimeCheckbox) understandLoseTimeCheckbox.addEventListener('change', () => { /* ... (existing unchanged) ... */ });
+if(moreUnscheduledBreakBtn) moreUnscheduledBreakBtn.addEventListener('click', () => { toggleModal(unscheduledBreakConfirmModal, true); if(moreMenuDropdown) moreMenuDropdown.classList.remove('visible'); if(understandLoseTimeCheckbox) understandLoseTimeCheckbox.checked = false; if(unscheduledBreakConfirmBtn) unscheduledBreakConfirmBtn.disabled = true; });
+if(understandLoseTimeCheckbox) understandLoseTimeCheckbox.addEventListener('change', () => { if(unscheduledBreakConfirmBtn) unscheduledBreakConfirmBtn.disabled = !understandLoseTimeCheckbox.checked; });
 if(unscheduledBreakCancelBtn) unscheduledBreakCancelBtn.addEventListener('click', () => toggleModal(unscheduledBreakConfirmModal, false));
-if(unscheduledBreakConfirmBtn) unscheduledBreakConfirmBtn.addEventListener('click', () => { /* ... (existing unchanged) ... */ });
+if(unscheduledBreakConfirmBtn) unscheduledBreakConfirmBtn.addEventListener('click', () => { alert("Unscheduled Break screen: Future"); toggleModal(unscheduledBreakConfirmModal, false); });
 
-if(moreExitExamBtn) moreExitExamBtn.addEventListener('click', () => { /* ... (existing unchanged) ... */ });
+if(moreExitExamBtn) moreExitExamBtn.addEventListener('click', () => { toggleModal(exitExamConfirmModal, true); if(moreMenuDropdown) moreMenuDropdown.classList.remove('visible'); });
 if(exitExamCancelBtn) exitExamCancelBtn.addEventListener('click', () => toggleModal(exitExamConfirmModal, false));
-if(exitExamConfirmBtn) exitExamConfirmBtn.addEventListener('click', () => { /* ... (existing unchanged) ... */ });
+if(exitExamConfirmBtn) exitExamConfirmBtn.addEventListener('click', () => { toggleModal(exitExamConfirmModal, false); showView('home-view'); });
