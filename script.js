@@ -1,4 +1,3 @@
-<script>
         // --- Utility Functions (Define these FIRST) ---
         function toggleModal(modalElement, show) {
             if (!modalElement) {
@@ -675,4 +674,3 @@
 
         // Initial Load (already set in HTML for home-view to be active)
         // showView('home-view'); // Set in HTML directly
-    </script>
