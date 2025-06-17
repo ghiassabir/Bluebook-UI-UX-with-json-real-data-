@@ -661,7 +661,7 @@ function updateNavigation() {
 
 
 // COMMENTED: Old nextBtnFooter click listener structure (partially adapted in P2.2)
-/*
+
 if(nextBtnFooter) nextBtnFooter.addEventListener('click', () => {
     recordTimeOnCurrentQuestion(); 
     const totalQuestionsInModule = currentQuizQuestions.length;
@@ -687,7 +687,7 @@ if(nextBtnFooter) nextBtnFooter.addEventListener('click', () => {
         showView('review-page-view');
     }
 });
-*/
+
 
 // CHANGED: Phase 3 - Update nextBtnFooter click listener for test-interface-view
 if(nextBtnFooter) {
