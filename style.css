@@ -1,0 +1,188 @@
+/* --- General Body & Font --- */
+body { 
+    font-family: 'Inter', sans-serif; 
+    background-color: #f0f2f5; /* Light grey background for the page */
+    color: #374151; /* Default dark grey text */
+    margin: 0;
+    padding: 0;
+}
+
+/* --- Header --- */
+.sathub-header { 
+    background-color: #2a5266; /* SAT Hub Dark Blue */
+    color: #f0f0f0; /* Light text for header */
+}
+.sathub-header-title { 
+    color: #ffd700; /* SAT Hub Gold */
+}
+#timer {
+    background-color: rgba(0,0,0,0.2); /* Slight dark background for timer */
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.25rem;
+}
+
+/* --- Main Quiz Container --- */
+.quiz-container { 
+    max-width: 1200px; 
+    margin: 2rem auto; 
+}
+
+/* --- Welcome & Confirmation Screens --- */
+#welcomeScreen, #confirmationScreen {
+    /* Tailwind classes handle most of this, but you can add more specific styles */
+}
+#studentEmail {
+    /* Tailwind classes handle most, but ensure focus state is good */
+}
+
+/* --- Quiz Area --- */
+#quizArea {
+    /* Container for the two-column layout */
+}
+
+/* --- Question Container & Options --- */
+#questionContainer img {
+    border: 1px solid #e5e7eb; /* Light border for image */
+}
+#questionText {
+    color: #1f2937; /* Darker text for questions */
+}
+#questionText p { /* Add some spacing between paragraphs in question text */
+    margin-bottom: 0.75em;
+}
+#questionText strong { /* Make bold text slightly more prominent */
+    font-weight: 600;
+    color: #111827;
+}
+.answer-option { 
+    border: 2px solid #e5e7eb; /* Default border */
+    transition: all 0.2s ease-in-out;
+    padding: 1rem;
+    border-radius: 0.5rem; /* 8px */
+    background-color: #ffffff; /* White background for options */
+    cursor: pointer;
+}
+.answer-option:hover { 
+    border-color: #60a5fa; /* Lighter Blue from your navbtn current */
+    background-color: #eff6ff; 
+}
+.answer-option.selected { 
+    border-color: #2a5266; /* SAT Hub Dark Blue for selected */
+    background-color: #e0e7ff; /* A light complementing blue */
+    font-weight: 500; /* Slightly bolder text for selected option */
+}
+.answer-option label span {
+    word-break: break-word; /* Ensure long option text wraps nicely */
+}
+
+
+/* --- Progress Bar --- */
+.progress-bar-bg { 
+    background-color: #e5e7eb; /* Light grey track */
+    height: 0.625rem; /* 10px */
+    border-radius: 9999px; /* Pill shape */
+    overflow: hidden; /* Ensure fill stays within bounds */
+}
+.progress-bar-fill { 
+    background-color: #2a5266; /* SAT Hub Dark Blue for fill */
+    transition: width 0.3s ease-in-out; 
+    height: 100%;
+    border-radius: 9999px;
+}
+
+/* --- Navigation and Action Buttons --- */
+.nav-button { 
+    background-color: #2a5266; /* SAT Hub Dark Blue */
+    color: white; 
+    padding: 0.75rem 1.5rem; 
+    border-radius: 0.5rem; /* 8px */
+    font-weight: 600; 
+    transition: background-color 0.2s;
+    border: none; /* Remove default button border */
+}
+.nav-button:hover:not(:disabled) { 
+    background-color: #3a687a; /* Darker shade for hover */
+}
+.nav-button:disabled { 
+    background-color: #9ca3af; /* Grey for disabled */
+    cursor: not-allowed; 
+}
+#submitButton { /* Specific style for submit if needed */
+    background-color: #16a34a; /* Green */
+}
+#submitButton:hover:not(:disabled) {
+    background-color: #15803d; /* Darker Green */
+}
+
+/* --- Question Navigator (Right Panel) --- */
+#questionNavigator {
+    /* Grid styles are from Tailwind, but you can add more here */
+}
+.question-nav-btn {
+    border: 1px solid #d1d5db; /* Slightly darker border */
+    transition: all 0.2s ease-in-out;
+    font-weight: 500;
+    width: 40px; /* Fixed width */
+    height: 40px; /* Fixed height */
+    border-radius: 0.375rem; /* 6px */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.question-nav-btn.answered {
+    background-color: #d1fae5; /* Light Green */
+    border-color: #10b981; /* Green */
+    color: #065f46; /* Dark Green text */
+}
+.question-nav-btn.unanswered {
+    background-color: #f3f4f6; /* Very Light Grey */
+}
+.question-nav-btn.marked {
+    box-shadow: 0 0 0 2px #f59e0b inset; /* Orange inset shadow for marked */
+    /* border-color: #f59e0b; */ /* Alternative: orange border */
+}
+.question-nav-btn.current {
+    background-color: #60a5fa; /* Light Blue */
+    color: white;
+    border-color: #2563eb; /* Darker Blue */
+    font-weight: bold;
+}
+.question-nav-btn:hover:not(.current) {
+    border-color: #9ca3af;
+}
+
+
+/* --- Tool Buttons --- */
+.tool-button {
+    background-color: #f9fafb; /* Light background */
+    border: 1px solid #d1d5db; /* Border */
+    font-size: 1.25rem; /* Slightly smaller for better fit */
+    cursor: pointer;
+    border-radius: 0.375rem; /* Rounded corners */
+    width: 40px;  /* Match nav buttons */
+    height: 40px; /* Match nav buttons */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease-in-out;
+    color: #4b5563; /* Default icon color */
+}
+.tool-button:hover {
+    background-color: #f3f4f6; /* Lighter grey on hover */
+    border-color: #9ca3af;
+}
+.tool-button.active {
+    color: #f59e0b; /* Orange for active */
+    background-color: #fef3c7; /* Light orange background */
+    border-color: #f59e0b;
+}
+
+/* Ensure MathJax content doesn't get weird styling from Tailwind prose if used */
+.prose .MJXc-display, .prose mjx-container {
+    overflow-x: auto; /* Allow scrolling for very wide MathJax equations */
+}
+
+/* Utility to hide elements */
+.hidden {
+    display: none !important;
+}

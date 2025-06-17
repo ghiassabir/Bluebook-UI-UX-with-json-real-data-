@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAT Hub Quiz Player</title>
+
+    <!-- MathJax Configuration and Library -->
+    <script>
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']]
+        }
+      };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <!-- Tailwind CSS (if you're using it directly in HTML like before) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Link to your external stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="text-gray-800">
+
+    <header class="sathub-header p-4 shadow-md">
+        <div class="container mx-auto flex items-center justify-between">
+            <div class="flex items-center">
+                <!-- Replace with your actual logo path -->
+                <img src="https://placehold.co/128x32/ffffff/2a5266?text=SAT+Hub" alt="SAT Hub Logo" class="h-8 w-auto mr-3 rounded-md">
+                <h1 id="quizTitle" class="sathub-header-title text-xl font-bold">SAT Hub Quiz</h1>
+            </div>
+            <div id="timer" class="text-lg font-mono text-white bg-slate-700 px-3 py-1 rounded">00:00</div>
+        </div>
+    </header>
+
+    <div class="quiz-container p-4">
+        <!-- Welcome Screen -->
+        <div id="welcomeScreen" class="text-center bg-white p-8 rounded-lg shadow-xl max-w-lg mx-auto my-10">
+            <h2 class="text-3xl font-bold mb-6 text-gray-700">SAT Practice Quiz</h2>
+            <p class="mb-6 text-gray-600">Enter your email to begin and track your progress.</p>
+            <input type="email" id="studentEmail" placeholder="Enter your email address" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-shadow mb-4">
+            <button id="startButton" class="nav-button w-full text-lg">Start Quiz</button>
+        </div>
+
+        <!-- Quiz Area (Hidden by default) -->
+        <div id="quizArea" class="hidden">
+            <div class="flex flex-col md:flex-row gap-6">
+                <!-- Right Panel: Tools & Navigation -->
+                <div class="w-full md:w-1/4 bg-white p-4 rounded-lg shadow-lg order-first md:order-last self-start sticky top-4">
+                    <h3 class="font-bold mb-4 text-center text-gray-700 border-b pb-2">Tools & Navigation</h3>
+                    <div class="flex justify-center gap-2 mb-4">
+                        <button id="markReviewBtn" class="tool-button" title="Mark for Review">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" y2="15"></line></svg>
+                        </button>
+                        <!-- Add other tool buttons here if needed -->
+                    </div>
+                    <div id="questionNavigator" class="grid grid-cols-5 gap-2 max-h-96 overflow-y-auto p-1">
+                        <!-- Question navigation buttons will be generated here -->
+                    </div>
+                </div>
+                <!-- Left Panel: Question Content -->
+                <div class="w-full md:w-3/4 bg-white p-6 rounded-lg shadow-lg">
+                    <div class="mb-6">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-sm font-medium text-gray-600">Progress</span>
+                            <span id="progressText" class="text-sm font-medium text-gray-700">Question 0 of 0</span>
+                        </div>
+                        <div class="progress-bar-bg rounded-full"><div id="progressBar" class="progress-bar-fill rounded-full"></div></div>
+                    </div>
+                    <div id="questionContainer">
+                        <img id="questionImage" src="" alt="Question Diagram" class="max-w-full h-auto mx-auto mb-4 hidden rounded-md border">
+                        <div id="questionText" class="text-lg mb-6 leading-relaxed prose max-w-none">
+                            <!-- Question text will be loaded here -->
+                        </div>
+                        <div id="optionsContainer" class="space-y-3">
+                            <!-- Answer options will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Footer Navigation -->
+            <div class="mt-6 flex justify-between items-center bg-white p-4 rounded-lg shadow-lg">
+                <button id="prevButton" class="nav-button">Previous</button>
+                <button id="nextButton" class="nav-button">Next</button>
+                <button id="submitButton" class="nav-button bg-green-600 hover:bg-green-700 hidden">Submit Quiz</button>
+            </div>
+        </div>
+
+        <!-- Confirmation Screen (Hidden by default) -->
+        <div id="confirmationScreen" class="hidden text-center bg-white p-8 rounded-lg shadow-xl max-w-lg mx-auto my-10">
+             <h2 class="text-2xl font-bold mb-4 text-green-600">Submission Successful!</h2>
+             <p class="text-gray-700 text-lg">Your results have been recorded.</p>
+             <p class="mt-4 text-sm text-gray-500">You can now close this window or navigate back to the dashboard.</p>
+             <!-- You might want a button here to go to a dashboard or results summary page -->
+        </div>
+    </div>
+    
+    <script src="script.js"></script> 
+    <!-- IMPORTANT: Ensure this script.js is the one I just provided -->
+</body>
+</html>
