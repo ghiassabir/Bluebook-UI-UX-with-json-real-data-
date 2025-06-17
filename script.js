@@ -350,6 +350,28 @@
             return;
         }
 
+                // ...
+        const moduleInfo = getCurrentModule();
+        const questionData = getCurrentQuestionData();
+
+        if (!moduleInfo || !questionData) {
+            // ... error handling ...
+            return;
+        }
+
+        // --- DEBUGGING ---
+        console.log(`loadQuestion: currentModuleIndex = ${currentModuleIndex}, currentQuestionNumber = ${currentQuestionNumber}`);
+        const keyForDebug = getAnswerStateKey(currentModuleIndex, currentQuestionNumber);
+        console.log(`loadQuestion: Generated key = ${keyForDebug}`);
+        console.log(`loadQuestion: userAnswers content before getAnswerState:`, JSON.parse(JSON.stringify(userAnswers)));
+        // --- END DEBUGGING ---
+
+        const answerState = getAnswerState(); 
+        // --- DEBUGGING ---
+        console.log(`loadQuestion: answerState from getAnswerState:`, answerState);
+        // --- END DEBUGGING ---
+
+        answerState.timeSpent = parseFloat(answerState.timeSpent) || 0; // Problematic line    
         const answerState = getAnswerState();
         answerState.timeSpent = parseFloat(answerState.timeSpent) || 0; // Ensure timeSpent is a number
 
