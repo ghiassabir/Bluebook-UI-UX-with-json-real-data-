@@ -778,18 +778,18 @@ if(reviewBackBtnFooter) {
     });
 }
 
-
-if(startTestPreviewBtn) { /* ... (no change from P2.2) ... */ }
-if(returnToHomeBtn) returnToHomeBtn.addEventListener('click', () => showView('home-view'));
+/*
+if(startTestPreviewBtn) 
+if(returnToHomeBtn) returnToHomeBtn.addEventListener('click', () => showView('home-view')); 
 if(calculatorBtnHeader) calculatorBtnHeader.addEventListener('click', () => toggleModal(calculatorOverlay, true));
 if(calculatorCloseBtn) calculatorCloseBtn.addEventListener('click', () => toggleModal(calculatorOverlay, false));
 if(referenceBtnHeader) referenceBtnHeader.addEventListener('click', () => toggleModal(referenceSheetPanel, true));
 if(referenceSheetCloseBtn) referenceSheetCloseBtn.addEventListener('click', () => toggleModal(referenceSheetPanel, false));
 let isCalcDragging = false; let currentX_calc_drag, currentY_calc_drag, initialX_calc_drag, initialY_calc_drag, xOffset_calc_drag = 0, yOffset_calc_drag = 0;
-if(calculatorHeaderDraggable) { /* ... (no change from P2.2) ... */ }
-if(highlightsNotesBtn && passageContentEl) { /* ... (no change from P2.2) ... */ }
-function handleTextSelection() { /* ... (no change from P2.2) ... */ }
-if(directionsBtn) directionsBtn.addEventListener('click', () => { /* ... (no change from P2.2 for Directions modal trigger itself) ... */ });
+if(calculatorHeaderDraggable) 
+if(highlightsNotesBtn && passageContentEl) 
+function handleTextSelection() 
+if(directionsBtn) directionsBtn.addEventListener('click', () => { });
 if(directionsModalCloseBtn) directionsModalCloseBtn.addEventListener('click', () => toggleModal(directionsModal, false));
 if(directionsModal) directionsModal.addEventListener('click', (e) => { if (e.target === directionsModal) toggleModal(directionsModal, false); });
 
@@ -808,7 +808,55 @@ if(qNavGotoReviewBtn) qNavGotoReviewBtn.addEventListener('click', () => {
     if (currentQuizQuestions.length > 0) { // Only go to review if there's something to review
         showView('review-page-view'); 
     }
-});
+}); 
+*/
+// CHANGED: Phase 3 - Update startTestPreviewBtn listener for robustness
+if(startTestPreviewBtn) {
+    startTestPreviewBtn.addEventListener('click', async () => {
+        console.log("Start Test Preview button clicked (Phase 3)."); // Added more specific log
+        currentModuleIndex = 0;
+        currentQuestionNumber = 1;
+        userAnswers = {};
+        isTimerHidden = false;
+        isCrossOutToolActive = false;
+        isHighlightingActive = false;
+        questionStartTime = 0; 
+        if(highlightsNotesBtn) highlightsNotesBtn.classList.remove('active');
+        if(calculatorOverlay) calculatorOverlay.classList.remove('visible');
+        if(referenceSheetPanel) referenceSheetPanel.classList.remove('visible');
+
+        // Ensure currentTestFlow is correctly initialized for a new test run
+        currentTestFlow = ["DT-T0-RW-M1", "DT-T0-MT-M1"]; 
+        console.log("Test flow set to:", currentTestFlow); // Log the test flow
+
+        if (currentTestFlow.length > 0) {
+            const firstQuizName = currentTestFlow[currentModuleIndex];
+            console.log(`Attempting to load first quiz: ${firstQuizName}`); // Log which quiz is being loaded
+
+            startTestPreviewBtn.textContent = "Loading...";
+            startTestPreviewBtn.disabled = true;
+            
+            const success = await loadQuizData(firstQuizName); // Wait for data loading
+            
+            startTestPreviewBtn.textContent = "Start"; // Reset button text regardless of success/failure for retry
+            startTestPreviewBtn.disabled = false; // Re-enable button
+
+            if (success && currentQuizQuestions.length > 0) {
+                console.log("Initial quiz data loaded successfully. Showing test interface.");
+                populateQNavGrid(); // Populate QNav for the first module
+                showView('test-interface-view'); // This calls loadQuestion and updateNavigation
+            } else {
+                console.error("Failed to load initial quiz data or no questions found after attempting load.");
+                alert("Could not start the test. Please check the console for errors. Ensure JSON files are accessible and GITHUB_JSON_BASE_URL is correct.");
+                showView('home-view'); // Revert to home view on failure
+            }
+        } else {
+            console.error("Test flow is empty. Cannot start test.");
+            alert("No test configured to start.");
+        }
+    });
+}
+
 
 if(markReviewCheckboxMain) markReviewCheckboxMain.addEventListener('change', () => { /* ... (no change from P2.2) ... */ });
 if(timerToggleBtn) timerToggleBtn.addEventListener('click', () => handleTimerToggle(timerTextEl, timerClockIconEl, timerToggleBtn));
