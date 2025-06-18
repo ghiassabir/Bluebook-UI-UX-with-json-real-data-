@@ -1,4 +1,4 @@
-// --- script.js (Phase 4 - Submission Logic CAREFULLY ADDED to working Phase 3 base) ---
+// --- script.js (Phase 5 - new Improvements) ---
 
 // --- Utility Functions (Define these FIRST) ---
 function toggleModal(modalElement, show) {
@@ -539,38 +539,51 @@ if(answerOptionsMainEl) {
         else if (target.closest('.answer-option')) handleAnswerSelect(optionKey);
     });
 }
-// CHANGED: handleAnswerSelect now stores the full text of the selected MCQ option if possible
+
+// REVISED handleAnswerSelect for debugging the "no selection when tool is off" issue
 function handleAnswerSelect(optionKey) {
     const answerState = getAnswerState();
-    if (!answerState) return;
-
-    // Corrected cross-out logic: selecting an option removes cross-out and tool override
-    if (isCrossOutToolActive && !answerState.crossedOut.includes(optionKey)) {
-         // If cross-out tool is active and we are clicking an uncrossed option,
-         // this means user intends to select, not cross-out via the main option click.
-         // So, effectively, this action should behave as if cross-out was not active for this click.
-         // However, the Bluebook behavior is clicking an option *always* selects it and removes cross-out.
-    } else if (isCrossOutToolActive && answerState.crossedOut.includes(optionKey)) {
-        // Clicking a crossed-out option while tool is active also means intent to select.
+    if (!answerState) {
+        console.error("handleAnswerSelect: No answer state found for current question.");
+        return;
     }
 
-
-    // Find the text of the selected option
+    // --- Core Debugging Point for Answer Selection ---
+    if (isCrossOutToolActive) {
+        // If cross-out tool IS active, clicking an option might mean something else.
+        // For now, we'll allow selection to still happen to test the official Bluebook logic later
+        // (where selection removes cross-out).
+        // But the primary bug is when isCrossOutToolActive is FALSE.
+        console.log("handleAnswerSelect: Cross-out tool is currently ACTIVE. Proceeding with selection (will also remove cross-out).");
+        // If you wanted to STRICTLY prevent selection when tool is active (old behavior):
+        // return; 
+    } else {
+        console.log("handleAnswerSelect: Cross-out tool is INACTIVE. Proceeding with selection.");
+    }
+    
+    // If we reach here, we are selecting the answer.
     const currentQDetails = getCurrentQuestionData();
     let selectedOptionText = optionKey; // Fallback to key if text not found
-    if (currentQDetails && currentQDetails[`option_${optionKey.toLowerCase()}`]) {
-        selectedOptionText = currentQDetails[`option_${optionKey.toLowerCase()}`];
+    
+    // Try to get the full text for the option, as stored in JSON
+    // JSON option keys are like 'option_a', 'option_b'
+    const jsonOptionKey = `option_${optionKey.toLowerCase()}`;
+    if (currentQDetails && currentQDetails.hasOwnProperty(jsonOptionKey) && currentQDetails[jsonOptionKey] !== null) {
+        selectedOptionText = currentQDetails[jsonOptionKey];
     } else {
-        console.warn(`Could not find option text for key ${optionKey}. Storing key as answer.`);
+        console.warn(`handleAnswerSelect: Could not find option text for key ${optionKey} (tried ${jsonOptionKey}). Storing key itself ('${optionKey}') as selected value. This might affect 'is_correct' for MCQs if not intended.`);
     }
 
-    answerState.selected = selectedOptionText; // Store the TEXT of the option
+    console.log(`handleAnswerSelect: Setting selected answer to: "${selectedOptionText}" (original key: ${optionKey})`);
+    answerState.selected = selectedOptionText; 
 
-    // If the selected option was crossed out, uncross it
+    // As per official Bluebook: selecting an option should remove any cross-out from that option key.
     if (answerState.crossedOut.includes(optionKey)) {
+        console.log(`handleAnswerSelect: Option ${optionKey} was selected, removing it from crossedOut list.`);
         answerState.crossedOut = answerState.crossedOut.filter(opt => opt !== optionKey);
     }
-    loadQuestion(); 
+    
+    loadQuestion(); // Reload to reflect selection and potential un-cross-out
 }
 function handleAnswerCrossOut(optionKey) { 
      const answerState = getAnswerState();
