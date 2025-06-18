@@ -32,7 +32,38 @@
 </head>
 <body>
     <div class="app-wrapper">
+        <!-- ADDED: Manual Break Instruction View (if not already present) -->
+<div class="app-view fullscreen-transition-view" id="manual-break-view" style="display: none;">
+    <main style="text-align: center; padding: 2rem; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; background-color: white;">
+        <h1>10-Minute Break</h1>
+        <p class="message" style="font-size: 1.25rem; margin-bottom: 1.5rem;">
+            Please take a 10-minute break. <br>
+            You may leave your seat. Remember to manage your time.
+        </p>
+        <p class="message" style="margin-bottom: 2.5rem;">
+            Click "Continue to Next Section" when you are ready to begin the Math section.
+        </p>
+        <button id="continue-after-break-btn" class="modal-button yellow" style="padding: 0.75rem 3rem; font-size: 1.125rem;">Continue to Next Section</button>
+    </main>
+</div>
+        
         <!-- Home Screen View -->
+        <!-- In your HTML file, inside id="home-view" -->
+<div class="home-practice-cards">
+    <div class="home-practice-card">
+        <!-- CHANGED: Relabeled button and ID -->
+        <h3>Full Practice Test</h3>
+        <p>Simulate a full Bluebook test with timed sections.</p>
+        <button class="start-btn" id="start-full-practice-test-btn">Start Full Test</button>
+    </div>
+    <div class="home-practice-card">
+        <!-- ADDED: New button for single practice quiz -->
+        <h3>Single Practice Quiz</h3>
+        <p>Focus on a specific set of questions with no time limit (timer counts up).</p>
+        <button class="start-btn" id="start-single-practice-quiz-btn">Start Single Quiz</button>
+    </div>
+    <!-- You can keep or remove other placeholder cards -->
+</div>
         <div class="app-view home-screen-view active" id="home-view">
             <header class="app-header">
                 <div class="logo">Bluebook</div>
