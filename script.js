@@ -1,4 +1,4 @@
-//script.js (Phase 5 - answer selection) ---
+//script.js (Phase 5 - student email) ---
 //>>>>>>> main
 
 // --- Utility Functions (Define these FIRST) ---
@@ -22,7 +22,7 @@ let isHighlightingActive = false;
 let questionStartTime = 0; 
 // COMMENTED: Old studentEmailForSubmission, using a more dynamic approach or placeholder.
 // const studentEmailForSubmission = "teststudent@example.com"; 
-let studentEmailForSubmission = "teststudent@example.com"; 
+let studentEmailForSubmission = "anonymous_student@example.com"; 
 
 // CHANGED: Placeholder for the Apps Script URL. Replace with your actual deployed URL.
 const APPS_SCRIPT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwneCF0xq9X-F-9AIxAiHpYFmRTErCzCPXlsWRloLRDWBGqwLEZC4NldCCAuND0jxUL/exec'; // <<< YOUR ACTUAL URL WAS USED HERE
@@ -548,6 +548,19 @@ function recordTimeOnCurrentQuestion() {
     questionStartTime = 0; 
 }
 
+// CHANGED: Function to initialize student identifier
+function initializeStudentIdentifier() {
+    const storedEmail = localStorage.getItem('bluebookStudentEmail'); // Using 'bluebookStudentEmail' as the key
+    if (storedEmail && storedEmail.trim() !== "") { // Check if it's not null and not an empty string
+        studentEmailForSubmission = storedEmail;
+        console.log(`Student identifier initialized from localStorage: ${studentEmailForSubmission}`);
+    } else {
+        // Keep the default "anonymous_student@example.com" if nothing valid is found
+        console.log(`No valid student identifier found in localStorage. Using default: ${studentEmailForSubmission}`);
+    }
+}
+
+
 // --- Event Listeners (Phase 3 versions, largely unchanged for this step, except cross-out will be simplified later) ---
 // From your Phase 4 script.js (around line 530)
 if(answerOptionsMainEl) {
@@ -905,7 +918,10 @@ if(exitExamConfirmBtn) { /* ... */ }
 // --- Start Button Event Listener ---
 if(startTestPreviewBtn) {
     startTestPreviewBtn.addEventListener('click', async () => {
-        console.log("Start Test Preview button clicked (Phase 4)."); 
+        console.log("Start Test Preview button clicked (Phase 4).");
+        // CHANGED: Initialize student identifier on test start
+        initializeStudentIdentifier();     
+        console.log("Start Test Preview button clicked (Using localStorage for student ID if available)."); 
         currentModuleIndex = 0;
         currentQuestionNumber = 1;
         userAnswers = {}; 
@@ -1081,5 +1097,8 @@ async function submitQuizData() {
 
 
 document.addEventListener('DOMContentLoaded', () => {
+    // CHANGED: Call initializeStudentIdentifier on initial page load
+    initializeStudentIdentifier();
+    
     updateNavigation(); 
 });
