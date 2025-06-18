@@ -19,7 +19,11 @@ let userAnswers = {};
 let isTimerHidden = false;
 let isCrossOutToolActive = false;
 let isHighlightingActive = false;
-let questionStartTime = 0; 
+let questionStartTime = 0;
+// CHANGED: Add new timer state variables
+let moduleTimerInterval;
+let currentModuleTimeLeft = 0;
+let currentModuleTimeUp = false; // Flag to indicate if current module's time is up
 // COMMENTED: Old studentEmailForSubmission, using a more dynamic approach or placeholder.
 // const studentEmailForSubmission = "teststudent@example.com"; 
 let studentEmailForSubmission = "anonymous_student@example.com"; 
@@ -27,22 +31,48 @@ let studentEmailForSubmission = "anonymous_student@example.com";
 // CHANGED: Placeholder for the Apps Script URL. Replace with your actual deployed URL.
 const APPS_SCRIPT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwneCF0xq9X-F-9AIxAiHpYFmRTErCzCPXlsWRloLRDWBGqwLEZC4NldCCAuND0jxUL/exec'; // <<< YOUR ACTUAL URL WAS USED HERE
 
+// Near line 20
 const moduleMetadata = {
     "DT-T0-RW-M1": {
         name: "Reading & Writing - Module 1",
         type: "RW",
-        directions: "The questions in this section address a number of important reading and writing skills. Each question includes one or more passages, which may include a table or graph. Read each passage and question carefully, and then choose the best answer to the question based on the passage(s). All questions in this section are multiple-choice with four answer choices. Each question has a single best answer.",
+        // CHANGED: Added durationSeconds for timed mode
+        durationSeconds: 180, // Example: 3 minutes for R&W Module 1
+        directions: "The questions in this section address a number of important reading and writing skills...",
+        spr_directions: null,
+        spr_examples_table: null
+    },
+    // CHANGED: Added placeholder for RW Module 2
+    "DT-T0-RW-M2": {
+        name: "Reading & Writing - Module 2",
+        type: "RW",
+        durationSeconds: 180, // Example: 3 minutes
+        directions: "This is the second Reading & Writing module. Continue to read each passage and question carefully...",
         spr_directions: null,
         spr_examples_table: null
     },
     "DT-T0-MT-M1": { 
         name: "Math - Module 1",
         type: "Math",
-        directions: "The questions in this section address a number of important math skills. You may use the calculator for any question in this section. For student-produced response questions, additional directions are provided with the question.",
+        // CHANGED: Added durationSeconds
+        durationSeconds: 240, // Example: 4 minutes for Math Module 1
+        directions: "The questions in this section address a number of important math skills...",
         passageText: null, 
-        spr_directions: `<h3>Student-produced response directions</h3><ul><li>If you find <strong>more than one correct answer</strong>, enter only one answer.</li><li>You can enter up to 5 characters for a <strong>positive</strong> answer and up to 6 characters (including the negative sign) for a <strong>negative</strong> answer.</li><li>If your answer is a <strong>fraction</strong> that doesn’t fit in the provided space, enter the decimal equivalent.</li><li>If your answer is a <strong>decimal</strong> that doesn’t fit in the provided space, enter it by truncating or rounding at the fourth digit.</li><li>If your answer is a <strong>mixed number</strong> (such as 3 <span style="font-size: 0.7em; vertical-align: super;">1</span>/<span style="font-size: 0.7em; vertical-align: sub;">2</span>), enter it as an improper fraction (7/2) or its decimal equivalent (3.5).</li><li>Don’t enter <strong>symbols</strong> such as a percent sign, comma, or dollar sign.</li></ul>`,
-        spr_examples_table: `<table class="spr-examples-table"><thead><tr><th>Answer</th><th>Acceptable ways to enter answer</th><th>Unacceptable: will NOT receive credit</th></tr></thead><tbody><tr><td>3.5</td><td>3.5<br/>7/2</td><td>3 1/2</td></tr><tr><td>2/3</td><td>2/3<br/>.666<br/>.667</td><td>0.66<br/>0.67</td></tr><tr><td>-15</td><td>-15</td><td></td></tr></tbody></table>`
+        spr_directions: `<h3>Student-produced response directions</h3><ul><li>...</li></ul>`, // Keep your existing SPR content
+        spr_examples_table: `<table class="spr-examples-table"><thead>...</thead><tbody>...</tbody></table>` // Keep your existing SPR content
+    },
+    // CHANGED: Added placeholder for Math Module 2
+    "DT-T0-MT-M2": {
+        name: "Math - Module 2",
+        type: "Math",
+        durationSeconds: 240, // Example: 4 minutes
+        directions: "This is the second Math module. You may use the calculator for any question.",
+        passageText: null,
+        spr_directions: `<h3>Student-produced response directions</h3><ul><li>...</li></ul>`, // Keep your existing SPR content
+        spr_examples_table: `<table class="spr-examples-table"><thead>...</thead><tbody>...</tbody></table>` // Keep your existing SPR content
     }
+    // You can add metadata for single practice quizzes here later, they might not have 'durationSeconds'
+    // or use a different timer logic.
 };
 
 const GITHUB_JSON_BASE_URL = 'https://raw.githubusercontent.com/ghiassabir/Bluebook-UI-UX-with-json-real-data-/main/data/json/'; 
@@ -165,6 +195,50 @@ function getCurrentQuestionData() {
 function getAnswerStateKey(moduleIdx = currentModuleIndex, qNum = currentQuestionNumber) {
     return `${moduleIdx}-${qNum}`;
 }
+
+// CHANGED: New functions for module-specific timer
+function updateModuleTimerDisplay(seconds) {
+    if (!timerTextEl) return; // Ensure main timer display element exists
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    const displayString = `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+    timerTextEl.textContent = displayString;
+    if (reviewTimerText) reviewTimerText.textContent = displayString; // Sync with review page timer
+}
+
+function startModuleTimer(durationSeconds) {
+    if (moduleTimerInterval) clearInterval(moduleTimerInterval); 
+
+    currentModuleTimeLeft = durationSeconds;
+    currentModuleTimeUp = false; // Reset flag for new module
+    updateModuleTimerDisplay(currentModuleTimeLeft);
+    updateNavigation(); // Update button states based on new timer state
+
+    console.log(`Module timer started for ${durationSeconds} seconds.`);
+
+    moduleTimerInterval = setInterval(() => {
+        currentModuleTimeLeft--;
+        updateModuleTimerDisplay(currentModuleTimeLeft);
+
+        if (currentModuleTimeLeft <= 0) {
+            clearInterval(moduleTimerInterval);
+            currentModuleTimeLeft = 0; // Ensure it doesn't go negative
+            currentModuleTimeUp = true; // Set flag
+            updateModuleTimerDisplay(currentModuleTimeLeft); // Show 00:00
+            console.log("Module time is up!");
+            alert("Time for this module is up! You will be taken to the review page.");
+            
+            recordTimeOnCurrentQuestion(); // Record time for the question being worked on
+            
+            // Automatically navigate to the review page for the current module
+            if (currentView !== 'review-page-view') {
+                showView('review-page-view');
+            }
+            updateNavigation(); // Re-enable next button on review page
+        }
+    }, 1000);
+}
+
 
 // CHANGED: getAnswerState now stores q_id, correct_ans, and question_type_from_json
 // from currentQuestionDetails when initializing a new state.
@@ -334,6 +408,14 @@ function showView(viewId) {
     if (targetView) targetView.classList.add('active');
     else { console.error("View not found:", viewId); return; }
 
+    // CHANGED: Stop module timer if navigating away from test/review views
+    if (viewId !== 'test-interface-view' && viewId !== 'review-page-view' && viewId !== 'module-over-view') {
+        if (moduleTimerInterval) {
+            clearInterval(moduleTimerInterval);
+            console.log("Module timer stopped due to view change from test/review.");
+        }
+    }
+    
     if (viewId === 'test-interface-view') {
         if(qNavBtnFooter) qNavBtnFooter.style.display = 'flex';
         if(backBtnFooter) backBtnFooter.style.display = 'inline-block';
@@ -685,10 +767,10 @@ if(sprInputFieldMain) {
     });
 }
 
+// REPLACE your entire updateNavigation_OLD function with this new updateNavigation
 function updateNavigation() {
-    // (Unchanged from Phase 3)
     if (!backBtnFooter || !nextBtnFooter || !currentQFooterEl || !totalQFooterEl) {
-        console.error("Navigation elements missing.");
+        console.error("Navigation elements missing for updateNavigation.");
         return;
     }
 
@@ -697,47 +779,50 @@ function updateNavigation() {
 
     currentQFooterEl.textContent = moduleIsLoaded ? currentQuestionNumber : '0';
     totalQFooterEl.textContent = totalQuestionsInModule;
+    
+    // Back button logic (no change for module rule here, just within module)
     backBtnFooter.disabled = (currentQuestionNumber === 1);
 
+    // Default visibility
+    nextBtnFooter.style.display = 'none';
+    backBtnFooter.style.display = 'none';
+    if (reviewNextBtnFooter) reviewNextBtnFooter.style.display = 'none';
+    if (reviewBackBtnFooter) reviewBackBtnFooter.style.display = 'none';
+
     if (currentView === 'test-interface-view') {
+        nextBtnFooter.style.display = 'inline-block';
+        backBtnFooter.style.display = 'inline-block';
         if (!moduleIsLoaded) {
             nextBtnFooter.textContent = "Next";
             nextBtnFooter.disabled = true;
         } else if (currentQuestionNumber < totalQuestionsInModule) {
             nextBtnFooter.textContent = "Next";
             nextBtnFooter.disabled = false;
-        } else { 
+        } else { // Last question of the module
             nextBtnFooter.textContent = "Review Section";
-            nextBtnFooter.disabled = false;
+            // CHANGED: Disable "Review Section" if module time is not up
+            nextBtnFooter.disabled = !currentModuleTimeUp && (getCurrentModule()?.durationSeconds > 0);
         }
-        if (reviewBackBtnFooter) reviewBackBtnFooter.style.display = 'none';
-        if (reviewNextBtnFooter) reviewNextBtnFooter.style.display = 'none';
-        nextBtnFooter.style.display = 'inline-block'; 
-        backBtnFooter.style.display = 'inline-block'; 
+    } else if (currentView === 'review-page-view') {
+        if (reviewBackBtnFooter) reviewBackBtnFooter.style.display = 'inline-block';
+        if (reviewNextBtnFooter) reviewNextBtnFooter.style.display = 'inline-block';
+        
+        if (reviewBackBtnFooter) reviewBackBtnFooter.disabled = false; // Can always go back to test interface from review
 
-    } 
-    else if (currentView === 'review-page-view') {
-        if (reviewBackBtnFooter) {
-             reviewBackBtnFooter.style.display = 'inline-block';
-             reviewBackBtnFooter.disabled = false; 
-        }
         if (reviewNextBtnFooter) {
-            reviewNextBtnFooter.style.display = 'inline-block';
             if (currentModuleIndex < currentTestFlow.length - 1) {
                 reviewNextBtnFooter.textContent = "Next Module";
             } else {
                 reviewNextBtnFooter.textContent = "Finish Test";
             }
-            reviewNextBtnFooter.disabled = false;
+            // CHANGED: Disable "Next Module" / "Finish Test" from review page if module time is not up
+            reviewNextBtnFooter.disabled = !currentModuleTimeUp && (getCurrentModule()?.durationSeconds > 0);
         }
-        if (nextBtnFooter) nextBtnFooter.style.display = 'none';
-        if (backBtnFooter) backBtnFooter.style.display = 'none';
-    } else { 
-        if (nextBtnFooter) { nextBtnFooter.style.display = 'inline-block'; nextBtnFooter.disabled = true; }
-        if (backBtnFooter) { backBtnFooter.style.display = 'inline-block'; backBtnFooter.disabled = true; }
-        if (reviewBackBtnFooter) reviewBackBtnFooter.style.display = 'none';
-        if (reviewNextBtnFooter) reviewNextBtnFooter.style.display = 'none';
+    } else if (currentView === 'home-view' || currentView === 'finished-view' || currentView === 'module-over-view') {
+        // No primary nav buttons needed, or handled by specific view buttons
     }
+    // Add console log for button states
+    // console.log(`UpdateNav: NextBtn Disabled: ${nextBtnFooter.disabled}, ReviewNextBtn Disabled: ${reviewNextBtnFooter ? reviewNextBtnFooter.disabled : 'N/A'}, TimeUp: ${currentModuleTimeUp}`);
 }
 
 if(nextBtnFooter) {
@@ -764,13 +849,31 @@ if(reviewNextBtnFooter) {
     reviewNextBtnFooter.addEventListener('click', async () => { 
         if (currentView !== 'review-page-view') return;
         recordTimeOnCurrentQuestion(); 
+        
         currentModuleIndex++;
         if (currentModuleIndex < currentTestFlow.length) {
             showView('module-over-view'); 
             setTimeout(async () => {
-                currentQuestionNumber = 1; 
+                currentQuestionNumber = 1;
+                currentModuleTimeUp = false; // Reset for new module
+
+                const nextQuizName = currentTestFlow[currentModuleIndex];
+                const nextModuleInfo = moduleMetadata[nextQuizName];
+
+                // For RW-M2, use DT-T0-RW-M1 JSON; for MT-M2, use DT-T0-MT-M1 JSON for data
+                let jsonToLoadForNextModule = nextQuizName;
+                if (nextQuizName === "DT-T0-RW-M2") jsonToLoadForNextModule = "DT-T0-RW-M1";
+                if (nextQuizName === "DT-T0-MT-M2") jsonToLoadForNextModule = "DT-T0-MT-M1";
+                
                 const success = await loadQuizData(currentTestFlow[currentModuleIndex]);
                 if (success && currentQuizQuestions.length > 0) {
+                    if (nextModuleInfo && typeof nextModuleInfo.durationSeconds === 'number') {
+                        // CHANGED: Start timer for the new module
+                        startModuleTimer(nextModuleInfo.durationSeconds);
+                    } else {
+                        console.warn(`No duration for module ${nextQuizName}. Timer not started.`);
+                        updateModuleTimerDisplay(0);
+                    }
                     populateQNavGrid(); 
                     showView('test-interface-view');
                 } else {
@@ -781,6 +884,7 @@ if(reviewNextBtnFooter) {
             }, 1000); 
         } else {
             console.log("All modules finished. Transitioning to finished view.");
+            if (moduleTimerInterval) clearInterval(moduleTimerInterval); // Stop timer if any was running
             showView('finished-view');
         }
     });
@@ -918,30 +1022,43 @@ if(exitExamConfirmBtn) { /* ... */ }
 // --- Start Button Event Listener ---
 if(startTestPreviewBtn) {
     startTestPreviewBtn.addEventListener('click', async () => {
-        console.log("Start Test Preview button clicked (Phase 4).");
         // CHANGED: Initialize student identifier on test start
         initializeStudentIdentifier();     
-        console.log("Start Test Preview button clicked (Using localStorage for student ID if available)."); 
+        console.log("Start Test Preview button clicked (Phase 6 - Module Timers)."); 
         currentModuleIndex = 0;
         currentQuestionNumber = 1;
         userAnswers = {}; 
         isTimerHidden = false;
         isCrossOutToolActive = false;
         isHighlightingActive = false;
-        questionStartTime = 0; 
+        questionStartTime = 0;
+        currentModuleTimeUp = false; // Reset module time up flag
+        
         if(highlightsNotesBtn) highlightsNotesBtn.classList.remove('active');
         if(calculatorOverlay) calculatorOverlay.classList.remove('visible');
         if(referenceSheetPanel) referenceSheetPanel.classList.remove('visible');
 
-        currentTestFlow = ["DT-T0-RW-M1", "DT-T0-MT-M1"]; 
-        console.log("Test flow set to:", currentTestFlow); 
+        // CHANGED: Set testFlow for a full practice test (using placeholders for M2 data for now)
+        currentTestFlow = ["DT-T0-RW-M1", "DT-T0-RW-M2", "DT-T0-MT-M1", "DT-T0-MT-M2"]; 
+        
+        // For RW-M2, we'll reuse DT-T0-RW-M1.json data. For MT-M2, reuse DT-T0-MT-M1.json data.
+        // The moduleMetadata has distinct names and directions for these.
+        
+        console.log("Test flow set for Full Practice Test:", currentTestFlow); 
 
         if (currentTestFlow.length > 0) {
             const firstQuizName = currentTestFlow[currentModuleIndex];
+            const moduleInfo = moduleMetadata[firstQuizName];
+                        
             console.log(`Attempting to load first quiz: ${firstQuizName}`); 
 
             startTestPreviewBtn.textContent = "Loading...";
             startTestPreviewBtn.disabled = true;
+
+           // For RW-M2, use DT-T0-RW-M1 JSON; for MT-M2, use DT-T0-MT-M1 JSON for data
+            let jsonToLoad = firstQuizName;
+            if (firstQuizName === "DT-T0-RW-M2") jsonToLoad = "DT-T0-RW-M1";
+            if (firstQuizName === "DT-T0-MT-M2") jsonToLoad = "DT-T0-MT-M1";
             
             const success = await loadQuizData(firstQuizName); 
             
@@ -949,7 +1066,18 @@ if(startTestPreviewBtn) {
             startTestPreviewBtn.disabled = false; 
 
             if (success && currentQuizQuestions.length > 0) {
-                console.log("Initial quiz data loaded successfully. Showing test interface.");
+                console.log("Initial quiz data loaded successfully");
+                if (moduleInfo && typeof moduleInfo.durationSeconds === 'number') {
+                    // CHANGED: Start module timer
+                    startModuleTimer(moduleInfo.durationSeconds);
+                } else {
+                    console.warn(`No duration found for module ${firstQuizName}. Timer not started.`);
+                    // For practice quizzes without duration, timer might count up or not be used.
+                    // For now, full tests NEED duration.
+                    updateModuleTimerDisplay(0); // Display 00:00 if no duration
+                }
+                
+                
                 populateQNavGrid(); 
                 showView('test-interface-view'); 
             } else {
