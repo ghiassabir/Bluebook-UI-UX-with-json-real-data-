@@ -560,7 +560,7 @@ if(answerOptionsMainEl) {
             console.log("Click did not match any known action or target for selection."); // DEBUG
         }
     });
-});
+};
 }
 
 // REVISED handleAnswerSelect for debugging the "no selection when tool is off" issue
