@@ -522,22 +522,45 @@ function recordTimeOnCurrentQuestion() {
 }
 
 // --- Event Listeners (Phase 3 versions, largely unchanged for this step, except cross-out will be simplified later) ---
+// From your Phase 4 script.js (around line 530)
 if(answerOptionsMainEl) {
     answerOptionsMainEl.addEventListener('click', function(event) {
         const target = event.target;
         const answerContainer = target.closest('.answer-option-container');
-        if (!answerContainer) return;
-        const optionKey = answerContainer.dataset.optionKey;
-        const action = target.dataset.action || (target.closest('[data-action]') ? target.closest('[data-action]').dataset.action : null);
         
-        if (action !== 'cross-out-individual' && action !== 'undo-cross-out' && target.closest('.answer-option')) {
+        // DEBUG: Log if the listener is even firing and what was clicked
+        console.log("Answer option area clicked. Target:", target, "Container:", answerContainer);
+
+        if (!answerContainer) {
+            console.log("Click was outside an answer-option-container. Exiting listener.");
+            return; 
+        }
+        const optionKey = answerContainer.dataset.optionKey;
+        console.log("Option key identified:", optionKey); // DEBUG
+        
+        const actionElement = target.closest('[data-action]');
+        const action = actionElement ? actionElement.dataset.action : null;
+        console.log("Action identified:", action); // DEBUG
+        
+        if (!action && target.closest('.answer-option')) { 
             recordTimeOnCurrentQuestion(); 
         }
 
-        if (action === 'cross-out-individual') handleAnswerCrossOut(optionKey);
-        else if (action === 'undo-cross-out') handleAnswerUndoCrossOut(optionKey);
-        else if (target.closest('.answer-option')) handleAnswerSelect(optionKey);
+        if (action === 'cross-out-individual') {
+            console.log("Calling handleAnswerCrossOut for individual cross-out."); // DEBUG
+            handleAnswerCrossOut(optionKey);
+        } else if (action === 'undo-cross-out') {
+            console.log("Calling handleAnswerCrossOut for undo cross-out."); // DEBUG
+            handleAnswerUndoCrossOut(optionKey);
+        } else if (target.closest('.answer-option')) { 
+            // This 'else if' implies the click was on the general option area, intended for selection.
+            console.log("Attempting to call handleAnswerSelect."); // DEBUG
+            handleAnswerSelect(optionKey);
+        } else {
+            console.log("Click did not match any known action or target for selection."); // DEBUG
+        }
     });
+});
 }
 
 // REVISED handleAnswerSelect for debugging the "no selection when tool is off" issue
