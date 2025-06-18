@@ -459,7 +459,7 @@ questionStartTime = Date.now(); // Set startTime AFTER answerState might have be
         if (currentQuestionDetails.option_e !== undefined && currentQuestionDetails.option_e !== null && String(currentQuestionDetails.option_e).trim() !== "") options['E'] = currentQuestionDetails.option_e;
 
         for (const [key, value] of Object.entries(options)) {
-            const isSelected = answerState.selected === key;
+            const isSelected = (answerState.selected === value);
             const isCrossedOut = answerState.crossedOut.includes(key);
             const containerDiv = document.createElement('div');
             containerDiv.className = 'answer-option-container';
