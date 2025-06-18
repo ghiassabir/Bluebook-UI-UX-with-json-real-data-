@@ -1,4 +1,5 @@
-// --- script.js (Phase 5 - new Improvements) ---
+//script.js (Phase 5 - answer selection) ---
+//>>>>>>> main
 
 // --- Utility Functions (Define these FIRST) ---
 function toggleModal(modalElement, show) {
@@ -497,13 +498,39 @@ questionStartTime = Date.now(); // Set startTime AFTER answerState might have be
             if (answerOptionsMainEl) answerOptionsMainEl.appendChild(containerDiv);
         }
     }
-    
-    if (typeof MathJax !== "undefined" && MathJax.typesetPromise) {
-        MathJax.typesetPromise([passageContentEl, questionTextMainEl, answerOptionsMainEl, sprInstructionsContent]).catch(function (err) {
-            console.error('MathJax Typesetting Error:', err);
-        });
+       // CHANGED: More robust MathJax typesetting call
+    if (typeof MathJax !== "undefined") {
+        if (MathJax.typesetPromise) {
+            // console.log("MathJax.typesetPromise available, calling directly.");
+            MathJax.typesetPromise([passageContentEl, questionTextMainEl, answerOptionsMainEl, sprInstructionsContent])
+                .catch(function (err) { console.error('MathJax Typesetting Error:', err); });
+        } else if (MathJax.startup && MathJax.startup.promise) {
+            // console.log("MathJax.typesetPromise not ready, using MathJax.startup.promise.");
+            MathJax.startup.promise.then(() => {
+                // console.log("MathJax ready after startup.promise, typesetting now.");
+                if (MathJax.typesetPromise) {
+                     MathJax.typesetPromise([passageContentEl, questionTextMainEl, answerOptionsMainEl, sprInstructionsContent])
+                        .catch(function (err) { console.error('MathJax Typesetting Error (after startup.promise):', err); });
+                } else {
+                    console.error("MathJax.typesetPromise still not available after startup.promise resolved.");
+                }
+            }).catch(err => console.error("Error waiting for MathJax startup:", err));
+        } else {
+            // Fallback if MathJax is defined but in an unexpected state
+            console.warn("MathJax is defined, but neither typesetPromise nor startup.promise is available. Typesetting may fail.");
+            // As a last resort, try a small delay, though this is not ideal
+            setTimeout(() => {
+                if (typeof MathJax !== "undefined" && MathJax.typesetPromise) {
+                    console.log("Attempting MathJax typesetting after a short delay.");
+                    MathJax.typesetPromise([passageContentEl, questionTextMainEl, answerOptionsMainEl, sprInstructionsContent])
+                        .catch(function (err) { console.error('MathJax Typesetting Error (after delay):', err); });
+                } else {
+                     console.warn("MathJax still not ready after delay for typesetting.");
+                }
+            }, 500); // 500ms delay
+        }
     } else {
-        console.warn("MathJax or MathJax.typesetPromise not available.");
+        console.warn("MathJax object itself is not defined. Math content will not be rendered.");
     }
     updateNavigation();
 }
