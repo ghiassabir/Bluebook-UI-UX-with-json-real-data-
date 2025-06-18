@@ -1,4 +1,5 @@
-// --- script.js (Phase 5 - localStorage for Student ID) ---
+//script.js (Phase 5 - answer selection) ---
+//>>>>>>> main
 
 // --- Utility Functions (Define these FIRST) ---
 function toggleModal(modalElement, show) {
@@ -19,14 +20,12 @@ let isTimerHidden = false;
 let isCrossOutToolActive = false;
 let isHighlightingActive = false;
 let questionStartTime = 0; 
+// COMMENTED: Old studentEmailForSubmission, using a more dynamic approach or placeholder.
+// const studentEmailForSubmission = "teststudent@example.com"; 
+let studentEmailForSubmission = "teststudent@example.com"; 
 
-// COMMENTED: Old hardcoded studentEmailForSubmission
-// let studentEmailForSubmission = "teststudent@example.com"; 
-
-// CHANGED: studentEmailForSubmission will now be retrieved or default
-let studentEmailForSubmission = "anonymous_student@example.com"; // Default if not found in localStorage
-
-const APPS_SCRIPT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyOSVXRcH8VlrqgybxxJKTx2YHE-y8DJdBcMgFGREWUJn5Ufv9QT7WzeAFsZ2BbdXkj/exec'; 
+// CHANGED: Placeholder for the Apps Script URL. Replace with your actual deployed URL.
+const APPS_SCRIPT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwneCF0xq9X-F-9AIxAiHpYFmRTErCzCPXlsWRloLRDWBGqwLEZC4NldCCAuND0jxUL/exec'; // <<< YOUR ACTUAL URL WAS USED HERE
 
 const moduleMetadata = {
     "DT-T0-RW-M1": {
@@ -47,18 +46,6 @@ const moduleMetadata = {
 };
 
 const GITHUB_JSON_BASE_URL = 'https://raw.githubusercontent.com/ghiassabir/Bluebook-UI-UX-with-json-real-data-/main/data/json/'; 
-
-// CHANGED: Function to initialize student identifier
-function initializeStudentIdentifier() {
-    const storedEmail = localStorage.getItem('bluebookStudentEmail'); // Using 'bluebookStudentEmail' as the key
-    if (storedEmail) {
-        studentEmailForSubmission = storedEmail;
-        console.log(`Student identifier initialized from localStorage: ${studentEmailForSubmission}`);
-    } else {
-        // Keep the default "anonymous_student@example.com" if nothing is found
-        console.log(`No student identifier found in localStorage. Using default: ${studentEmailForSubmission}`);
-    }
-}
 
 async function loadQuizData(quizName) {
     const url = `${GITHUB_JSON_BASE_URL}${quizName}.json`;
@@ -83,11 +70,10 @@ async function loadQuizData(quizName) {
     }
 }
 
-// --- DOM Elements (Assume these are all correctly defined as before) ---
+// --- DOM Elements ---
 const allAppViews = document.querySelectorAll('.app-view');
 const homeViewEl = document.getElementById('home-view');
 const testInterfaceViewEl = document.getElementById('test-interface-view');
-// ... (all other DOM element const declarations remain the same as in your working Phase 4/5 script)
 const moduleOverViewEl = document.getElementById('module-over-view');
 const finishedViewEl = document.getElementById('finished-view');
 const reviewPageViewEl = document.getElementById('review-page-view');
@@ -161,7 +147,6 @@ const exitExamCancelBtn = document.getElementById('exit-exam-cancel-btn');
 
 
 // --- Helper Functions ---
-// (getCurrentModule, getCurrentQuestionData, getAnswerState, populateQNavGrid, renderReviewPage, confetti, handleTimerToggle remain the same)
 function getCurrentModule() {
     if (currentTestFlow.length > 0 && currentModuleIndex < currentTestFlow.length) {
         const currentQuizName = currentTestFlow[currentModuleIndex];
@@ -181,6 +166,9 @@ function getAnswerStateKey(moduleIdx = currentModuleIndex, qNum = currentQuestio
     return `${moduleIdx}-${qNum}`;
 }
 
+// CHANGED: getAnswerState now stores q_id, correct_ans, and question_type_from_json
+// from currentQuestionDetails when initializing a new state.
+// CHANGED: getAnswerState ensures essential data is populated when state is first created.
 function getAnswerState(moduleIdx = currentModuleIndex, qNum = currentQuestionNumber) {
     const key = getAnswerStateKey(moduleIdx, qNum);
     if (!userAnswers[key]) {
@@ -194,12 +182,15 @@ function getAnswerState(moduleIdx = currentModuleIndex, qNum = currentQuestionNu
             marked: false, 
             crossedOut: [], 
             timeSpent: 0,
-            q_id: questionDetails ? questionDetails.question_id : `M${moduleIdx}-Q${qNum}-tmp`, 
+            // Populate these immediately if questionDetails are available
+            q_id: questionDetails ? questionDetails.question_id : `M${moduleIdx}-Q${qNum}-tmp`, // Temporary if no details yet
             correct_ans: questionDetails ? questionDetails.correct_answer : null,
             question_type_from_json: questionDetails ? questionDetails.question_type : null,
-            quizName_from_flow: currentTestFlow[moduleIdx] || "UNKNOWN_QUIZ_AT_GETSTATE"
+            quizName_from_flow: currentTestFlow[moduleIdx] || "UNKNOWN_QUIZ_AT_GETSTATE" // Store quizName
         };
     }
+    // Attempt to update if details were missing at creation and are now available
+    // This is specifically for when getAnswerState is called by loadQuestion
     if (userAnswers[key] && (userAnswers[key].q_id.endsWith('-tmp') || !userAnswers[key].correct_ans)) {
          const questionDetails = (moduleIdx === currentModuleIndex && currentQuizQuestions && currentQuizQuestions[qNum - 1]) 
                                ? currentQuizQuestions[qNum - 1] 
@@ -216,9 +207,9 @@ function getAnswerState(moduleIdx = currentModuleIndex, qNum = currentQuestionNu
 
 
 function populateQNavGrid() {
-    // ... (same as your working version)
     if (!qNavGridMain || !qNavTitle) { console.error("QNav grid or title element not found for populating."); return; }
     qNavGridMain.innerHTML = '';
+    
     const moduleInfo = getCurrentModule();
     if (!moduleInfo || !currentQuizQuestions || currentQuizQuestions.length === 0) {
         qNavTitle.textContent = "Questions";
@@ -226,10 +217,13 @@ function populateQNavGrid() {
         return;
     }
     qNavTitle.textContent = `Section ${currentModuleIndex + 1}: ${moduleInfo.name} Questions`;
+
     const totalQuestionsInModule = currentQuizQuestions.length;
+
     for (let i = 1; i <= totalQuestionsInModule; i++) {
         const qState = getAnswerState(currentModuleIndex, i); 
         const questionDataForButton = currentQuizQuestions[i - 1]; 
+        
         const btn = document.createElement('button');
         btn.className = 'qnav-grid-btn';
         if (i === currentQuestionNumber) {
@@ -238,6 +232,7 @@ function populateQNavGrid() {
         } else {
             btn.textContent = questionDataForButton?.question_number || i;
         }
+
         let isUnanswered = true; 
         if (questionDataForButton) { 
             if (questionDataForButton.question_type === 'student_produced_response') { 
@@ -246,8 +241,10 @@ function populateQNavGrid() {
                 isUnanswered = !qState.selected;
             }
         }
+
         if (isUnanswered && i !== currentQuestionNumber) btn.classList.add('unanswered');
         if (qState.marked) btn.innerHTML += `<span class="review-flag-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg></span>`;
+        
         btn.dataset.question = i; 
         btn.addEventListener('click', () => {
             recordTimeOnCurrentQuestion();
@@ -262,9 +259,10 @@ function populateQNavGrid() {
 }
 
 function renderReviewPage() {
-    // ... (same as your working version)
+    // (Unchanged from Phase 3)
     if (!reviewPageViewEl || !reviewPageViewEl.classList.contains('active')) return;
     console.log("Rendering Review Page (Phase 3)...");
+    
     const moduleInfo = getCurrentModule();
     if(!moduleInfo || !currentQuizQuestions || currentQuizQuestions.length === 0) {
          if(reviewPageSectionName) reviewPageSectionName.textContent = "Section Review";
@@ -274,10 +272,13 @@ function renderReviewPage() {
         return;
     }
     if(reviewPageSectionName) reviewPageSectionName.textContent = `Section ${currentModuleIndex + 1}: ${moduleInfo.name} Questions`;
+    
     if(timerTextEl && reviewTimerText) reviewTimerText.textContent = timerTextEl.textContent;
     if(timerClockIconEl && reviewTimerClockIcon) reviewTimerClockIcon.className = timerClockIconEl.className;
     if(timerToggleBtn && reviewTimerToggleBtn) reviewTimerToggleBtn.textContent = timerToggleBtn.textContent;
+
     if(reviewPageQNavGrid) reviewPageQNavGrid.innerHTML = ''; else { console.error("Review page QNav grid not found."); return;}
+
     const totalQuestionsInModule = currentQuizQuestions.length;
     for (let i = 1; i <= totalQuestionsInModule; i++) {
         const qState = getAnswerState(currentModuleIndex, i);
@@ -285,6 +286,7 @@ function renderReviewPage() {
         const btn = document.createElement('button');
         btn.className = 'qnav-grid-btn';
         btn.textContent = qDataForBtn?.question_number || i; 
+
         let isUnanswered = true;
         if (qDataForBtn) {
             if (qDataForBtn.question_type === 'student_produced_response') {
@@ -294,6 +296,7 @@ function renderReviewPage() {
             }
         }
         if (isUnanswered) btn.classList.add('unanswered');
+
         if (qState.marked) {
             btn.innerHTML += `<span class="review-flag-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg></span>`;
         }
@@ -307,16 +310,23 @@ function renderReviewPage() {
     updateNavigation(); 
 }
 
+// (Confetti functions unchanged)
 let confettiAnimationId; 
 const confettiParticles = []; 
-function startConfetti() { /* ... */ } // Unchanged
-function stopConfetti() { /* ... */ }  // Unchanged
-function handleTimerToggle(textEl, iconEl, btnEl) { /* ... */ } // Unchanged
+function startConfetti() { /* ... */ }
+function stopConfetti() { /* ... */ }
 
+function handleTimerToggle(textEl, iconEl, btnEl) {
+    // (Unchanged from Phase 3)
+    if (!textEl || !iconEl || !btnEl) return;
+    isTimerHidden = !isTimerHidden; 
+    textEl.classList.toggle('hidden', isTimerHidden); 
+    iconEl.classList.toggle('hidden', !isTimerHidden);
+    btnEl.textContent = isTimerHidden ? '[Show]' : '[Hide]';
+}
 
 // --- View Management ---
 function showView(viewId) {
-    // ... (same as your working version, including call to submitQuizData in 'finished-view')
     console.log("Switching to view:", viewId);
     currentView = viewId;
     allAppViews.forEach(view => view.classList.remove('active'));
@@ -334,6 +344,7 @@ function showView(viewId) {
         renderReviewPage();
     } else if (viewId === 'finished-view') {
         startConfetti();
+        // CHANGED: Call submitQuizData when finished-view is shown
         submitQuizData(); 
     } else if (viewId === 'home-view') {
         stopConfetti();
@@ -349,44 +360,48 @@ function showView(viewId) {
 
 // --- Core UI Update `loadQuestion()` ---
 function loadQuestion() {
-    // ... (same as your working version, including robust MathJax call)
-    if (!testInterfaceViewEl.classList.contains('active')) return;
-    const currentModuleInfo = getCurrentModule(); 
-    const currentQuestionDetails = getCurrentQuestionData(); 
-    if (!currentModuleInfo || !currentQuestionDetails) {
-        console.error("loadQuestion: ModuleInfo or Question data is null/undefined. Aborting question load.");
-        if (questionTextMainEl) questionTextMainEl.innerHTML = "<p>Error: Critical data missing for question display.</p>";
-        if (answerOptionsMainEl) answerOptionsMainEl.innerHTML = "";
-        if(totalQFooterEl && currentQFooterEl) {
-            currentQFooterEl.textContent = currentQuestionNumber;
-            totalQFooterEl.textContent = currentQuizQuestions ? currentQuizQuestions.length : 0;
-        }
-        updateNavigation();
+    // (Unchanged from Phase 3, but ensure answerState initialization is correct)
+    if (!testInterfaceViewEl.classList.contains('active')) {
         return;
     }
-    const answerState = getAnswerState(); 
-    if (answerState && (typeof answerState.q_id === 'undefined' || (answerState.q_id && answerState.q_id.startsWith('M')))) {
-        answerState.q_id = currentQuestionDetails.question_id;
-        answerState.correct_ans = currentQuestionDetails.correct_answer;
-        answerState.question_type_from_json = currentQuestionDetails.question_type;
-        answerState.quizName_from_flow = currentTestFlow[currentModuleIndex] || "UNKNOWN_QUIZ_AT_LOADQUESTION";
-    }
-    answerState.timeSpent = parseFloat(answerState.timeSpent) || 0;
-    questionStartTime = Date.now();
+    
+    // ...
+const currentModuleInfo = getCurrentModule(); 
+const currentQuestionDetails = getCurrentQuestionData(); 
+
+if (!currentModuleInfo || !currentQuestionDetails) {
+    // ... error handling ...
+    return;
+}
+
+// CHANGED: Ensure answerState is fully populated by getAnswerState before setting startTime
+const answerState = getAnswerState(); 
+// The getAnswerState function itself will now try to populate q_id, correct_ans, etc.
+// if currentQuestionDetails are available for the current module/question.
+// So, no explicit update block needed here for those fields anymore.
+
+answerState.timeSpent = parseFloat(answerState.timeSpent) || 0;
+questionStartTime = Date.now(); // Set startTime AFTER answerState might have been updated
+// ... rest of loadQuestion
+
     if(sectionTitleHeader) sectionTitleHeader.textContent = `Section ${currentModuleIndex + 1}: ${currentModuleInfo.name}`;
     if(questionNumberBoxMainEl) questionNumberBoxMainEl.textContent = currentQuestionDetails.question_number || currentQuestionNumber;
+    
     const isMathTypeModule = currentModuleInfo.type === "Math";
     if(highlightsNotesBtn) highlightsNotesBtn.classList.toggle('hidden', isMathTypeModule);
     if(calculatorBtnHeader) calculatorBtnHeader.classList.toggle('hidden', !isMathTypeModule);
     if(referenceBtnHeader) referenceBtnHeader.classList.toggle('hidden', !isMathTypeModule);
     if(crossOutToolBtnMain) crossOutToolBtnMain.classList.toggle('hidden', currentQuestionDetails.question_type === 'student_produced_response');
+
     if(markReviewCheckboxMain) markReviewCheckboxMain.checked = answerState.marked;
     if(flagIconMain) {
         flagIconMain.style.fill = answerState.marked ? 'var(--bluebook-red-flag)' : 'none';
         flagIconMain.style.color = answerState.marked ? 'var(--bluebook-red-flag)' : '#9ca3af';
     }
+
     if(mainContentAreaDynamic) mainContentAreaDynamic.classList.toggle('cross-out-active', isCrossOutToolActive && currentQuestionDetails.question_type !== 'student_produced_response');
     if(crossOutToolBtnMain) crossOutToolBtnMain.classList.toggle('active', isCrossOutToolActive && currentQuestionDetails.question_type !== 'student_produced_response');
+
     passagePane.style.display = 'none';
     if (passageContentEl) passageContentEl.innerHTML = ''; 
     sprInstructionsPane.style.display = 'none';
@@ -397,44 +412,55 @@ function loadQuestion() {
     mainContentAreaDynamic.classList.remove('single-pane');
     answerOptionsMainEl.style.display = 'none'; 
     sprInputContainerMain.style.display = 'none'; 
+
+
     if (currentQuestionDetails.question_type === 'student_produced_response') {
         mainContentAreaDynamic.classList.remove('single-pane');
         sprInstructionsPane.style.display = 'flex';
         passagePane.style.display = 'none'; 
         paneDivider.style.display = 'block';
         if(sprInstructionsContent) sprInstructionsContent.innerHTML = (currentModuleInfo.spr_directions || 'SPR Directions Missing') + (currentModuleInfo.spr_examples_table || '');
+        
         if(questionTextMainEl) questionTextMainEl.innerHTML = currentQuestionDetails.question_text || '<p>Question text missing.</p>';
         sprInputContainerMain.style.display = 'block';
         if(sprInputFieldMain) sprInputFieldMain.value = answerState.spr_answer || '';
         if(sprAnswerPreviewMain) sprAnswerPreviewMain.textContent = `Answer Preview: ${answerState.spr_answer || ''}`;
         answerOptionsMainEl.style.display = 'none';
+
     } else if (currentModuleInfo.type === "RW" && currentQuestionDetails.question_type.includes('multiple_choice')) {
         mainContentAreaDynamic.classList.remove('single-pane');
         passagePane.style.display = 'flex'; 
         paneDivider.style.display = 'block'; 
+        
         if(passageContentEl) passageContentEl.innerHTML = currentQuestionDetails.question_text || '<p>Question text missing.</p>';
+
         if(questionTextMainEl) questionTextMainEl.innerHTML = ''; 
         answerOptionsMainEl.style.display = 'flex'; 
         sprInputContainerMain.style.display = 'none';
+
     } else { 
         mainContentAreaDynamic.classList.add('single-pane');
         passagePane.style.display = 'none';
         sprInstructionsPane.style.display = 'none';
         paneDivider.style.display = 'none';
+
         if(questionTextMainEl) questionTextMainEl.innerHTML = currentQuestionDetails.question_text || '<p>Question text missing.</p>';
         answerOptionsMainEl.style.display = 'flex'; 
         sprInputContainerMain.style.display = 'none';
     }
+
     if (currentQuestionDetails.question_type && currentQuestionDetails.question_type.includes('multiple_choice')) {
         if (answerOptionsMainEl) answerOptionsMainEl.innerHTML = ''; 
+        
         const options = {};
         if (currentQuestionDetails.option_a !== undefined && currentQuestionDetails.option_a !== null) options['A'] = currentQuestionDetails.option_a;
         if (currentQuestionDetails.option_b !== undefined && currentQuestionDetails.option_b !== null) options['B'] = currentQuestionDetails.option_b;
         if (currentQuestionDetails.option_c !== undefined && currentQuestionDetails.option_c !== null) options['C'] = currentQuestionDetails.option_c;
         if (currentQuestionDetails.option_d !== undefined && currentQuestionDetails.option_d !== null) options['D'] = currentQuestionDetails.option_d;
         if (currentQuestionDetails.option_e !== undefined && currentQuestionDetails.option_e !== null && String(currentQuestionDetails.option_e).trim() !== "") options['E'] = currentQuestionDetails.option_e;
+
         for (const [key, value] of Object.entries(options)) {
-            const isSelected = (answerState.selected === value); 
+            const isSelected = (answerState.selected === value);
             const isCrossedOut = answerState.crossedOut.includes(key);
             const containerDiv = document.createElement('div');
             containerDiv.className = 'answer-option-container';
@@ -472,12 +498,16 @@ function loadQuestion() {
             if (answerOptionsMainEl) answerOptionsMainEl.appendChild(containerDiv);
         }
     }
+       // CHANGED: More robust MathJax typesetting call
     if (typeof MathJax !== "undefined") {
         if (MathJax.typesetPromise) {
+            // console.log("MathJax.typesetPromise available, calling directly.");
             MathJax.typesetPromise([passageContentEl, questionTextMainEl, answerOptionsMainEl, sprInstructionsContent])
                 .catch(function (err) { console.error('MathJax Typesetting Error:', err); });
         } else if (MathJax.startup && MathJax.startup.promise) {
+            // console.log("MathJax.typesetPromise not ready, using MathJax.startup.promise.");
             MathJax.startup.promise.then(() => {
+                // console.log("MathJax ready after startup.promise, typesetting now.");
                 if (MathJax.typesetPromise) {
                      MathJax.typesetPromise([passageContentEl, questionTextMainEl, answerOptionsMainEl, sprInstructionsContent])
                         .catch(function (err) { console.error('MathJax Typesetting Error (after startup.promise):', err); });
@@ -486,7 +516,9 @@ function loadQuestion() {
                 }
             }).catch(err => console.error("Error waiting for MathJax startup:", err));
         } else {
+            // Fallback if MathJax is defined but in an unexpected state
             console.warn("MathJax is defined, but neither typesetPromise nor startup.promise is available. Typesetting may fail.");
+            // As a last resort, try a small delay, though this is not ideal
             setTimeout(() => {
                 if (typeof MathJax !== "undefined" && MathJax.typesetPromise) {
                     console.log("Attempting MathJax typesetting after a short delay.");
@@ -495,7 +527,7 @@ function loadQuestion() {
                 } else {
                      console.warn("MathJax still not ready after delay for typesetting.");
                 }
-            }, 500); 
+            }, 500); // 500ms delay
         }
     } else {
         console.warn("MathJax object itself is not defined. Math content will not be rendered.");
@@ -503,95 +535,361 @@ function loadQuestion() {
     updateNavigation();
 }
 
-function recordTimeOnCurrentQuestion() { /* ... */ } // Unchanged
 
-// --- Event Listeners ---
-// (handleAnswerSelect, handleAnswerCrossOut, handleAnswerUndoCrossOut, crossOutToolBtnMain, sprInputFieldMain listeners remain the same)
+function recordTimeOnCurrentQuestion() {
+    if (questionStartTime > 0 && currentQuizQuestions.length > 0 && currentQuestionNumber <= currentQuizQuestions.length) {
+        const endTime = Date.now();
+        const timeSpentSeconds = (endTime - questionStartTime) / 1000;
+        const answerState = getAnswerState(); 
+        if (answerState) { 
+            answerState.timeSpent = (parseFloat(answerState.timeSpent) || 0) + timeSpentSeconds;
+        }
+    }
+    questionStartTime = 0; 
+}
+
+// --- Event Listeners (Phase 3 versions, largely unchanged for this step, except cross-out will be simplified later) ---
+// From your Phase 4 script.js (around line 530)
 if(answerOptionsMainEl) {
     answerOptionsMainEl.addEventListener('click', function(event) {
         const target = event.target;
         const answerContainer = target.closest('.answer-option-container');
-        if (!answerContainer) return;
+        
+        // DEBUG: Log if the listener is even firing and what was clicked
+        console.log("Answer option area clicked. Target:", target, "Container:", answerContainer);
+
+        if (!answerContainer) {
+            console.log("Click was outside an answer-option-container. Exiting listener.");
+            return; 
+        }
         const optionKey = answerContainer.dataset.optionKey;
-        const action = target.dataset.action || (target.closest('[data-action]') ? target.closest('[data-action]').dataset.action : null);
+        console.log("Option key identified:", optionKey); // DEBUG
+        
+        const actionElement = target.closest('[data-action]');
+        const action = actionElement ? actionElement.dataset.action : null;
+        console.log("Action identified:", action); // DEBUG
+        
         if (!action && target.closest('.answer-option')) { 
             recordTimeOnCurrentQuestion(); 
         }
-        if (action === 'cross-out-individual') handleAnswerCrossOut(optionKey);
-        else if (action === 'undo-cross-out') handleAnswerUndoCrossOut(optionKey);
-        else if (target.closest('.answer-option')) handleAnswerSelect(optionKey);
+
+        if (action === 'cross-out-individual') {
+            console.log("Calling handleAnswerCrossOut for individual cross-out."); // DEBUG
+            handleAnswerCrossOut(optionKey);
+        } else if (action === 'undo-cross-out') {
+            console.log("Calling handleAnswerCrossOut for undo cross-out."); // DEBUG
+            handleAnswerUndoCrossOut(optionKey);
+        } else if (target.closest('.answer-option')) { 
+            // This 'else if' implies the click was on the general option area, intended for selection.
+            console.log("Attempting to call handleAnswerSelect."); // DEBUG
+            handleAnswerSelect(optionKey);
+        } else {
+            console.log("Click did not match any known action or target for selection."); // DEBUG
+        }
     });
-}
+};
+
+// REVISED handleAnswerSelect for debugging the "no selection when tool is off" issue
 function handleAnswerSelect(optionKey) {
     const answerState = getAnswerState();
-    if (!answerState) return;
+    if (!answerState) {
+        console.error("handleAnswerSelect: No answer state found for current question.");
+        return;
+    }
+
+    // --- Core Debugging Point for Answer Selection ---
     if (isCrossOutToolActive) {
+        // If cross-out tool IS active, clicking an option might mean something else.
+        // For now, we'll allow selection to still happen to test the official Bluebook logic later
+        // (where selection removes cross-out).
+        // But the primary bug is when isCrossOutToolActive is FALSE.
         console.log("handleAnswerSelect: Cross-out tool is currently ACTIVE. Proceeding with selection (will also remove cross-out).");
+        // If you wanted to STRICTLY prevent selection when tool is active (old behavior):
+        // return; 
     } else {
         console.log("handleAnswerSelect: Cross-out tool is INACTIVE. Proceeding with selection.");
     }
+    
+    // If we reach here, we are selecting the answer.
     const currentQDetails = getCurrentQuestionData();
-    let selectedOptionText = optionKey; 
+    let selectedOptionText = optionKey; // Fallback to key if text not found
+    
+    // Try to get the full text for the option, as stored in JSON
+    // JSON option keys are like 'option_a', 'option_b'
     const jsonOptionKey = `option_${optionKey.toLowerCase()}`;
     if (currentQDetails && currentQDetails.hasOwnProperty(jsonOptionKey) && currentQDetails[jsonOptionKey] !== null) {
         selectedOptionText = currentQDetails[jsonOptionKey];
     } else {
-        console.warn(`handleAnswerSelect: Could not find option text for key ${optionKey} (tried ${jsonOptionKey}). Storing key itself ('${optionKey}') as selected value.`);
+        console.warn(`handleAnswerSelect: Could not find option text for key ${optionKey} (tried ${jsonOptionKey}). Storing key itself ('${optionKey}') as selected value. This might affect 'is_correct' for MCQs if not intended.`);
     }
+
     console.log(`handleAnswerSelect: Setting selected answer to: "${selectedOptionText}" (original key: ${optionKey})`);
     answerState.selected = selectedOptionText; 
+
+    // As per official Bluebook: selecting an option should remove any cross-out from that option key.
     if (answerState.crossedOut.includes(optionKey)) {
         console.log(`handleAnswerSelect: Option ${optionKey} was selected, removing it from crossedOut list.`);
         answerState.crossedOut = answerState.crossedOut.filter(opt => opt !== optionKey);
     }
-    loadQuestion(); 
+    
+    loadQuestion(); // Reload to reflect selection and potential un-cross-out
 }
 function handleAnswerCrossOut(optionKey) { 
      const answerState = getAnswerState();
      if (!answerState) return;
      if (!answerState.crossedOut.includes(optionKey)) {
          answerState.crossedOut.push(optionKey);
-     } 
-     loadQuestion(); 
+     } else { // If already crossed out, clicking 'x' again could uncross it (optional refinement)
+         // answerState.crossedOut = answerState.crossedOut.filter(opt => opt !== optionKey);
+     }
+     loadQuestion();
 }
 function handleAnswerUndoCrossOut(optionKey) { 
      const answerState = getAnswerState();
      if (!answerState) return;
      answerState.crossedOut = answerState.crossedOut.filter(opt => opt !== optionKey);
-     loadQuestion(); 
+     loadQuestion();
 }
 
-if(crossOutToolBtnMain) { /* ... */ } // Unchanged
-if(sprInputFieldMain) { /* ... */ }   // Unchanged
+if(crossOutToolBtnMain) {
+    crossOutToolBtnMain.addEventListener('click', () => {
+        const currentQData = getCurrentQuestionData();
+        if (currentQData && currentQData.question_type === 'student_produced_response') return;
+        isCrossOutToolActive = !isCrossOutToolActive;
+        loadQuestion();
+    });
+}
+if(sprInputFieldMain) {
+    sprInputFieldMain.addEventListener('input', (event) => {
+        const answerState = getAnswerState();
+        if (!answerState) return;
+        answerState.spr_answer = event.target.value;
+        if(sprAnswerPreviewMain) sprAnswerPreviewMain.textContent = `Answer Preview: ${event.target.value}`;
+    });
+    sprInputFieldMain.addEventListener('blur', () => { 
+        recordTimeOnCurrentQuestion();
+        questionStartTime = Date.now(); 
+    });
+}
 
-function updateNavigation() { /* ... */ } // Unchanged
-if(nextBtnFooter) { /* ... */ }           // Unchanged
-function nextButtonClickHandler() { /* ... */ } // Unchanged
-if(reviewNextBtnFooter) { /* ... */ }    // Unchanged
-if(backBtnFooter) { /* ... */ }           // Unchanged
-function backButtonClickHandler() { /* ... */ } // Unchanged
+function updateNavigation() {
+    // (Unchanged from Phase 3)
+    if (!backBtnFooter || !nextBtnFooter || !currentQFooterEl || !totalQFooterEl) {
+        console.error("Navigation elements missing.");
+        return;
+    }
 
-// Other UI element listeners (directions, qnav, modals, etc.) remain the same
+    const moduleIsLoaded = currentQuizQuestions && currentQuizQuestions.length > 0;
+    const totalQuestionsInModule = moduleIsLoaded ? currentQuizQuestions.length : 0;
+
+    currentQFooterEl.textContent = moduleIsLoaded ? currentQuestionNumber : '0';
+    totalQFooterEl.textContent = totalQuestionsInModule;
+    backBtnFooter.disabled = (currentQuestionNumber === 1);
+
+    if (currentView === 'test-interface-view') {
+        if (!moduleIsLoaded) {
+            nextBtnFooter.textContent = "Next";
+            nextBtnFooter.disabled = true;
+        } else if (currentQuestionNumber < totalQuestionsInModule) {
+            nextBtnFooter.textContent = "Next";
+            nextBtnFooter.disabled = false;
+        } else { 
+            nextBtnFooter.textContent = "Review Section";
+            nextBtnFooter.disabled = false;
+        }
+        if (reviewBackBtnFooter) reviewBackBtnFooter.style.display = 'none';
+        if (reviewNextBtnFooter) reviewNextBtnFooter.style.display = 'none';
+        nextBtnFooter.style.display = 'inline-block'; 
+        backBtnFooter.style.display = 'inline-block'; 
+
+    } 
+    else if (currentView === 'review-page-view') {
+        if (reviewBackBtnFooter) {
+             reviewBackBtnFooter.style.display = 'inline-block';
+             reviewBackBtnFooter.disabled = false; 
+        }
+        if (reviewNextBtnFooter) {
+            reviewNextBtnFooter.style.display = 'inline-block';
+            if (currentModuleIndex < currentTestFlow.length - 1) {
+                reviewNextBtnFooter.textContent = "Next Module";
+            } else {
+                reviewNextBtnFooter.textContent = "Finish Test";
+            }
+            reviewNextBtnFooter.disabled = false;
+        }
+        if (nextBtnFooter) nextBtnFooter.style.display = 'none';
+        if (backBtnFooter) backBtnFooter.style.display = 'none';
+    } else { 
+        if (nextBtnFooter) { nextBtnFooter.style.display = 'inline-block'; nextBtnFooter.disabled = true; }
+        if (backBtnFooter) { backBtnFooter.style.display = 'inline-block'; backBtnFooter.disabled = true; }
+        if (reviewBackBtnFooter) reviewBackBtnFooter.style.display = 'none';
+        if (reviewNextBtnFooter) reviewNextBtnFooter.style.display = 'none';
+    }
+}
+
+if(nextBtnFooter) {
+    nextBtnFooter.removeEventListener('click', nextButtonClickHandler); 
+    nextBtnFooter.addEventListener('click', nextButtonClickHandler);
+}
+function nextButtonClickHandler() {
+    // (Unchanged from Phase 3)
+    if (currentView !== 'test-interface-view') return; 
+    recordTimeOnCurrentQuestion(); 
+    const totalQuestionsInModule = currentQuizQuestions.length;
+    if (currentQuestionNumber < totalQuestionsInModule) {
+        currentQuestionNumber++;
+        isCrossOutToolActive = false; 
+        isHighlightingActive = false; if(highlightsNotesBtn) highlightsNotesBtn.classList.remove('active');
+        loadQuestion();
+    } else if (currentQuestionNumber === totalQuestionsInModule) {
+        showView('review-page-view');
+    }
+}
+
+if(reviewNextBtnFooter) {
+    // (Unchanged from Phase 3)
+    reviewNextBtnFooter.addEventListener('click', async () => { 
+        if (currentView !== 'review-page-view') return;
+        recordTimeOnCurrentQuestion(); 
+        currentModuleIndex++;
+        if (currentModuleIndex < currentTestFlow.length) {
+            showView('module-over-view'); 
+            setTimeout(async () => {
+                currentQuestionNumber = 1; 
+                const success = await loadQuizData(currentTestFlow[currentModuleIndex]);
+                if (success && currentQuizQuestions.length > 0) {
+                    populateQNavGrid(); 
+                    showView('test-interface-view');
+                } else {
+                    console.error("Failed to load next module or module has no questions.");
+                    alert("Error loading the next module. Returning to home.");
+                    showView('home-view'); 
+                }
+            }, 1000); 
+        } else {
+            console.log("All modules finished. Transitioning to finished view.");
+            showView('finished-view');
+        }
+    });
+}
+
+if(backBtnFooter) { 
+    // (Unchanged from Phase 3)
+    backBtnFooter.removeEventListener('click', backButtonClickHandler); 
+    backBtnFooter.addEventListener('click', backButtonClickHandler);
+}
+function backButtonClickHandler() {
+    // (Unchanged from Phase 3)
+    if (currentView !== 'test-interface-view') return;
+    recordTimeOnCurrentQuestion();
+    if (currentQuestionNumber > 1) {
+        currentQuestionNumber--;
+        isCrossOutToolActive = false; 
+        isHighlightingActive = false; if(highlightsNotesBtn) highlightsNotesBtn.classList.remove('active');
+        loadQuestion();
+    }
+}
+
+// --- Event Listeners for other UI elements (Restored and Verified from Phase 3) ---
 if(returnToHomeBtn) returnToHomeBtn.addEventListener('click', () => showView('home-view')); 
-// ... (all other event listeners for calculator, reference, highlights, modals, etc. are unchanged)
 if(calculatorBtnHeader) calculatorBtnHeader.addEventListener('click', () => toggleModal(calculatorOverlay, true));
 if(calculatorCloseBtn) calculatorCloseBtn.addEventListener('click', () => toggleModal(calculatorOverlay, false));
 if(referenceBtnHeader) referenceBtnHeader.addEventListener('click', () => toggleModal(referenceSheetPanel, true));
 if(referenceSheetCloseBtn) referenceSheetCloseBtn.addEventListener('click', () => toggleModal(referenceSheetPanel, false));
+
 let isCalcDraggingPhase3 = false; let currentX_calc_drag_p3, currentY_calc_drag_p3, initialX_calc_drag_p3, initialY_calc_drag_p3, xOffset_calc_drag_p3 = 0, yOffset_calc_drag_p3 = 0;
-if(calculatorHeaderDraggable) { /* ... */ }
-if(highlightsNotesBtn && (passageContentEl || questionTextMainEl) ) { /* ... */ }
-function handleTextSelection() { /* ... */ }
-if(directionsBtn) { /* ... */ }
+if(calculatorHeaderDraggable) {
+    calculatorHeaderDraggable.addEventListener('mousedown', (e) => { 
+        initialX_calc_drag_p3 = e.clientX - xOffset_calc_drag_p3; 
+        initialY_calc_drag_p3 = e.clientY - yOffset_calc_drag_p3; 
+        if (e.target === calculatorHeaderDraggable || e.target.tagName === 'STRONG') isCalcDraggingPhase3 = true; 
+    });
+    document.addEventListener('mousemove', (e) => { 
+        if (isCalcDraggingPhase3) { 
+            e.preventDefault(); 
+            currentX_calc_drag_p3 = e.clientX - initialX_calc_drag_p3; 
+            currentY_calc_drag_p3 = e.clientY - initialY_calc_drag_p3; 
+            xOffset_calc_drag_p3 = currentX_calc_drag_p3; 
+            yOffset_calc_drag_p3 = currentY_calc_drag_p3; 
+            if(calculatorOverlay) calculatorOverlay.style.transform = `translate3d(${currentX_calc_drag_p3}px, ${currentY_calc_drag_p3}px, 0)`;
+        } 
+    });
+    document.addEventListener('mouseup', () => isCalcDraggingPhase3 = false );
+}
+
+if(highlightsNotesBtn && (passageContentEl || questionTextMainEl) ) {
+    highlightsNotesBtn.addEventListener('click', () => {
+        isHighlightingActive = !isHighlightingActive;
+        highlightsNotesBtn.classList.toggle('active', isHighlightingActive);
+        if (isHighlightingActive) {
+            document.addEventListener('mouseup', handleTextSelection); 
+            if(mainContentAreaDynamic) mainContentAreaDynamic.classList.add('highlight-active'); 
+        } else {
+            document.removeEventListener('mouseup', handleTextSelection);
+            if(mainContentAreaDynamic) mainContentAreaDynamic.classList.remove('highlight-active'); 
+        }
+    });
+}
+function handleTextSelection() {
+    // (Unchanged from Phase 3)
+    if (!isHighlightingActive) return;
+    const selection = window.getSelection();
+    if (!selection.rangeCount || selection.isCollapsed) return;
+    const range = selection.getRangeAt(0);
+    const container = range.commonAncestorContainer;
+    const isWithinPassagePane = passagePane && passagePane.style.display !== 'none' && passagePane.contains(container);
+    const isWithinQuestionTextPane = questionPane && questionPane.contains(container) && questionTextMainEl.contains(container);
+    const isWithinSprInstructions = sprInstructionsPane && sprInstructionsPane.style.display !== 'none' && sprInstructionsPane.contains(container);
+    if (!isWithinPassagePane && !isWithinQuestionTextPane && !isWithinSprInstructions) return;
+    const span = document.createElement('span');
+    span.className = 'text-highlight';
+    try { range.surroundContents(span); } 
+    catch (e) { span.appendChild(range.extractContents()); range.insertNode(span); console.warn("Highlighting fallback.", e); }
+    selection.removeAllRanges();
+}
+
+if(directionsBtn) {
+    directionsBtn.addEventListener('click', () => {
+        const moduleInfo = getCurrentModule();
+        if(moduleInfo && directionsModalTitle) directionsModalTitle.textContent = `Section ${currentModuleIndex + 1}: ${moduleInfo.name} Directions`; 
+        if(moduleInfo && directionsModalText) directionsModalText.innerHTML = moduleInfo.directions || "General directions"; 
+        toggleModal(directionsModal, true); 
+    });
+}
 if(directionsModalCloseBtn) directionsModalCloseBtn.addEventListener('click', () => toggleModal(directionsModal, false));
 if(directionsModal) directionsModal.addEventListener('click', (e) => { if (e.target === directionsModal) toggleModal(directionsModal, false); });
-if(qNavBtnFooter) { /* ... */ }
+
+if(qNavBtnFooter) {
+    qNavBtnFooter.addEventListener('click', () => { 
+        if (currentQuizQuestions.length > 0) { populateQNavGrid(); toggleModal(qNavPopup, true); } 
+        else { console.warn("QNav: no questions loaded."); }
+    });
+}
 if(qNavCloseBtn) qNavCloseBtn.addEventListener('click', () => toggleModal(qNavPopup, false));
-if(qNavGotoReviewBtn) { /* ... */ }
-if(markReviewCheckboxMain) { /* ... */ }
+if(qNavGotoReviewBtn) {
+    qNavGotoReviewBtn.addEventListener('click', () => { 
+        toggleModal(qNavPopup, false); 
+        if (currentQuizQuestions.length > 0) { showView('review-page-view'); }
+    }); 
+}
+
+if(markReviewCheckboxMain) {
+    markReviewCheckboxMain.addEventListener('change', () => {
+        const answerState = getAnswerState();
+        if (!answerState) return;
+        answerState.marked = markReviewCheckboxMain.checked;
+        if(flagIconMain) {
+            flagIconMain.style.fill = answerState.marked ? 'var(--bluebook-red-flag)' : 'none';
+            flagIconMain.style.color = answerState.marked ? 'var(--bluebook-red-flag)' : '#9ca3af';
+        }
+        if (qNavPopup && qNavPopup.classList.contains('visible')) populateQNavGrid();
+    });
+}
+
 if(timerToggleBtn) timerToggleBtn.addEventListener('click', () => handleTimerToggle(timerTextEl, timerClockIconEl, timerToggleBtn));
 if(reviewDirectionsBtn) reviewDirectionsBtn.addEventListener('click', () => { /* Already handled by its own listener */ });
 if(reviewTimerToggleBtn && reviewTimerText && reviewTimerClockIcon) reviewTimerToggleBtn.addEventListener('click', () => handleTimerToggle(reviewTimerText, reviewTimerClockIcon, reviewTimerToggleBtn));
+
 if(moreBtn) { /* (More Menu listeners unchanged from Phase 3) */ }
 document.body.addEventListener('click', (e) => { /* ... */ });
 if(moreMenuDropdown) moreMenuDropdown.addEventListener('click', (e) => e.stopPropagation()); 
@@ -607,10 +905,7 @@ if(exitExamConfirmBtn) { /* ... */ }
 // --- Start Button Event Listener ---
 if(startTestPreviewBtn) {
     startTestPreviewBtn.addEventListener('click', async () => {
-        // CHANGED: Call initializeStudentIdentifier
-        initializeStudentIdentifier(); 
-
-        console.log("Start Test Preview button clicked (Using localStorage for student ID)."); 
+        console.log("Start Test Preview button clicked (Phase 4)."); 
         currentModuleIndex = 0;
         currentQuestionNumber = 1;
         userAnswers = {}; 
@@ -653,22 +948,28 @@ if(startTestPreviewBtn) {
     });
 }
 
-// --- Submission Logic ---
+// --- CHANGED: SUBMISSION LOGIC (NEW FUNCTION) ---
+// CHANGED: submitQuizData function completely revised to align with old working script and use data from answerState
 async function submitQuizData() {
-    // ... (This function remains the same as the one that successfully submitted data)
     console.log("Attempting to submit quiz data (Phase 4 - Corrected Logic)...");
-    recordTimeOnCurrentQuestion(); 
+    recordTimeOnCurrentQuestion(); // Ensure time for the very last interaction is recorded
+
     const submissions = [];
     const timestamp = new Date().toISOString();
+
     for (const key in userAnswers) {
         if (userAnswers.hasOwnProperty(key)) {
             const answerState = userAnswers[key];
+            
+            // Critical check: Ensure all needed data is present in answerState
             if (!answerState.q_id || answerState.q_id.endsWith('-tmp') || typeof answerState.correct_ans === 'undefined' || answerState.correct_ans === null || typeof answerState.question_type_from_json === 'undefined' || !answerState.quizName_from_flow) {
                 console.warn(`Submission data incomplete for answer key ${key}:`, answerState, `. QuizName found: ${answerState.quizName_from_flow}. Question ID: ${answerState.q_id}. Correct Ans: ${answerState.correct_ans}. Type: ${answerState.question_type_from_json}. Skipping this answer.`);
                 continue; 
             }
+
             let studentAnswerForSubmission = "";
             let isCorrect = false;
+
             if (answerState.question_type_from_json === 'student_produced_response') {
                 studentAnswerForSubmission = answerState.spr_answer || "NO_ANSWER";
                 if (answerState.correct_ans && studentAnswerForSubmission !== "NO_ANSWER") {
@@ -677,34 +978,81 @@ async function submitQuizData() {
                         isCorrect = true;
                     }
                 }
-            } else { 
+            } else { // Assuming multiple_choice or similar
                 studentAnswerForSubmission = answerState.selected || "NO_ANSWER";
-                if (answerState.correct_ans && studentAnswerForSubmission !== "NO_ANSWER") {
-                    isCorrect = (String(studentAnswerForSubmission).trim().toLowerCase() === String(answerState.correct_ans).trim().toLowerCase());
+                // For MCQs, the JSON 'correct_answer' field contains the text of the correct option.
+                // 'answerState.selected' stores the letter (A, B, C, D) of the chosen option.
+                // We need to get the text of the selected option to compare.
+                if (answerState.selected && studentAnswerForSubmission !== "NO_ANSWER") {
+                    // Find the original question data to get the text of the selected option
+                    // This is a bit complex here because currentQuizQuestions might be for a different module
+                    // if submission happens after all modules are done.
+                    // This highlights a potential need to store option texts or have a map.
+                    // For now, this part of is_correct for MCQ might be inaccurate if not handled carefully
+                    // during the actual quiz flow.
+                    // HOWEVER, the OLD SCRIPT compared `userAnswerData.answer` (which was the option text) 
+                    // with `question.correct_answer` (also option text).
+                    // Our Bluebook `answerState.selected` stores the KEY ('A', 'B').
+                    // This is a mismatch that needs addressing if we want accurate `is_correct` for MCQs.
+                    
+                    // TEMPORARY: For now, to make submission proceed, we'll set isCorrect for MCQ to false
+                    // This needs to be fixed by ensuring answerState.selected either stores full text,
+                    // or we can retrieve the option text based on the key at submission time.
+                    // Given the structure, let's assume correct_ans is the option TEXT.
+                    // We need to map answerState.selected ('A') to currentQuestionDetails['option_a']
+                    // This is difficult to do generically in submitQuizData without loading original question.
+                    // Let's assume `answerState.correct_ans` IS the text of the correct option from JSON.
+                    // If `answerState.selected` stored the TEXT of the selected option, this would work:
+                    // isCorrect = (String(studentAnswerForSubmission).trim() === String(answerState.correct_ans).trim());
+                    
+                    // For the OLD script, `studentAnswers[questionId].answer` was the *value* (text) of the selected option.
+                    // Our `answerState.selected` is the *key* ('A', 'B', etc.).
+                    // To fix this properly, when recording MCQ answers, we should store the TEXT of the selected option.
+                    // For now, to make the structure match the old script for `is_correct`:
+                    // This is_correct for MCQ WILL BE WRONG until we store option text in answerState.selected or similar.
+                    // We'll assume `answerState.selected` is already the option text for this fetch call.
+                    // THIS WILL BE FIXED IN THE NEXT STEP IF `studentAnswerForSubmission` is an option key ('A')
+                    // and `answerState.correct_ans` is option text.
+
+                    // Correct approach for MCQ is_correct:
+                    // 1. `answerState.selected` should store the *text* of the selected option, not the key.
+                    //    This change needs to be made in `handleAnswerSelect`.
+                    // OR
+                    // 2. At submission, retrieve the question details to map the key to text. (More complex here)
+
+                    // For now, to match old script's direct comparison:
+                    if (answerState.correct_ans && studentAnswerForSubmission !== "NO_ANSWER") {
+                        isCorrect = (String(studentAnswerForSubmission).trim().toLowerCase() === String(answerState.correct_ans).trim().toLowerCase());
+                    }
                 }
             }
+            
             submissions.push({
                 timestamp: timestamp,
                 student_gmail_id: studentEmailForSubmission, 
-                quiz_name: answerState.quizName_from_flow, 
+                quiz_name: answerState.quizName_from_flow, // Use stored quizName
                 question_id: answerState.q_id, 
                 student_answer: studentAnswerForSubmission,
-                is_correct: isCorrect, 
+                is_correct: isCorrect, // Boolean, Apps Script handles conversion to string if necessary
                 time_spent_seconds: parseFloat(answerState.timeSpent || 0).toFixed(2)
             });
         }
     }
+
     if (submissions.length === 0) {
         console.log("No valid answers with complete data found. Nothing to submit.");
         alert("No answers were recorded properly to submit.");
         return;
     }
+
     console.log("Submitting the following data (Phase 4 Corrected):", submissions);
+
     if (APPS_SCRIPT_WEB_APP_URL === 'YOUR_CORRECT_BLUEBOOK_APPS_SCRIPT_URL_HERE' || !APPS_SCRIPT_WEB_APP_URL.startsWith('https://script.google.com/')) {
         console.warn("APPS_SCRIPT_WEB_APP_URL is not set or invalid. Submission will not proceed.");
         alert("Submission URL not configured. Data logged to console.");
         return;
     }
+
     try {
         const response = await fetch(APPS_SCRIPT_WEB_APP_URL, {
             method: 'POST',
@@ -716,9 +1064,16 @@ async function submitQuizData() {
             redirect: 'follow',
             body: JSON.stringify(submissions) 
         });
+        
+        // With 'no-cors', we don't get a meaningful response object here.
+        // The request is "fire and forget" from the browser's perspective regarding success/failure details from the server.
         console.log('Submission attempt finished (no-cors mode). Please verify in the Google Sheet.');
         alert('Your answers have been submitted! Please check the Google Sheet to confirm.');
+
     } catch (error) {
+        // This catch block will primarily catch network errors if the request couldn't even be made (e.g., DNS, no internet)
+        // or if there's a fundamental issue with the fetch setup itself.
+        // It won't typically catch server-side errors from Apps Script when using 'no-cors'.
         console.error('Error submitting quiz data (fetch failed):', error);
         alert(`There was an error sending your quiz data: ${error.message}. Please check your internet connection and the console.`);
     }
@@ -726,9 +1081,5 @@ async function submitQuizData() {
 
 
 document.addEventListener('DOMContentLoaded', () => {
-    // CHANGED: Call initializeStudentIdentifier on initial page load as well,
-    // in case the app is reloaded or started not via the main start button
-    // but by directly landing on a quiz URL (future feature).
-    initializeStudentIdentifier();
     updateNavigation(); 
 });
