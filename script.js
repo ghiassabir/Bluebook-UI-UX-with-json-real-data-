@@ -1,6 +1,6 @@
 //script.js (Phase 5 - student email) ---
 //>>>>>>> main
-
+// tough day
 // --- Utility Functions (Define these FIRST) ---
 function toggleModal(modalElement, show) {
     if (!modalElement) {
