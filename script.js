@@ -1,4 +1,5 @@
-// --- script.js (Phase 5 - answer selection) ---
+//script.js (Phase 5 - answer selection) ---
+//>>>>>>> main
 
 // --- Utility Functions (Define these FIRST) ---
 function toggleModal(modalElement, show) {
