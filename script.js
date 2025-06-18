@@ -196,6 +196,51 @@ function getAnswerStateKey(moduleIdx = currentModuleIndex, qNum = currentQuestio
     return `${moduleIdx}-${qNum}`;
 }
 
+// --- START OF ADDITION 2.A ---
+// ADDED: Functions for module-specific countdown timer
+function updateModuleTimerDisplay(seconds) {
+    if (!timerTextEl) return; 
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    const displayString = `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+    timerTextEl.textContent = displayString;
+    if (reviewTimerText) reviewTimerText.textContent = displayString; 
+}
+
+function startModuleTimer(durationSeconds) {
+    // if (practiceQuizTimerInterval) clearInterval(practiceQuizTimerInterval); // Not needed yet
+    if (moduleTimerInterval) clearInterval(moduleTimerInterval); 
+
+    currentModuleTimeLeft = durationSeconds;
+    currentModuleTimeUp = false; 
+    updateModuleTimerDisplay(currentModuleTimeLeft);
+    updateNavigation(); // Update button states based on new timer state
+
+    console.log(`Module timer (countdown) started for ${durationSeconds} seconds.`);
+
+    moduleTimerInterval = setInterval(() => {
+        currentModuleTimeLeft--;
+        updateModuleTimerDisplay(currentModuleTimeLeft);
+
+        if (currentModuleTimeLeft <= 0) {
+            clearInterval(moduleTimerInterval);
+            currentModuleTimeLeft = 0; 
+            currentModuleTimeUp = true; 
+            updateModuleTimerDisplay(currentModuleTimeLeft); 
+            console.log("Module time is up!");
+            alert("Time for this module is up! You will be taken to the review page.");
+            
+            recordTimeOnCurrentQuestion(); 
+            
+            if (currentView !== 'review-page-view') {
+                showView('review-page-view');
+            }
+            updateNavigation(); 
+        }
+    }, 1000);
+}
+// --- END OF ADDITION 2.A ---
+
 // CHANGED: New functions for module-specific timer
 function updateModuleTimerDisplay(seconds) {
     if (!timerTextEl) return; // Ensure main timer display element exists
@@ -427,8 +472,12 @@ function showView(viewId) {
     } else if (viewId === 'finished-view') {
         startConfetti();
         // CHANGED: Call submitQuizData when finished-view is shown
+        if (moduleTimerInterval) clearInterval(moduleTimerInterval); 
         submitQuizData(); 
     } else if (viewId === 'home-view') {
+        if (moduleTimerInterval) clearInterval(moduleTimerInterval);
+        updateModuleTimerDisplay(0);
+    } 
         stopConfetti();
         currentTestFlow = [];
         currentQuizQuestions = [];
@@ -800,6 +849,11 @@ function updateNavigation() {
             nextBtnFooter.disabled = false;
         } else { // Last question of the module
             nextBtnFooter.textContent = "Review Section";
+            // --- START OF MODIFICATION 6.A ---
+            const currentMod = getCurrentModule();
+            // Disable "Review Section" if module time is not up (for timed modules)
+            nextBtnFooter.disabled = !currentModuleTimeUp && (currentMod && typeof currentMod.durationSeconds === 'number' && currentMod.durationSeconds > 0);
+            // --- END OF MODIFICATION 6.A ---
             // CHANGED: Disable "Review Section" if module time is not up
             nextBtnFooter.disabled = !currentModuleTimeUp && (getCurrentModule()?.durationSeconds > 0);
         }
@@ -812,9 +866,20 @@ function updateNavigation() {
         if (reviewNextBtnFooter) {
             if (currentModuleIndex < currentTestFlow.length - 1) {
                 reviewNextBtnFooter.textContent = "Next Module";
+                const nextModuleInfo = getCurrentModule();
+                if (nextModuleInfo && typeof nextModuleInfo.durationSeconds === 'number') {
+    startModuleTimer(nextModuleInfo.durationSeconds);
+} else {
+    updateModuleTimerDisplay(0);
+}
             } else {
                 reviewNextBtnFooter.textContent = "Finish Test";
             }
+            // --- START OF MODIFICATION 6.B ---
+            const currentMod = getCurrentModule();
+            // Disable "Next Module"/"Finish Test" if module time is not up (for timed modules)
+            reviewNextBtnFooter.disabled = !currentModuleTimeUp && (currentMod && typeof currentMod.durationSeconds === 'number' && currentMod.durationSeconds > 0);
+            // --- END OF MODIFICATION 6.B ---
             // CHANGED: Disable "Next Module" / "Finish Test" from review page if module time is not up
             reviewNextBtnFooter.disabled = !currentModuleTimeUp && (getCurrentModule()?.durationSeconds > 0);
         }
@@ -846,9 +911,12 @@ function nextButtonClickHandler() {
 
 if(reviewNextBtnFooter) {
     // (Unchanged from Phase 3)
-    reviewNextBtnFooter.addEventListener('click', async () => { 
-        if (currentView !== 'review-page-view') return;
-        recordTimeOnCurrentQuestion(); 
+    reviewNextBtnFooter.removeEventListener('click', reviewNextButtonClickHandler); 
+    reviewNextBtnFooter.addEventListener('click', reviewNextButtonClickHandler);
+}
+async function reviewNextButtonClickHandler() { 
+    if (currentView !== 'review-page-view') return;
+    recordTimeOnCurrentQuestion(); 
         
         currentModuleIndex++;
         if (currentModuleIndex < currentTestFlow.length) {
@@ -862,10 +930,11 @@ if(reviewNextBtnFooter) {
 
                 // For RW-M2, use DT-T0-RW-M1 JSON; for MT-M2, use DT-T0-MT-M1 JSON for data
                 let jsonToLoadForNextModule = nextQuizName;
-                if (nextQuizName === "DT-T0-RW-M2") jsonToLoadForNextModule = "DT-T0-RW-M1";
-                if (nextQuizName === "DT-T0-MT-M2") jsonToLoadForNextModule = "DT-T0-MT-M1";
+                if (nextQuizName === "DT-T0-RW-M2") jsonToLoadForNextModule = "DT-T0-RW-M2";
+                if (nextQuizName === "DT-T0-MT-M2") jsonToLoadForNextModule = "DT-T0-MT-M2";
                 
                 const success = await loadQuizData(currentTestFlow[currentModuleIndex]);
+                
                 if (success && currentQuizQuestions.length > 0) {
                     if (nextModuleInfo && typeof nextModuleInfo.durationSeconds === 'number') {
                         // CHANGED: Start timer for the new module
@@ -1031,6 +1100,9 @@ if(startTestPreviewBtn) {
         isTimerHidden = false;
         isCrossOutToolActive = false;
         isHighlightingActive = false;
+        if(highlightsNotesBtn) highlightsNotesBtn.classList.remove('active');
+        if(calculatorOverlay) calculatorOverlay.classList.remove('visible');
+        if(referenceSheetPanel) referenceSheetPanel.classList.remove('visible');
         questionStartTime = 0;
         currentModuleTimeUp = false; // Reset module time up flag
         
@@ -1057,8 +1129,8 @@ if(startTestPreviewBtn) {
 
            // For RW-M2, use DT-T0-RW-M1 JSON; for MT-M2, use DT-T0-MT-M1 JSON for data
             let jsonToLoad = firstQuizName;
-            if (firstQuizName === "DT-T0-RW-M2") jsonToLoad = "DT-T0-RW-M1";
-            if (firstQuizName === "DT-T0-MT-M2") jsonToLoad = "DT-T0-MT-M1";
+            if (firstQuizName === "DT-T0-RW-M2") jsonToLoad = "DT-T0-RW-M2";
+            if (firstQuizName === "DT-T0-MT-M2") jsonToLoad = "DT-T0-MT-M2";
             
             const success = await loadQuizData(firstQuizName); 
             
@@ -1067,6 +1139,7 @@ if(startTestPreviewBtn) {
 
             if (success && currentQuizQuestions.length > 0) {
                 console.log("Initial quiz data loaded successfully");
+                const moduleInfo = getCurrentModule();
                 if (moduleInfo && typeof moduleInfo.durationSeconds === 'number') {
                     // CHANGED: Start module timer
                     startModuleTimer(moduleInfo.durationSeconds);
