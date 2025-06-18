@@ -561,7 +561,6 @@ if(answerOptionsMainEl) {
         }
     });
 };
-}
 
 // REVISED handleAnswerSelect for debugging the "no selection when tool is off" issue
 function handleAnswerSelect(optionKey) {
