@@ -186,8 +186,8 @@ if (continueAfterBreakBtn) {
     continueAfterBreakBtn.removeEventListener('click', continueAfterBreakBtnClickHandler); // Prevent multiple attachments
     continueAfterBreakBtn.addEventListener('click', continueAfterBreakBtnClickHandler);
     console.log("DEBUG: Event listener ATTACHED to continueAfterBreakBtn."); // Add this log
-} else {
-    console.error("DEBUG ERROR: continueAfterBreakBtn element NOT FOUND when trying to attach listener.");
+//} else {
+  //  console.error("DEBUG ERROR: continueAfterBreakBtn element NOT FOUND when trying to attach listener.");
     //added
     
     console.log("DEBUG: Checking continueAfterBreakBtn element:", continueAfterBreakBtn); // DEBUG Line 1
@@ -237,8 +237,7 @@ if (continueAfterBreakBtn) {
             console.error("DEBUG ContinueBreak: Clicked continue, but currentModuleIndex (" + currentModuleIndex + ") is out of bounds for currentTestFlow. Test flow length: " + currentTestFlow.length);
             alert("Test flow error after break. Returning to home.");
             showView('finished-view'); 
-        }
-        else { 
+        } else { 
     console.error("DEBUG: continue-after-break-btn was NOT FOUND in the DOM."); // DEBUG Line 6
     }
     });
