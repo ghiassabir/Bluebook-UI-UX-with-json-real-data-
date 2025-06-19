@@ -949,7 +949,51 @@ if(startSinglePracticeQuizBtn) {
 }
 
 // Add listener for continueAfterBreakBtn (from your .txt file, ensure it's there)
-if (continueAfterBreakBtn) { /* ... from your .txt file ... */ }
+//if (continueAfterBreakBtn) { /* ... from your .txt file ... */ }
+if (continueAfterBreakBtn) {
+    continueAfterBreakBtn.addEventListener('click', async () => {
+        console.log("Continue after manual break button clicked.");
+        // currentModuleIndex should be 2 here (for Math M1)
+
+        if (currentModuleIndex < currentTestFlow.length) {
+            currentQuestionNumber = 1;
+            currentModuleTimeUp = false; 
+
+            const nextQuizName = currentTestFlow[currentModuleIndex];
+            const nextModuleInfo = moduleMetadata[nextQuizName];
+
+            let jsonToLoadForNextModule = nextQuizName;
+            // This mapping is important if your M2 modules reuse M1 JSON data
+            if (nextQuizName === "DT-T0-RW-M2") jsonToLoadForNextModule = "DT-T0-RW-M1"; 
+            else if (nextQuizName === "DT-T0-MT-M2") jsonToLoadForNextModule = "DT-T0-MT-M1";
+            
+            console.log(`DEBUG ContinueBreak: Loading module ${nextQuizName} (data from ${jsonToLoadForNextModule})`);
+            
+            continueAfterBreakBtn.textContent = "Loading next section...";
+            continueAfterBreakBtn.disabled = true;
+
+            const success = await loadQuizData(jsonToLoadForNextModule);
+            
+            continueAfterBreakBtn.textContent = "Continue to Next Section";
+            continueAfterBreakBtn.disabled = false;
+
+            if (success && currentQuizQuestions.length > 0) {
+                // Ensure correct timer is started for 'full_test' mode
+                if (currentInteractionMode === 'full_test' && nextModuleInfo && typeof nextModuleInfo.durationSeconds === 'number') {
+                    startModuleTimer(nextModuleInfo.durationSeconds);
+                } else {
+                    console.warn(`Timer mode/config issue for module ${nextQuizName} after break.`);
+                    updateModuleTimerDisplay(0); 
+                }
+                populateQNavGrid();
+                showView('test-interface-view');
+            } else { /* ... error handling ... */ }
+        } else { /* ... error handling ... */ }
+    });
+}
+
+
+
 
 // Keep all other functions and event listeners from your .txt file as they were,
 // including:
