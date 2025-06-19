@@ -420,6 +420,9 @@ function showView(viewId) {
         if(qNavBtnFooter) qNavBtnFooter.style.display = 'flex';
         if(backBtnFooter) backBtnFooter.style.display = 'inline-block';
         if(nextBtnFooter) nextBtnFooter.style.display = 'inline-block';
+         // --- START DEBUG 1 ---
+    console.log(`DEBUG: showView calling loadQuestion. currentModuleIndex: ${currentModuleIndex}, currentQuestionNumber: ${currentQuestionNumber}, currentQuizQuestions.length: ${currentQuizQuestions.length}`);
+    // --- END DEBUG 1 ---
         loadQuestion();
     } else if (viewId === 'review-page-view') {
         if(qNavBtnFooter) qNavBtnFooter.style.display = 'none';
@@ -442,6 +445,11 @@ function showView(viewId) {
 
 // --- Core UI Update `loadQuestion()` ---
 function loadQuestion() {
+    // --- START DEBUG 2 ---
+    console.log(`DEBUG: loadQuestion CALLED. currentModuleIndex: ${currentModuleIndex}, currentQuestionNumber: ${currentQuestionNumber}`);
+    console.log("DEBUG: currentQuizQuestions sample:", currentQuizQuestions ? currentQuizQuestions.slice(0,1) : "null");
+    // --- END DEBUG 2 ---
+    
     // (Unchanged from Phase 3, but ensure answerState initialization is correct)
     if (!testInterfaceViewEl.classList.contains('active')) {
         return;
@@ -451,6 +459,11 @@ function loadQuestion() {
 const currentModuleInfo = getCurrentModule(); 
 const currentQuestionDetails = getCurrentQuestionData(); 
 
+// --- START DEBUG 3 ---
+    console.log("DEBUG: loadQuestion - currentModuleInfo:", currentModuleInfo ? JSON.parse(JSON.stringify(currentModuleInfo)) : "null");
+    console.log("DEBUG: loadQuestion - currentQuestionDetails:", currentQuestionDetails ? JSON.parse(JSON.stringify(currentQuestionDetails)) : "null");
+    // --- END DEBUG 3 ---
+    
 if (!currentModuleInfo || !currentQuestionDetails) {
     // ... error handling ...
     return;
@@ -580,7 +593,15 @@ questionStartTime = Date.now(); // Set startTime AFTER answerState might have be
             if (answerOptionsMainEl) answerOptionsMainEl.appendChild(containerDiv);
         }
     }
-       // CHANGED: More robust MathJax typesetting call
+       
+    // --- START DEBUG 4 ---
+    console.log("DEBUG: loadQuestion - DOM population for question text and options should be complete.");
+    console.log("DEBUG: passageContentEl.innerHTML length:", passageContentEl ? passageContentEl.innerHTML.length : "N/A");
+    console.log("DEBUG: questionTextMainEl.innerHTML length:", questionTextMainEl ? questionTextMainEl.innerHTML.length : "N/A");
+    console.log("DEBUG: answerOptionsMainEl.innerHTML length:", answerOptionsMainEl ? answerOptionsMainEl.innerHTML.length : "N/A");
+    // --- END DEBUG 4 ---
+    
+    // CHANGED: More robust MathJax typesetting call
     if (typeof MathJax !== "undefined") {
         if (MathJax.typesetPromise) {
             // console.log("MathJax.typesetPromise available, calling directly.");
