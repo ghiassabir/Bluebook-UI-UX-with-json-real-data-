@@ -1240,17 +1240,20 @@ async function reviewNextButtonClickHandler() {
     }
 
     // Logic for full_test mode
-    const IS_MANUAL_BREAK_TIME = (currentModuleIndex === 1 && currentTestFlow.length === 4 && currentInteractionMode === 'full_test'); 
+   // const IS_MANUAL_BREAK_TIME = (currentModuleIndex === 1 && currentTestFlow.length === 4 && currentInteractionMode === 'full_test'); 
 
-    if (IS_MANUAL_BREAK_TIME) {
+    //if (IS_MANUAL_BREAK_TIME) {
         //console.log("Transitioning to manual break instruction screen from review page for module:", currentTestFlow[currentModuleIndex]);
-        console.log("Transitioning to manual break. currentModuleIndex BEFORE increment for break:", currentModuleIndex);
-        currentModuleIndex++; // Advance index to prepare for Math M1 (index 2) after break
-        console.log("Transitioning to manual break. currentModuleIndex AFTER increment for break:", currentModuleIndex); // Should be 2
-        showView('manual-break-view'); 
-    } else {
+      //  console.log("Transitioning to manual break. currentModuleIndex BEFORE increment for break:", currentModuleIndex);
+        //currentModuleIndex++; // Advance index to prepare for Math M1 (index 2) after break
+        //console.log("Transitioning to manual break. currentModuleIndex AFTER increment for break:", currentModuleIndex); // Should be 2
+        //showView('manual-break-view'); 
+    //} else {
         currentModuleIndex++;
-        if (currentModuleIndex < currentTestFlow.length) {
+    
+    console.log("DEBUG reviewNextBtn: Advanced currentModuleIndex to:", currentModuleIndex);
+
+    if (currentModuleIndex < currentTestFlow.length) {
             showView('module-over-view'); 
             setTimeout(async () => {
                 currentQuestionNumber = 1; 
@@ -1260,9 +1263,8 @@ async function reviewNextButtonClickHandler() {
                 const nextModuleInfo = moduleMetadata[nextQuizName];
                 
                 let jsonToLoadForNextModule = nextQuizName;
-                if (nextQuizName === "DT-T0-RW-M2") jsonToLoadForNextModule = "DT-T0-RW-M1";
-                else if (nextQuizName === "DT-T0-MT-M2") jsonToLoadForNextModule = "DT-T0-MT-M1";
 
+               console.log(`DEBUG reviewNextBtn: Preparing to load module: ${nextQuizName} (using JSON: ${jsonToLoadForNextModule})`);
                 const success = await loadQuizData(jsonToLoadForNextModule);
 
                 if (success && currentQuizQuestions.length > 0) {
