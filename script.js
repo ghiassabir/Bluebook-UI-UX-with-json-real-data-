@@ -238,10 +238,11 @@ if (continueAfterBreakBtn) {
             alert("Test flow error after break. Returning to home.");
             showView('finished-view'); 
         }
-    });
-} else { 
+        else { 
     console.error("DEBUG: continue-after-break-btn was NOT FOUND in the DOM."); // DEBUG Line 6
     }
+    });
+} 
 
 // added 851
 async function continueAfterBreakBtnClickHandler() { // Made it a named async function
