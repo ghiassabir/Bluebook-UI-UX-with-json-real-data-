@@ -446,7 +446,7 @@
       
 
         <!-- ADDED for Phase 6: Manual Break Instruction View -->
-        <div class="app-view fullscreen-transition-view" id="manual-break-view" 
+        <div class="app-view fullscreen-transition-view active" id="manual-break-view" 
             <!-- style="display: none;" --> > 
             <main style="text-align: center; padding: 2rem; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; background-color: white;">
                 <h1>10-Minute Break</h1>
@@ -457,7 +457,10 @@
                 <p class="message" style="margin-bottom: 2.5rem;">
                     Click "Continue to Next Section" when you are ready to begin the Math section.
                 </p>
-                <button id="continue-after-break-btn" class="modal-button yellow" style="padding: 0.75rem 3rem; font-size: 1.125rem;">Continue to Next Section</button>
+                <button id="continue-after-break-btn" class="modal-button yellow" style="padding: 0.75rem 3rem; font-size: 1.125rem;border: 2px solid blue;"
+                    onclick="console.log('INLINE CLICK on manual break button'); alert('MANUAL BREAK BUTTON INLINE CLICKED');">
+                    Continue to Next Section (VISIBLE TEST)
+                </button>
             </main>
         </div>
 
