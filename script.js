@@ -1290,7 +1290,6 @@ async function reviewNextButtonClickHandler() {
             showView('finished-view'); 
         }
     }
-}
 
 function backButtonClickHandler() {
     if (currentView !== 'test-interface-view') return;
