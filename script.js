@@ -384,6 +384,8 @@ function getAnswerState(moduleIdx = currentModuleIndex, qNum = currentQuestionNu
             correct_ans: questionDetails ? questionDetails.correct_answer : null,
             question_type_from_json: questionDetails ? questionDetails.question_type : null,
             quizName_from_flow: (currentTestFlow && currentTestFlow[moduleIdx]) ? currentTestFlow[moduleIdx] : "UNKNOWN_QUIZ_AT_GETSTATE"
+            // CHANGED: Added for tracking answer changes
+            selectionChanges: 0         
         };
     }
     if (userAnswers[key] && (userAnswers[key].q_id.endsWith('-tmp') || !userAnswers[key].correct_ans)) {
@@ -1153,11 +1155,16 @@ function handleAnswerSelect(optionKey) {
     
     const jsonOptionKey = `option_${optionKey.toLowerCase()}`;
     if (currentQDetails && currentQDetails.hasOwnProperty(jsonOptionKey) && currentQDetails[jsonOptionKey] !== null) {
-        selectedOptionText = currentQDetails[jsonOptionKey];
+        newSelectedOptionText = currentQDetails[jsonOptionKey];
     } else {
         console.warn(`handleAnswerSelect: Could not find option text for key ${optionKey} (tried ${jsonOptionKey}). Storing key itself ('${optionKey}') as selected value.`);
     }
 
+// CHANGED: Track if the answer has changed
+    if (answerState.selected !== null && answerState.selected !== newSelectedOptionText) {
+        answerState.selectionChanges = (answerState.selectionChanges || 0) + 1;
+        console.log(`Answer changed for QKey ${getAnswerStateKey()}. New count: ${answerState.selectionChanges}. Old: "${answerState.selected}", New: "${newSelectedOptionText}"`);
+    } else if (answerState.selected === null && newSelectedOptionText !== null) {
     console.log(`handleAnswerSelect: Setting selected answer to: "${selectedOptionText}" (original key: ${optionKey})`);
     answerState.selected = selectedOptionText; 
 
@@ -1165,7 +1172,17 @@ function handleAnswerSelect(optionKey) {
         console.log(`handleAnswerSelect: Option ${optionKey} was selected, removing it from crossedOut list.`);
         answerState.crossedOut = answerState.crossedOut.filter(opt => opt !== optionKey);
     }
-    
+    // This is the first selection, not a "change" from a previous selection.
+        // console.log(`First selection for QKey ${getAnswerStateKey()}: "${newSelectedOptionText}"`);
+    }
+    // END CHANGED
+     console.log(`handleAnswerSelect: Setting selected answer to: "${newSelectedOptionText}" (original key: ${optionKey})`);
+    answerState.selected = newSelectedOptionText; 
+
+    if (answerState.crossedOut.includes(optionKey)) {
+        console.log(`handleAnswerSelect: Option ${optionKey} was selected, removing it from crossedOut list.`);
+        answerState.crossedOut = answerState.crossedOut.filter(opt => opt !== optionKey);
+    }
     loadQuestion(); 
 }
 
@@ -1724,7 +1741,9 @@ console.log("Attempting to submit quiz data (Phase 4 - Corrected Logic)...");
                 question_id: answerState.q_id, 
                 student_answer: studentAnswerForSubmission,
                 is_correct: isCorrect, // Boolean, Apps Script handles conversion to string if necessary
-                time_spent_seconds: parseFloat(answerState.timeSpent || 0).toFixed(2)
+                time_spent_seconds: parseFloat(answerState.timeSpent || 0).toFixed(2),
+                 // CHANGED: Added selection_changes
+                selection_changes: answerState.selectionChanges || 0 
             });
         }
     }
