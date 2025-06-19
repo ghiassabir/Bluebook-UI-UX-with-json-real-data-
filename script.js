@@ -357,15 +357,32 @@ function updateNavigation() {
         
         if (reviewBackBtnFooter) reviewBackBtnFooter.disabled = false; // Can always go back to test interface from review
 
-        if (reviewNextBtnFooter) {
-            if (currentModuleIndex < currentTestFlow.length - 1) {
-                reviewNextBtnFooter.textContent = "Next Module";
-            } else {
-                reviewNextBtnFooter.textContent = "Finish Test";
-            }
+        //if (reviewNextBtnFooter) {
+            //if (currentModuleIndex < currentTestFlow.length - 1) {
+              //  reviewNextBtnFooter.textContent = "Next Module";
+           // } else {
+             //   reviewNextBtnFooter.textContent = "Finish Test";
+           // }
             // CHANGED: Disable "Next Module" / "Finish Test" from review page if module time is not up
-            reviewNextBtnFooter.disabled = !currentModuleTimeUp && (getCurrentModule()?.durationSeconds > 0);
-        }
+            //reviewNextBtnFooter.disabled = !currentModuleTimeUp && (getCurrentModule()?.durationSeconds > 0);
+           // }
+
+        if (reviewNextBtnFooter) {
+                if (currentInteractionMode === 'single_quiz') {
+                    reviewNextBtnFooter.textContent = "Finish Quiz";
+                    // --- START OF FIX 1 ---
+                    reviewNextBtnFooter.disabled = false; // Always enabled to finish a single quiz
+                    // --- END OF FIX 1 ---
+                } else { // full_test mode
+                    if (currentModuleIndex < currentTestFlow.length - 1) {
+                        reviewNextBtnFooter.textContent = "Next Module";
+                    } else {
+                        reviewNextBtnFooter.textContent = "Finish Test";
+                    }
+                    const currentMod = getCurrentModule();
+                    reviewNextBtnFooter.disabled = !currentModuleTimeUp && (currentMod && typeof currentMod.durationSeconds === 'number' && currentMod.durationSeconds > 0);
+                }
+            }
     } else if (currentView === 'home-view' || currentView === 'finished-view' || currentView === 'module-over-view') {
         // No primary nav buttons needed, or handled by specific view buttons
     }
@@ -487,17 +504,60 @@ function startConfetti() { /* ... from your .txt file ... */ }
 
 function stopConfetti() { /* ... from your .txt file ... */ }
 
-function handleTimerToggle(textEl, iconEl, btnEl) {  // (Unchanged from Phase 3)
-    if (!textEl || !iconEl || !btnEl) return;
-    isTimerHidden = !isTimerHidden; 
-    textEl.classList.toggle('hidden', isTimerHidden); 
-    iconEl.classList.toggle('hidden', !isTimerHidden);
-    btnEl.textContent = isTimerHidden ? '[Show]' : '[Hide]';
+//function handleTimerToggle(textEl, iconEl, btnEl) {  // (Unchanged from Phase 3)
+   // if (!textEl || !iconEl || !btnEl) return;
+   // isTimerHidden = !isTimerHidden; 
+   // textEl.classList.toggle('hidden', isTimerHidden); 
+   // iconEl.classList.toggle('hidden', !isTimerHidden);
+  //  btnEl.textContent = isTimerHidden ? '[Show]' : '[Hide]';
+//}
+
+// Ensure this function exists and is correct
+function handleTimerToggle(textEl, iconEl, btnEl) {
+console.log("DEBUG: handleTimerToggle called. isTimerHidden before toggle:", isTimerHidden);
+if (!textEl || !iconEl || !btnEl) {
+console.warn("DEBUG handleTimerToggle: one or more elements missing");
+return;
+}
+isTimerHidden = !isTimerHidden;
+textEl.classList.toggle('hidden', isTimerHidden);
+iconEl.classList.toggle('hidden', !isTimerHidden);
+btnEl.textContent = isTimerHidden ? '[Show]' : '[Hide]';
 }
 
-function updatePracticeQuizTimerDisplay(seconds) { /* ... from your .txt file ... */ }
 
-function startPracticeQuizTimer() { /* ... from your .txt file ... */ }
+function updatePracticeQuizTimerDisplay(seconds) {  
+    if (!timerTextEl) { 
+          // console.log("DEBUG updatePracticeQuizTimerDisplay: timerTextEl not found"); 
+          return;
+      }
+      const minutes = Math.floor(seconds / 60);
+      const remainingSeconds = seconds % 60;
+      const displayString = `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+      timerTextEl.textContent = displayString;
+      // console.log("DEBUG updatePracticeQuizTimerDisplay: Set timerTextEl to", displayString);
+      
+      // Also update the review page timer text if it exists and is different
+      if (reviewTimerText && reviewTimerText !== timerTextEl) {
+        reviewTimerText.textContent = displayString;
+        // console.log("DEBUG updatePracticeQuizTimerDisplay: Set reviewTimerText to", displayString);
+      } 
+}
+
+function startPracticeQuizTimer() { 
+    if (moduleTimerInterval) clearInterval(moduleTimerInterval); 
+      if (practiceQuizTimerInterval) clearInterval(practiceQuizTimerInterval);
+
+      practiceQuizTimeElapsed = 0;
+      updatePracticeQuizTimerDisplay(practiceQuizTimeElapsed);
+      console.log("Practice quiz timer (upward counting) started.");
+
+      practiceQuizTimerInterval = setInterval(() => {
+          practiceQuizTimeElapsed++;
+          // console.log("DEBUG: Practice quiz timer tick. Elapsed:", practiceQuizTimeElapsed); // Keep for debug
+          updatePracticeQuizTimerDisplay(practiceQuizTimeElapsed);
+      }, 1000);
+}
 
 // In showView:
 function showView(viewId) {
@@ -1239,6 +1299,7 @@ if(markReviewCheckboxMain) {
 }
 
 if(timerToggleBtn) timerToggleBtn.addEventListener('click', () => handleTimerToggle(timerTextEl, timerClockIconEl, timerToggleBtn));
+
 if(reviewDirectionsBtn) { // Already handled by its own listener in Gist logic
     reviewDirectionsBtn.addEventListener('click', () => {
         const moduleInfo = getCurrentModule(); // Use current module logic
