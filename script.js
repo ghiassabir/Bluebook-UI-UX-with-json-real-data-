@@ -237,11 +237,12 @@ if (continueAfterBreakBtn) {
             console.error("DEBUG ContinueBreak: Clicked continue, but currentModuleIndex (" + currentModuleIndex + ") is out of bounds for currentTestFlow. Test flow length: " + currentTestFlow.length);
             alert("Test flow error after break. Returning to home.");
             showView('finished-view'); 
-        } else { 
+        } 
+    });
+}  else { 
     console.error("DEBUG: continue-after-break-btn was NOT FOUND in the DOM."); // DEBUG Line 6
     }
-    });
-} 
+
 
 // added 851
 async function continueAfterBreakBtnClickHandler() { // Made it a named async function
