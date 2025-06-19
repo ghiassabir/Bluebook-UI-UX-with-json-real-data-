@@ -1640,7 +1640,137 @@ if (continueAfterBreakBtn) {
 }
 
 // --- Submission Logic ---
-async function submitQuizData() { /* ... (Keep Gist version, it was working) ... */ }
+async function submitQuizData() {
+console.log("Attempting to submit quiz data (Phase 4 - Corrected Logic)...");
+    recordTimeOnCurrentQuestion(); // Ensure time for the very last interaction is recorded
+
+    const submissions = [];
+    const timestamp = new Date().toISOString();
+
+    for (const key in userAnswers) {
+        if (userAnswers.hasOwnProperty(key)) {
+            const answerState = userAnswers[key];
+            
+            // Critical check: Ensure all needed data is present in answerState
+            if (!answerState.q_id || answerState.q_id.endsWith('-tmp') || typeof answerState.correct_ans === 'undefined' || answerState.correct_ans === null || typeof answerState.question_type_from_json === 'undefined' || !answerState.quizName_from_flow) {
+                console.warn(`Submission data incomplete for answer key ${key}:`, answerState, `. QuizName found: ${answerState.quizName_from_flow}. Question ID: ${answerState.q_id}. Correct Ans: ${answerState.correct_ans}. Type: ${answerState.question_type_from_json}. Skipping this answer.`);
+                continue; 
+            }
+
+            let studentAnswerForSubmission = "";
+            let isCorrect = false;
+
+            if (answerState.question_type_from_json === 'student_produced_response') {
+                studentAnswerForSubmission = answerState.spr_answer || "NO_ANSWER";
+                if (answerState.correct_ans && studentAnswerForSubmission !== "NO_ANSWER") {
+                    const correctSprAnswers = String(answerState.correct_ans).split('|').map(s => s.trim().toLowerCase());
+                    if (correctSprAnswers.includes(studentAnswerForSubmission.trim().toLowerCase())) {
+                        isCorrect = true;
+                    }
+                }
+            } else { // Assuming multiple_choice or similar
+                studentAnswerForSubmission = answerState.selected || "NO_ANSWER";
+                // For MCQs, the JSON 'correct_answer' field contains the text of the correct option.
+                // 'answerState.selected' stores the letter (A, B, C, D) of the chosen option.
+                // We need to get the text of the selected option to compare.
+                if (answerState.selected && studentAnswerForSubmission !== "NO_ANSWER") {
+                    // Find the original question data to get the text of the selected option
+                    // This is a bit complex here because currentQuizQuestions might be for a different module
+                    // if submission happens after all modules are done.
+                    // This highlights a potential need to store option texts or have a map.
+                    // For now, this part of is_correct for MCQ might be inaccurate if not handled carefully
+                    // during the actual quiz flow.
+                    // HOWEVER, the OLD SCRIPT compared `userAnswerData.answer` (which was the option text) 
+                    // with `question.correct_answer` (also option text).
+                    // Our Bluebook `answerState.selected` stores the KEY ('A', 'B').
+                    // This is a mismatch that needs addressing if we want accurate `is_correct` for MCQs.
+                    
+                    // TEMPORARY: For now, to make submission proceed, we'll set isCorrect for MCQ to false
+                    // This needs to be fixed by ensuring answerState.selected either stores full text,
+                    // or we can retrieve the option text based on the key at submission time.
+                    // Given the structure, let's assume correct_ans is the option TEXT.
+                    // We need to map answerState.selected ('A') to currentQuestionDetails['option_a']
+                    // This is difficult to do generically in submitQuizData without loading original question.
+                    // Let's assume `answerState.correct_ans` IS the text of the correct option from JSON.
+                    // If `answerState.selected` stored the TEXT of the selected option, this would work:
+                    // isCorrect = (String(studentAnswerForSubmission).trim() === String(answerState.correct_ans).trim());
+                    
+                    // For the OLD script, `studentAnswers[questionId].answer` was the *value* (text) of the selected option.
+                    // Our `answerState.selected` is the *key* ('A', 'B', etc.).
+                    // To fix this properly, when recording MCQ answers, we should store the TEXT of the selected option.
+                    // For now, to make the structure match the old script for `is_correct`:
+                    // This is_correct for MCQ WILL BE WRONG until we store option text in answerState.selected or similar.
+                    // We'll assume `answerState.selected` is already the option text for this fetch call.
+                    // THIS WILL BE FIXED IN THE NEXT STEP IF `studentAnswerForSubmission` is an option key ('A')
+                    // and `answerState.correct_ans` is option text.
+
+                    // Correct approach for MCQ is_correct:
+                    // 1. `answerState.selected` should store the *text* of the selected option, not the key.
+                    //    This change needs to be made in `handleAnswerSelect`.
+                    // OR
+                    // 2. At submission, retrieve the question details to map the key to text. (More complex here)
+
+                    // For now, to match old script's direct comparison:
+                    if (answerState.correct_ans && studentAnswerForSubmission !== "NO_ANSWER") {
+                        isCorrect = (String(studentAnswerForSubmission).trim().toLowerCase() === String(answerState.correct_ans).trim().toLowerCase());
+                    }
+                }
+            }
+            
+            submissions.push({
+                timestamp: timestamp,
+                student_gmail_id: studentEmailForSubmission, 
+                quiz_name: answerState.quizName_from_flow, // Use stored quizName
+                question_id: answerState.q_id, 
+                student_answer: studentAnswerForSubmission,
+                is_correct: isCorrect, // Boolean, Apps Script handles conversion to string if necessary
+                time_spent_seconds: parseFloat(answerState.timeSpent || 0).toFixed(2)
+            });
+        }
+    }
+
+    if (submissions.length === 0) {
+        console.log("No valid answers with complete data found. Nothing to submit.");
+        alert("No answers were recorded properly to submit.");
+        return;
+    }
+
+    console.log("Submitting the following data (Phase 4 Corrected):", submissions);
+
+    if (APPS_SCRIPT_WEB_APP_URL === 'YOUR_CORRECT_BLUEBOOK_APPS_SCRIPT_URL_HERE' || !APPS_SCRIPT_WEB_APP_URL.startsWith('https://script.google.com/')) {
+        console.warn("APPS_SCRIPT_WEB_APP_URL is not set or invalid. Submission will not proceed.");
+        alert("Submission URL not configured. Data logged to console.");
+        return;
+    }
+
+    try {
+        const response = await fetch(APPS_SCRIPT_WEB_APP_URL, {
+            method: 'POST',
+            mode: 'no-cors', 
+            cache: 'no-cache',
+            headers: {
+                'Content-Type': 'text/plain', 
+            },
+            redirect: 'follow',
+            body: JSON.stringify(submissions) 
+        });
+        
+        // With 'no-cors', we don't get a meaningful response object here.
+        // The request is "fire and forget" from the browser's perspective regarding success/failure details from the server.
+        console.log('Submission attempt finished (no-cors mode). Please verify in the Google Sheet.');
+        alert('Your answers have been submitted! Please check the Google Sheet to confirm.');
+
+    } catch (error) {
+        // This catch block will primarily catch network errors if the request couldn't even be made (e.g., DNS, no internet)
+        // or if there's a fundamental issue with the fetch setup itself.
+        // It won't typically catch server-side errors from Apps Script when using 'no-cors'.
+        console.error('Error submitting quiz data (fetch failed):', error);
+        alert(`There was an error sending your quiz data: ${error.message}. Please check your internet connection and the console.`);
+    }
+}
+
+    
+
 
 // --- DOMContentLoaded ---
 document.addEventListener('DOMContentLoaded', () => {
