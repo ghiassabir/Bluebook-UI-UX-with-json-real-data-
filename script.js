@@ -178,6 +178,125 @@ const startSinglePracticeQuizBtn = document.getElementById('start-single-practic
 const manualBreakViewEl = document.getElementById('manual-break-view');
 const continueAfterBreakBtn = document.getElementById('continue-after-break-btn');
 
+// Add listener for continueAfterBreakBtn (from your .txt file, ensure it's there)
+//if (continueAfterBreakBtn) { /* ... from your .txt file ... */ }
+
+if (continueAfterBreakBtn) {
+    // added 851
+    continueAfterBreakBtn.removeEventListener('click', continueAfterBreakBtnClickHandler); // Prevent multiple attachments
+    continueAfterBreakBtn.addEventListener('click', continueAfterBreakBtnClickHandler);
+    console.log("DEBUG: Event listener ATTACHED to continueAfterBreakBtn."); // Add this log
+} else {
+    console.error("DEBUG ERROR: continueAfterBreakBtn element NOT FOUND when trying to attach listener.");
+    //added
+    
+    console.log("DEBUG: Checking continueAfterBreakBtn element:", continueAfterBreakBtn); // DEBUG Line 1
+    continueAfterBreakBtn.addEventListener('click', async () => {
+        console.log("DEBUG:Continue after manual break button clicked."); // DEBUG Line 2
+        console.log("DEBUG: currentModuleIndex at continue click:", currentModuleIndex); // DEBUG Line 3
+        // currentModuleIndex should be 2 here (for Math M1)
+
+        if (currentModuleIndex < currentTestFlow.length) {
+            currentQuestionNumber = 1;
+            currentModuleTimeUp = false; 
+
+            const nextQuizName = currentTestFlow[currentModuleIndex];
+            const nextModuleInfo = moduleMetadata[nextQuizName];
+
+            let jsonToLoadForNextModule = nextQuizName;
+                       
+            //console.log(`DEBUG ContinueBreak: Loading module ${nextQuizName} (data from ${jsonToLoadForNextModule})`);
+
+            console.log(`DEBUG ContinueBreak: Preparing to load module: ${nextQuizName} (using JSON data from: ${jsonToLoadForNextModule})`); // DEBUG Line 4
+            
+            continueAfterBreakBtn.textContent = "Loading next section...";
+            continueAfterBreakBtn.disabled = true;
+
+            const success = await loadQuizData(jsonToLoadForNextModule);
+            
+            continueAfterBreakBtn.textContent = "Continue to Next Section";
+            continueAfterBreakBtn.disabled = false;
+
+            if (success && currentQuizQuestions.length > 0) {
+                console.log(`DEBUG ContinueBreak: Successfully loaded data for ${nextQuizName}. Starting timer and showing view.`); // DEBUG Line 5
+                // Ensure correct timer is started for 'full_test' mode
+                if (currentInteractionMode === 'full_test' && nextModuleInfo && typeof nextModuleInfo.durationSeconds === 'number') {
+                    startModuleTimer(nextModuleInfo.durationSeconds);
+                } else {
+                    console.warn(`Timer mode/config issue for module ${nextQuizName} after break. Current mode: ${currentInteractionMode}`);
+                    // For full_test, a duration is expected. If single_quiz somehow got here, it would be an issue.
+                    updateModuleTimerDisplay(0); 
+                }
+                populateQNavGrid();
+                showView('test-interface-view');
+            } else {console.error(`DEBUG ContinueBreak: Failed to load quiz data for ${jsonToLoadForNextModule} or no questions. Success: ${success}, Questions length: ${currentQuizQuestions ? currentQuizQuestions.length : 'undefined'}`);
+                alert("Error loading the next section after break. Please try restarting the test.");
+                showView('home-view');
+               }
+          } else { 
+            console.error("DEBUG ContinueBreak: Clicked continue, but currentModuleIndex (" + currentModuleIndex + ") is out of bounds for currentTestFlow. Test flow length: " + currentTestFlow.length);
+            alert("Test flow error after break. Returning to home.");
+            showView('finished-view'); 
+        }
+    });
+} else { 
+    console.error("DEBUG: continue-after-break-btn was NOT FOUND in the DOM."); // DEBUG Line 6
+    }
+
+// added 851
+async function continueAfterBreakBtnClickHandler() { // Made it a named async function
+    console.log("DEBUG: Continue after manual break button CLICKED."); 
+    console.log("DEBUG: currentModuleIndex at continue click:", currentModuleIndex); 
+
+    if (currentModuleIndex < currentTestFlow.length) {
+        currentQuestionNumber = 1;
+        currentModuleTimeUp = false; 
+
+        const nextQuizName = currentTestFlow[currentModuleIndex];
+        const nextModuleInfo = moduleMetadata[nextQuizName];
+
+        let jsonToLoadForNextModule = nextQuizName;
+        if (nextQuizName === "DT-T0-RW-M2" && !moduleMetadata[nextQuizName]?.actualFileIfDifferent) { // Example if you had specific M2 files
+            jsonToLoadForNextModule = "DT-T0-RW-M1"; 
+        } else if (nextQuizName === "DT-T0-MT-M2" && !moduleMetadata[nextQuizName]?.actualFileIfDifferent) {
+            jsonToLoadForNextModule = "DT-T0-MT-M1";
+        }
+        
+        console.log(`DEBUG ContinueBreak: Preparing to load module: ${nextQuizName} (using JSON data from: ${jsonToLoadForNextModule})`);
+        
+        if(continueAfterBreakBtn) { // Check again in case of weirdness
+            continueAfterBreakBtn.textContent = "Loading next section...";
+            continueAfterBreakBtn.disabled = true;
+        }
+
+        const success = await loadQuizData(jsonToLoadForNextModule);
+        
+        if(continueAfterBreakBtn) {
+            continueAfterBreakBtn.textContent = "Continue to Next Section";
+            continueAfterBreakBtn.disabled = false;
+        }
+
+        if (success && currentQuizQuestions.length > 0) {
+            console.log(`DEBUG ContinueBreak: Successfully loaded data for ${nextQuizName}. Starting timer and showing view.`);
+            if (currentInteractionMode === 'full_test' && nextModuleInfo && typeof nextModuleInfo.durationSeconds === 'number') {
+                startModuleTimer(nextModuleInfo.durationSeconds);
+            } else {
+                console.warn(`Timer mode/config issue for module ${nextQuizName} after break. Current mode: ${currentInteractionMode}`);
+                updateModuleTimerDisplay(0); 
+            }
+            populateQNavGrid();
+            showView('test-interface-view');
+        } else { 
+            console.error(`DEBUG ContinueBreak: Failed to load quiz data for ${jsonToLoadForNextModule} or no questions. Success: ${success}, Questions length: ${currentQuizQuestions ? currentQuizQuestions.length : 'undefined'}`);
+            alert("Error loading the next section after break. Please try restarting the test.");
+            showView('home-view');
+        }
+    } else { 
+        console.error("DEBUG ContinueBreak: Clicked continue, but currentModuleIndex (" + currentModuleIndex + ") is out of bounds for currentTestFlow. Test flow length: " + currentTestFlow.length);
+        alert("Test flow error after break. Returning to home.");
+        showView('finished-view'); 
+    }
+}
 
 // --- Helper Functions --- (Keep all helper functions from your .txt file as they are for now)
 function initializeStudentIdentifier() { /* ... from your .txt file ... */ 
@@ -948,61 +1067,7 @@ if(startSinglePracticeQuizBtn) {
     });
 }
 
-// Add listener for continueAfterBreakBtn (from your .txt file, ensure it's there)
-//if (continueAfterBreakBtn) { /* ... from your .txt file ... */ }
-console.log("DEBUG: Checking continueAfterBreakBtn element:", continueAfterBreakBtn); // DEBUG Line 1
-if (continueAfterBreakBtn) {
-    continueAfterBreakBtn.addEventListener('click', async () => {
-        console.log("DEBUG:Continue after manual break button clicked."); // DEBUG Line 2
-        console.log("DEBUG: currentModuleIndex at continue click:", currentModuleIndex); // DEBUG Line 3
-        // currentModuleIndex should be 2 here (for Math M1)
 
-        if (currentModuleIndex < currentTestFlow.length) {
-            currentQuestionNumber = 1;
-            currentModuleTimeUp = false; 
-
-            const nextQuizName = currentTestFlow[currentModuleIndex];
-            const nextModuleInfo = moduleMetadata[nextQuizName];
-
-            let jsonToLoadForNextModule = nextQuizName;
-                       
-            //console.log(`DEBUG ContinueBreak: Loading module ${nextQuizName} (data from ${jsonToLoadForNextModule})`);
-
-            console.log(`DEBUG ContinueBreak: Preparing to load module: ${nextQuizName} (using JSON data from: ${jsonToLoadForNextModule})`); // DEBUG Line 4
-            
-            continueAfterBreakBtn.textContent = "Loading next section...";
-            continueAfterBreakBtn.disabled = true;
-
-            const success = await loadQuizData(jsonToLoadForNextModule);
-            
-            continueAfterBreakBtn.textContent = "Continue to Next Section";
-            continueAfterBreakBtn.disabled = false;
-
-            if (success && currentQuizQuestions.length > 0) {
-                console.log(`DEBUG ContinueBreak: Successfully loaded data for ${nextQuizName}. Starting timer and showing view.`); // DEBUG Line 5
-                // Ensure correct timer is started for 'full_test' mode
-                if (currentInteractionMode === 'full_test' && nextModuleInfo && typeof nextModuleInfo.durationSeconds === 'number') {
-                    startModuleTimer(nextModuleInfo.durationSeconds);
-                } else {
-                    console.warn(`Timer mode/config issue for module ${nextQuizName} after break. Current mode: ${currentInteractionMode}`);
-                    // For full_test, a duration is expected. If single_quiz somehow got here, it would be an issue.
-                    updateModuleTimerDisplay(0); 
-                }
-                populateQNavGrid();
-                showView('test-interface-view');
-            } else {console.error(`DEBUG ContinueBreak: Failed to load quiz data for ${jsonToLoadForNextModule} or no questions. Success: ${success}, Questions length: ${currentQuizQuestions ? currentQuizQuestions.length : 'undefined'}`);
-                alert("Error loading the next section after break. Please try restarting the test.");
-                showView('home-view');
-               }
-          } else { 
-            console.error("DEBUG ContinueBreak: Clicked continue, but currentModuleIndex (" + currentModuleIndex + ") is out of bounds for currentTestFlow. Test flow length: " + currentTestFlow.length);
-            alert("Test flow error after break. Returning to home.");
-            showView('finished-view'); 
-        }
-    });
-} else { 
-    console.error("DEBUG: continue-after-break-btn was NOT FOUND in the DOM."); // DEBUG Line 6
-    }
 
 // Keep all other functions and event listeners from your .txt file as they were,
 // including:
