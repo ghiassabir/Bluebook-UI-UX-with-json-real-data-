@@ -34,7 +34,7 @@ const moduleMetadata = {
     "DT-T0-RW-M1": {
         name: "Reading & Writing - Module 1",
         type: "RW",
-        durationSeconds: 180, 
+        durationSeconds: 30, 
         directions: "The questions in this section address a number of important reading and writing skills...",
         spr_directions: null,
         spr_examples_table: null
@@ -42,7 +42,7 @@ const moduleMetadata = {
     "DT-T0-RW-M2": {
         name: "Reading & Writing - Module 2",
         type: "RW",
-        durationSeconds: 180, 
+        durationSeconds: 30, 
         directions: "This is the second Reading & Writing module. Continue to read each passage and question carefully...",
         spr_directions: null,
         spr_examples_table: null
@@ -50,7 +50,7 @@ const moduleMetadata = {
     "DT-T0-MT-M1": { 
         name: "Math - Module 1",
         type: "Math",
-        durationSeconds: 240, 
+        durationSeconds: 30, 
         directions: "The questions in this section address a number of important math skills...",
         passageText: null, 
         spr_directions: `<h3>Student-produced response directions</h3><ul><li>If you find <strong>more than one correct answer</strong>, enter only one answer.</li><li>You can enter up to 5 characters for a <strong>positive</strong> answer and up to 6 characters (including the negative sign) for a <strong>negative</strong> answer.</li><li>If your answer is a <strong>fraction</strong> that doesn’t fit in the provided space, enter the decimal equivalent.</li><li>If your answer is a <strong>decimal</strong> that doesn’t fit in the provided space, enter it by truncating or rounding at the fourth digit.</li><li>If your answer is a <strong>mixed number</strong> (such as 3 <span style="font-size: 0.7em; vertical-align: super;">1</span>/<span style="font-size: 0.7em; vertical-align: sub;">2</span>), enter it as an improper fraction (7/2) or its decimal equivalent (3.5).</li><li>Don’t enter <strong>symbols</strong> such as a percent sign, comma, or dollar sign.</li></ul>`,
@@ -59,7 +59,7 @@ const moduleMetadata = {
     "DT-T0-MT-M2": {
         name: "Math - Module 2",
         type: "Math",
-        durationSeconds: 240, 
+        durationSeconds: 30, 
         directions: "This is the second Math module. You may use the calculator for any question.",
         passageText: null,
         spr_directions: `<h3>Student-produced response directions</h3><ul><li>If you find <strong>more than one correct answer</strong>, enter only one answer.</li><li>You can enter up to 5 characters for a <strong>positive</strong> answer and up to 6 characters (including the negative sign) for a <strong>negative</strong> answer.</li><li>If your answer is a <strong>fraction</strong> that doesn’t fit in the provided space, enter the decimal equivalent.</li><li>If your answer is a <strong>decimal</strong> that doesn’t fit in the provided space, enter it by truncating or rounding at the fourth digit.</li><li>If your answer is a <strong>mixed number</strong> (such as 3 <span style="font-size: 0.7em; vertical-align: super;">1</span>/<span style="font-size: 0.7em; vertical-align: sub;">2</span>), enter it as an improper fraction (7/2) or its decimal equivalent (3.5).</li><li>Don’t enter <strong>symbols</strong> such as a percent sign, comma, or dollar sign.</li></ul>`,
