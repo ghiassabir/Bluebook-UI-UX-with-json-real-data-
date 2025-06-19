@@ -1,5 +1,4 @@
-//script.js (Phase 5 - student email) ---
-//>>>>>>> main
+// --- script js phase 6 quiz and test view.txt (WITH TARGETED DEBUG LOGS) ---
 
 // --- Utility Functions (Define these FIRST) ---
 function toggleModal(modalElement, show) {
@@ -20,38 +19,30 @@ let isTimerHidden = false;
 let isCrossOutToolActive = false;
 let isHighlightingActive = false;
 let questionStartTime = 0;
-// CHANGED: Add new timer state variables
 let moduleTimerInterval;
 let currentModuleTimeLeft = 0;
-let currentModuleTimeUp = false; // Flag to indicate if current module's time is up
-// COMMENTED: Old studentEmailForSubmission, using a more dynamic approach or placeholder.
-// const studentEmailForSubmission = "teststudent@example.com"; 
-let studentEmailForSubmission = "anonymous_student@example.com";
-// --- START OF ADDITION A.1 (Phase 6 - Mode/Practice Timer) ---
-let currentInteractionMode = 'full_test'; // Default to full_test
+let currentModuleTimeUp = false; 
+let studentEmailForSubmission = "anonymous_student@example.com"; 
+let currentInteractionMode = 'full_test'; 
 let practiceQuizTimerInterval;
 let practiceQuizTimeElapsed = 0;
-// --- END OF ADDITION A.1 ---
 
-// CHANGED: Placeholder for the Apps Script URL. Replace with your actual deployed URL.
-const APPS_SCRIPT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwneCF0xq9X-F-9AIxAiHpYFmRTErCzCPXlsWRloLRDWBGqwLEZC4NldCCAuND0jxUL/exec'; // <<< YOUR ACTUAL URL WAS USED HERE
 
-// Near line 20
+const APPS_SCRIPT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwneCF0xq9X-F-9AIxAiHpYFmRTErCzCPXlsWRloLRDWBGqwLEZC4NldCCAuND0jxUL/exec'; 
+
 const moduleMetadata = {
     "DT-T0-RW-M1": {
         name: "Reading & Writing - Module 1",
         type: "RW",
-        // CHANGED: Added durationSeconds for timed mode
-        durationSeconds: 180, // Example: 3 minutes for R&W Module 1
+        durationSeconds: 30, 
         directions: "The questions in this section address a number of important reading and writing skills...",
         spr_directions: null,
         spr_examples_table: null
     },
-    // CHANGED: Added placeholder for RW Module 2
     "DT-T0-RW-M2": {
         name: "Reading & Writing - Module 2",
         type: "RW",
-        durationSeconds: 180, // Example: 3 minutes
+        durationSeconds: 30, 
         directions: "This is the second Reading & Writing module. Continue to read each passage and question carefully...",
         spr_directions: null,
         spr_examples_table: null
@@ -59,46 +50,48 @@ const moduleMetadata = {
     "DT-T0-MT-M1": { 
         name: "Math - Module 1",
         type: "Math",
-        // CHANGED: Added durationSeconds
-        durationSeconds: 240, // Example: 4 minutes for Math Module 1
+        durationSeconds: 30, 
         directions: "The questions in this section address a number of important math skills...",
         passageText: null, 
-        spr_directions: `<h3>Student-produced response directions</h3><ul><li>...</li></ul>`, // Keep your existing SPR content
-        spr_examples_table: `<table class="spr-examples-table"><thead>...</thead><tbody>...</tbody></table>` // Keep your existing SPR content
+        spr_directions: `<h3>Student-produced response directions</h3><ul><li>If you find <strong>more than one correct answer</strong>, enter only one answer.</li><li>You can enter up to 5 characters for a <strong>positive</strong> answer and up to 6 characters (including the negative sign) for a <strong>negative</strong> answer.</li><li>If your answer is a <strong>fraction</strong> that doesn’t fit in the provided space, enter the decimal equivalent.</li><li>If your answer is a <strong>decimal</strong> that doesn’t fit in the provided space, enter it by truncating or rounding at the fourth digit.</li><li>If your answer is a <strong>mixed number</strong> (such as 3 <span style="font-size: 0.7em; vertical-align: super;">1</span>/<span style="font-size: 0.7em; vertical-align: sub;">2</span>), enter it as an improper fraction (7/2) or its decimal equivalent (3.5).</li><li>Don’t enter <strong>symbols</strong> such as a percent sign, comma, or dollar sign.</li></ul>`,
+        spr_examples_table: `<table class="spr-examples-table"><thead><tr><th>Answer</th><th>Acceptable ways to enter answer</th><th>Unacceptable: will NOT receive credit</th></tr></thead><tbody><tr><td>3.5</td><td>3.5<br/>7/2</td><td>3 1/2</td></tr><tr><td>2/3</td><td>2/3<br/>.666<br/>.667</td><td>0.66<br/>0.67</td></tr><tr><td>-15</td><td>-15</td><td></td></tr></tbody></table>`
     },
-    // CHANGED: Added placeholder for Math Module 2
     "DT-T0-MT-M2": {
         name: "Math - Module 2",
         type: "Math",
-        durationSeconds: 240, // Example: 4 minutes
+        durationSeconds: 30, 
         directions: "This is the second Math module. You may use the calculator for any question.",
         passageText: null,
-        spr_directions: `<h3>Student-produced response directions</h3><ul><li>...</li></ul>`, // Keep your existing SPR content
-        spr_examples_table: `<table class="spr-examples-table"><thead>...</thead><tbody>...</tbody></table>` // Keep your existing SPR content
+        spr_directions: `<h3>Student-produced response directions</h3><ul><li>If you find <strong>more than one correct answer</strong>, enter only one answer.</li><li>You can enter up to 5 characters for a <strong>positive</strong> answer and up to 6 characters (including the negative sign) for a <strong>negative</strong> answer.</li><li>If your answer is a <strong>fraction</strong> that doesn’t fit in the provided space, enter the decimal equivalent.</li><li>If your answer is a <strong>decimal</strong> that doesn’t fit in the provided space, enter it by truncating or rounding at the fourth digit.</li><li>If your answer is a <strong>mixed number</strong> (such as 3 <span style="font-size: 0.7em; vertical-align: super;">1</span>/<span style="font-size: 0.7em; vertical-align: sub;">2</span>), enter it as an improper fraction (7/2) or its decimal equivalent (3.5).</li><li>Don’t enter <strong>symbols</strong> such as a percent sign, comma, or dollar sign.</li></ul>`,
+        spr_examples_table: `<table class="spr-examples-table"><thead><tr><th>Answer</th><th>Acceptable ways to enter answer</th><th>Unacceptable: will NOT receive credit</th></tr></thead><tbody><tr><td>3.5</td><td>3.5<br/>7/2</td><td>3 1/2</td></tr><tr><td>2/3</td><td>2/3<br/>.666<br/>.667</td><td>0.66<br/>0.67</td></tr><tr><td>-15</td><td>-15</td><td></td></tr></tbody></table>`
     }
-    // You can add metadata for single practice quizzes here later, they might not have 'durationSeconds'
-    // or use a different timer logic.
 };
 
 const GITHUB_JSON_BASE_URL = 'https://raw.githubusercontent.com/ghiassabir/Bluebook-UI-UX-with-json-real-data-/main/data/json/'; 
 
 async function loadQuizData(quizName) {
     const url = `${GITHUB_JSON_BASE_URL}${quizName}.json`;
-    console.log(`Fetching quiz data from: ${url}`);
+    // --- DEBUG --- 
+    console.log(`DEBUG loadQuizData: Fetching quiz data from: ${url}`);
     try {
         const response = await fetch(url);
         if (!response.ok) {
+            // --- DEBUG ---
+            console.error(`DEBUG loadQuizData: HTTP error! status: ${response.status} for ${quizName}.json`);
             throw new Error(`HTTP error! status: ${response.status} for ${quizName}.json`);
         }
         const data = await response.json();
         if (!Array.isArray(data)) {
+            // --- DEBUG ---
+            console.error(`DEBUG loadQuizData: Data for ${quizName}.json is not an array. Check JSON structure.`);
             throw new Error(`Data for ${quizName}.json is not an array. Check JSON structure.`);
         }
         currentQuizQuestions = data; 
-        console.log(`Successfully loaded ${currentQuizQuestions.length} questions for quiz: ${quizName}`);
+        // --- DEBUG ---
+        console.log(`DEBUG loadQuizData: Successfully loaded ${currentQuizQuestions.length} questions for quiz: ${quizName}. First q ID: ${currentQuizQuestions.length > 0 ? currentQuizQuestions[0].question_id : 'N/A'}`);
         return true;
     } catch (error) {
-        console.error("Error loading quiz data:", error);
+        console.error("Error loading quiz data:", error); // This one was already there, good.
         alert(`Failed to load quiz data for ${quizName}: ${error.message}. Please check the console and ensure the JSON file is accessible and the GITHUB_JSON_BASE_URL is correct.`);
         currentQuizQuestions = []; 
         return false;
@@ -106,6 +99,7 @@ async function loadQuizData(quizName) {
 }
 
 // --- DOM Elements ---
+// (Keep this section exactly as in your script js phase 6 quiz and test view.txt)
 const allAppViews = document.querySelectorAll('.app-view');
 const homeViewEl = document.getElementById('home-view');
 const testInterfaceViewEl = document.getElementById('test-interface-view');
@@ -113,13 +107,7 @@ const moduleOverViewEl = document.getElementById('module-over-view');
 const finishedViewEl = document.getElementById('finished-view');
 const reviewPageViewEl = document.getElementById('review-page-view');
 const confettiCanvas = document.getElementById('confetti-canvas');
-//const startTestPreviewBtn = document.getElementById('start-test-preview-btn');
-// --- START OF ADDITION A.2 (Phase 6 - New DOM Refs) ---
-const startFullPracticeTestBtn = document.getElementById('start-full-practice-test-btn');
-const startSinglePracticeQuizBtn = document.getElementById('start-single-practice-quiz-btn');
-const manualBreakViewEl = document.getElementById('manual-break-view'); 
-const continueAfterBreakBtn = document.getElementById('continue-after-break-btn');
-// --- END OF ADDITION A.2 ---
+const startTestPreviewBtn = document.getElementById('start-test-preview-btn'); // Will be replaced by specific buttons
 const returnToHomeBtn = document.getElementById('return-to-home-btn');
 const reviewPageSectionName = document.getElementById('review-page-section-name');
 const reviewPageQNavGrid = document.getElementById('review-page-qnav-grid');
@@ -185,31 +173,160 @@ const unscheduledBreakCancelBtn = document.getElementById('unscheduled-break-can
 const exitExamConfirmModal = document.getElementById('exit-exam-confirm-modal');
 const exitExamConfirmBtn = document.getElementById('exit-exam-confirm-btn');
 const exitExamCancelBtn = document.getElementById('exit-exam-cancel-btn');
+const startFullPracticeTestBtn = document.getElementById('start-full-practice-test-btn');
+const startSinglePracticeQuizBtn = document.getElementById('start-single-practice-quiz-btn');
+const manualBreakViewEl = document.getElementById('manual-break-view');
+const continueAfterBreakBtn = document.getElementById('continue-after-break-btn');
+
+// Add listener for continueAfterBreakBtn (from your .txt file, ensure it's there)
+//if (continueAfterBreakBtn) { /* ... from your .txt file ... */ }
+
+if (continueAfterBreakBtn) {
+    // added 851
+    continueAfterBreakBtn.removeEventListener('click', continueAfterBreakBtnClickHandler); // Prevent multiple attachments
+    continueAfterBreakBtn.addEventListener('click', continueAfterBreakBtnClickHandler);
+    console.log("DEBUG: Event listener ATTACHED to continueAfterBreakBtn."); // Add this log
+//} else {
+  //  console.error("DEBUG ERROR: continueAfterBreakBtn element NOT FOUND when trying to attach listener.");
+    //added
+    
+    console.log("DEBUG: Checking continueAfterBreakBtn element:", continueAfterBreakBtn); // DEBUG Line 1
+    continueAfterBreakBtn.addEventListener('click', async () => {
+        console.log("DEBUG:Continue after manual break button clicked."); // DEBUG Line 2
+        console.log("DEBUG: currentModuleIndex at continue click:", currentModuleIndex); // DEBUG Line 3
+        // currentModuleIndex should be 2 here (for Math M1)
+
+        if (currentModuleIndex < currentTestFlow.length) {
+            currentQuestionNumber = 1;
+            currentModuleTimeUp = false; 
+
+            const nextQuizName = currentTestFlow[currentModuleIndex];
+            const nextModuleInfo = moduleMetadata[nextQuizName];
+
+            let jsonToLoadForNextModule = nextQuizName;
+                       
+            //console.log(`DEBUG ContinueBreak: Loading module ${nextQuizName} (data from ${jsonToLoadForNextModule})`);
+
+            console.log(`DEBUG ContinueBreak: Preparing to load module: ${nextQuizName} (using JSON data from: ${jsonToLoadForNextModule})`); // DEBUG Line 4
+            
+            continueAfterBreakBtn.textContent = "Loading next section...";
+            continueAfterBreakBtn.disabled = true;
+
+            const success = await loadQuizData(jsonToLoadForNextModule);
+            
+            continueAfterBreakBtn.textContent = "Continue to Next Section";
+            continueAfterBreakBtn.disabled = false;
+
+            if (success && currentQuizQuestions.length > 0) {
+                console.log(`DEBUG ContinueBreak: Successfully loaded data for ${nextQuizName}. Starting timer and showing view.`); // DEBUG Line 5
+                // Ensure correct timer is started for 'full_test' mode
+                if (currentInteractionMode === 'full_test' && nextModuleInfo && typeof nextModuleInfo.durationSeconds === 'number') {
+                    startModuleTimer(nextModuleInfo.durationSeconds);
+                } else {
+                    console.warn(`Timer mode/config issue for module ${nextQuizName} after break. Current mode: ${currentInteractionMode}`);
+                    // For full_test, a duration is expected. If single_quiz somehow got here, it would be an issue.
+                    updateModuleTimerDisplay(0); 
+                }
+                populateQNavGrid();
+                showView('test-interface-view');
+            } else {console.error(`DEBUG ContinueBreak: Failed to load quiz data for ${jsonToLoadForNextModule} or no questions. Success: ${success}, Questions length: ${currentQuizQuestions ? currentQuizQuestions.length : 'undefined'}`);
+                alert("Error loading the next section after break. Please try restarting the test.");
+                showView('home-view');
+               }
+          } else { 
+            console.error("DEBUG ContinueBreak: Clicked continue, but currentModuleIndex (" + currentModuleIndex + ") is out of bounds for currentTestFlow. Test flow length: " + currentTestFlow.length);
+            alert("Test flow error after break. Returning to home.");
+            showView('finished-view'); 
+        } 
+    });
+}  else { 
+    console.error("DEBUG: continue-after-break-btn was NOT FOUND in the DOM."); // DEBUG Line 6
+    }
 
 
-// --- Helper Functions ---
-function getCurrentModule() {
+// added 851
+async function continueAfterBreakBtnClickHandler() { // Made it a named async function
+    console.log("DEBUG: Continue after manual break button CLICKED."); 
+    console.log("DEBUG: currentModuleIndex at continue click:", currentModuleIndex); 
+
+    if (currentModuleIndex < currentTestFlow.length) {
+        currentQuestionNumber = 1;
+        currentModuleTimeUp = false; 
+
+        const nextQuizName = currentTestFlow[currentModuleIndex];
+        const nextModuleInfo = moduleMetadata[nextQuizName];
+
+        let jsonToLoadForNextModule = nextQuizName;
+        if (nextQuizName === "DT-T0-RW-M2" && !moduleMetadata[nextQuizName]?.actualFileIfDifferent) { // Example if you had specific M2 files
+            jsonToLoadForNextModule = "DT-T0-RW-M1"; 
+        } else if (nextQuizName === "DT-T0-MT-M2" && !moduleMetadata[nextQuizName]?.actualFileIfDifferent) {
+            jsonToLoadForNextModule = "DT-T0-MT-M1";
+        }
+        
+        console.log(`DEBUG ContinueBreak: Preparing to load module: ${nextQuizName} (using JSON data from: ${jsonToLoadForNextModule})`);
+        
+        if(continueAfterBreakBtn) { // Check again in case of weirdness
+            continueAfterBreakBtn.textContent = "Loading next section...";
+            continueAfterBreakBtn.disabled = true;
+        }
+
+        const success = await loadQuizData(jsonToLoadForNextModule);
+        
+        if(continueAfterBreakBtn) {
+            continueAfterBreakBtn.textContent = "Continue to Next Section";
+            continueAfterBreakBtn.disabled = false;
+        }
+
+        if (success && currentQuizQuestions.length > 0) {
+            console.log(`DEBUG ContinueBreak: Successfully loaded data for ${nextQuizName}. Starting timer and showing view.`);
+            if (currentInteractionMode === 'full_test' && nextModuleInfo && typeof nextModuleInfo.durationSeconds === 'number') {
+                startModuleTimer(nextModuleInfo.durationSeconds);
+            } else {
+                console.warn(`Timer mode/config issue for module ${nextQuizName} after break. Current mode: ${currentInteractionMode}`);
+                updateModuleTimerDisplay(0); 
+            }
+            populateQNavGrid();
+            showView('test-interface-view');
+        } else { 
+            console.error(`DEBUG ContinueBreak: Failed to load quiz data for ${jsonToLoadForNextModule} or no questions. Success: ${success}, Questions length: ${currentQuizQuestions ? currentQuizQuestions.length : 'undefined'}`);
+            alert("Error loading the next section after break. Please try restarting the test.");
+            showView('home-view');
+        }
+    } else { 
+        console.error("DEBUG ContinueBreak: Clicked continue, but currentModuleIndex (" + currentModuleIndex + ") is out of bounds for currentTestFlow. Test flow length: " + currentTestFlow.length);
+        alert("Test flow error after break. Returning to home.");
+        showView('finished-view'); 
+    }
+}
+
+// --- Helper Functions --- (Keep all helper functions from your .txt file as they are for now)
+function initializeStudentIdentifier() { /* ... from your .txt file ... */ 
+    const storedEmail = localStorage.getItem('bluebookStudentEmail'); 
+    if (storedEmail && storedEmail.trim() !== "") { 
+        studentEmailForSubmission = storedEmail;
+        console.log(`Student identifier initialized from localStorage: ${studentEmailForSubmission}`);
+    } else {
+        studentEmailForSubmission = "anonymous_student@example.com"; 
+        console.log(`No valid student identifier found in localStorage. Using default: ${studentEmailForSubmission}`);
+    }
+}
+function getCurrentModule() { /* ... from your .txt file ... */ 
     if (currentTestFlow.length > 0 && currentModuleIndex < currentTestFlow.length) {
         const currentQuizName = currentTestFlow[currentModuleIndex];
         return moduleMetadata[currentQuizName] || null;
     }
     return null;
 }
-
-function getCurrentQuestionData() {
+function getCurrentQuestionData() { /* ... from your .txt file ... */ 
     if (currentQuizQuestions && currentQuizQuestions.length > 0 && currentQuestionNumber > 0 && currentQuestionNumber <= currentQuizQuestions.length) {
         return currentQuizQuestions[currentQuestionNumber - 1];
     }
     return null;
 }
-
-function getAnswerStateKey(moduleIdx = currentModuleIndex, qNum = currentQuestionNumber) {
+function getAnswerStateKey(moduleIdx = currentModuleIndex, qNum = currentQuestionNumber) { /* ... from your .txt file ... */ 
     return `${moduleIdx}-${qNum}`;
 }
-
-// --- START OF ADDITION 2.A ---
-// ADDED: Functions for module-specific countdown timer
-function updateModuleTimerDisplay(seconds) {
+function updateModuleTimerDisplay(seconds) { /* ... from your .txt file ... */ 
     if (!timerTextEl) return; 
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
@@ -217,15 +334,14 @@ function updateModuleTimerDisplay(seconds) {
     timerTextEl.textContent = displayString;
     if (reviewTimerText) reviewTimerText.textContent = displayString; 
 }
-
-function startModuleTimer(durationSeconds) {
-    // if (practiceQuizTimerInterval) clearInterval(practiceQuizTimerInterval); // Not needed yet
+function startModuleTimer(durationSeconds) { /* ... from your .txt file ... */ 
+    if (practiceQuizTimerInterval) clearInterval(practiceQuizTimerInterval); 
     if (moduleTimerInterval) clearInterval(moduleTimerInterval); 
 
     currentModuleTimeLeft = durationSeconds;
     currentModuleTimeUp = false; 
     updateModuleTimerDisplay(currentModuleTimeLeft);
-    updateNavigation(); // Update button states based on new timer state
+    updateNavigation(); 
 
     console.log(`Module timer (countdown) started for ${durationSeconds} seconds.`);
 
@@ -250,81 +366,8 @@ function startModuleTimer(durationSeconds) {
         }
     }, 1000);
 }
-// --- END OF ADDITION 2.A ---
 
-// --- START OF ADDITION B.1 (Phase 6 - Practice Quiz Timer Functions) ---
-function updatePracticeQuizTimerDisplay(seconds) {
-    if (!timerTextEl) return;
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    const displayString = `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
-    timerTextEl.textContent = displayString;
-    if (reviewTimerText) reviewTimerText.textContent = displayString; 
-}
-
-function startPracticeQuizTimer() {
-    if (moduleTimerInterval) clearInterval(moduleTimerInterval); 
-    if (practiceQuizTimerInterval) clearInterval(practiceQuizTimerInterval);
-
-    practiceQuizTimeElapsed = 0;
-    updatePracticeQuizTimerDisplay(practiceQuizTimeElapsed);
-    console.log("Practice quiz timer (upward counting) started.");
-
-    practiceQuizTimerInterval = setInterval(() => {
-        practiceQuizTimeElapsed++;
-        updatePracticeQuizTimerDisplay(practiceQuizTimeElapsed);
-    }, 1000);
-}
-// --- END OF ADDITION B.1 ---
-
-// CHANGED: New functions for module-specific timer
-function updateModuleTimerDisplay(seconds) {
-    if (!timerTextEl) return; // Ensure main timer display element exists
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    const displayString = `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
-    timerTextEl.textContent = displayString;
-    if (reviewTimerText) reviewTimerText.textContent = displayString; // Sync with review page timer
-}
-
-function startModuleTimer(durationSeconds) {
-    if (moduleTimerInterval) clearInterval(moduleTimerInterval); 
-
-    currentModuleTimeLeft = durationSeconds;
-    currentModuleTimeUp = false; // Reset flag for new module
-    updateModuleTimerDisplay(currentModuleTimeLeft);
-    updateNavigation(); // Update button states based on new timer state
-
-    console.log(`Module timer started for ${durationSeconds} seconds.`);
-
-    moduleTimerInterval = setInterval(() => {
-        currentModuleTimeLeft--;
-        updateModuleTimerDisplay(currentModuleTimeLeft);
-
-        if (currentModuleTimeLeft <= 0) {
-            clearInterval(moduleTimerInterval);
-            currentModuleTimeLeft = 0; // Ensure it doesn't go negative
-            currentModuleTimeUp = true; // Set flag
-            updateModuleTimerDisplay(currentModuleTimeLeft); // Show 00:00
-            console.log("Module time is up!");
-            alert("Time for this module is up! You will be taken to the review page.");
-            
-            recordTimeOnCurrentQuestion(); // Record time for the question being worked on
-            
-            // Automatically navigate to the review page for the current module
-            if (currentView !== 'review-page-view') {
-                showView('review-page-view');
-            }
-            updateNavigation(); // Re-enable next button on review page
-        }
-    }, 1000);
-}
-
-
-// CHANGED: getAnswerState now stores q_id, correct_ans, and question_type_from_json
-// from currentQuestionDetails when initializing a new state.
-// CHANGED: getAnswerState ensures essential data is populated when state is first created.
-function getAnswerState(moduleIdx = currentModuleIndex, qNum = currentQuestionNumber) {
+function getAnswerState(moduleIdx = currentModuleIndex, qNum = currentQuestionNumber) { /* ... from your .txt file ... */ 
     const key = getAnswerStateKey(moduleIdx, qNum);
     if (!userAnswers[key]) {
         const questionDetails = (moduleIdx === currentModuleIndex && currentQuizQuestions && currentQuizQuestions[qNum - 1]) 
@@ -337,15 +380,12 @@ function getAnswerState(moduleIdx = currentModuleIndex, qNum = currentQuestionNu
             marked: false, 
             crossedOut: [], 
             timeSpent: 0,
-            // Populate these immediately if questionDetails are available
-            q_id: questionDetails ? questionDetails.question_id : `M${moduleIdx}-Q${qNum}-tmp`, // Temporary if no details yet
+            q_id: questionDetails ? questionDetails.question_id : `M${moduleIdx}-Q${qNum}-tmp`, 
             correct_ans: questionDetails ? questionDetails.correct_answer : null,
             question_type_from_json: questionDetails ? questionDetails.question_type : null,
-            quizName_from_flow: currentTestFlow[moduleIdx] || "UNKNOWN_QUIZ_AT_GETSTATE" // Store quizName
+            quizName_from_flow: (currentTestFlow && currentTestFlow[moduleIdx]) ? currentTestFlow[moduleIdx] : "UNKNOWN_QUIZ_AT_GETSTATE"
         };
     }
-    // Attempt to update if details were missing at creation and are now available
-    // This is specifically for when getAnswerState is called by loadQuestion
     if (userAnswers[key] && (userAnswers[key].q_id.endsWith('-tmp') || !userAnswers[key].correct_ans)) {
          const questionDetails = (moduleIdx === currentModuleIndex && currentQuizQuestions && currentQuizQuestions[qNum - 1]) 
                                ? currentQuizQuestions[qNum - 1] 
@@ -354,11 +394,125 @@ function getAnswerState(moduleIdx = currentModuleIndex, qNum = currentQuestionNu
             userAnswers[key].q_id = questionDetails.question_id;
             userAnswers[key].correct_ans = questionDetails.correct_answer;
             userAnswers[key].question_type_from_json = questionDetails.question_type;
-            userAnswers[key].quizName_from_flow = currentTestFlow[moduleIdx] || "UNKNOWN_QUIZ_AT_GETSTATE_UPDATE";
+            if(currentTestFlow && currentTestFlow[moduleIdx]) userAnswers[key].quizName_from_flow = currentTestFlow[moduleIdx];
         }
     }
     return userAnswers[key];
 }
+
+// --- START OF ADDITION ---
+// ADD THIS FUNCTION DEFINITION AFTER getAnswerState
+function recordTimeOnCurrentQuestion() {
+    if (questionStartTime > 0 && currentQuizQuestions.length > 0 && currentQuestionNumber > 0 && currentQuestionNumber <= currentQuizQuestions.length) {
+        // Ensure currentQuestionNumber is valid for currentQuizQuestions array
+        if (currentQuizQuestions[currentQuestionNumber - 1]) { // Check if question data exists
+            const endTime = Date.now();
+            const timeSpentSeconds = (endTime - questionStartTime) / 1000;
+            
+            // Get answer state for the *actual current question* being timed
+            const answerState = getAnswerState(currentModuleIndex, currentQuestionNumber); 
+            
+            if (answerState) { 
+                answerState.timeSpent = (parseFloat(answerState.timeSpent) || 0) + timeSpentSeconds;
+                // console.log(`DEBUG recordTime: QKey: ${currentModuleIndex}-${currentQuestionNumber}, TimeAdded: ${timeSpentSeconds.toFixed(2)}, NewTotal: ${answerState.timeSpent.toFixed(2)}`);
+            } else {
+                // console.warn(`DEBUG recordTime: Could not get answerState for ${currentModuleIndex}-${currentQuestionNumber}`);
+            }
+        } else {
+            // console.warn(`DEBUG recordTime: currentQuestionDetails not found for CMI: ${currentModuleIndex}, CQN: ${currentQuestionNumber}. Time not recorded.`);
+        }
+    }
+    questionStartTime = 0; // Reset for the next question or interaction
+}
+// --- END OF ADDITION ---
+
+
+// REPLACE your entire updateNavigation_OLD function with this new updateNavigation
+function updateNavigation() {
+   console.log("DEBUG: updateNavigation CALLED. CurrentView:", currentView, "Q#:", currentQuestionNumber, "ModuleTimeUp:", currentModuleTimeUp); // DEBUG START
+    
+    if (!backBtnFooter || !nextBtnFooter || !currentQFooterEl || !totalQFooterEl) {
+        console.error("Navigation elements missing for updateNavigation.");
+        return;
+    }
+
+    const moduleIsLoaded = currentQuizQuestions && currentQuizQuestions.length > 0;
+    const totalQuestionsInModule = moduleIsLoaded ? currentQuizQuestions.length : 0;
+
+    currentQFooterEl.textContent = moduleIsLoaded ? currentQuestionNumber : '0';
+    totalQFooterEl.textContent = totalQuestionsInModule;
+    
+    // Back button logic (no change for module rule here, just within module)
+    backBtnFooter.disabled = (currentQuestionNumber === 1);
+
+    // Default visibility
+    nextBtnFooter.style.display = 'none';
+    backBtnFooter.style.display = 'none';
+    if (reviewNextBtnFooter) reviewNextBtnFooter.style.display = 'none';
+    if (reviewBackBtnFooter) reviewBackBtnFooter.style.display = 'none';
+
+    if (currentView === 'test-interface-view') {
+        nextBtnFooter.style.display = 'inline-block';
+        backBtnFooter.style.display = 'inline-block';
+        if (!moduleIsLoaded) {
+            nextBtnFooter.textContent = "Next";
+            nextBtnFooter.disabled = true;
+        } else if (currentQuestionNumber < totalQuestionsInModule) {
+            nextBtnFooter.textContent = "Next";
+            nextBtnFooter.disabled = false;
+        } else { // Last question of the module
+            nextBtnFooter.textContent = "Review Section";
+             // --- START OF MODIFICATION ---
+            if (currentInteractionMode === 'full_test') {
+                const currentMod = getCurrentModule();
+                nextBtnFooter.disabled = !currentModuleTimeUp && (currentMod && typeof currentMod.durationSeconds === 'number' && currentMod.durationSeconds > 0);
+            } else { // single_quiz mode
+                nextBtnFooter.disabled = false; // Always enabled for single quiz
+            }
+            // --- END OF MODIFICATION ---
+        }
+    } else if (currentView === 'review-page-view') {
+        if (reviewBackBtnFooter) reviewBackBtnFooter.style.display = 'inline-block';
+        if (reviewNextBtnFooter) reviewNextBtnFooter.style.display = 'inline-block';
+        
+        if (reviewBackBtnFooter) reviewBackBtnFooter.disabled = false; // Can always go back to test interface from review
+
+        //if (reviewNextBtnFooter) {
+            //if (currentModuleIndex < currentTestFlow.length - 1) {
+              //  reviewNextBtnFooter.textContent = "Next Module";
+           // } else {
+             //   reviewNextBtnFooter.textContent = "Finish Test";
+           // }
+            // CHANGED: Disable "Next Module" / "Finish Test" from review page if module time is not up
+            //reviewNextBtnFooter.disabled = !currentModuleTimeUp && (getCurrentModule()?.durationSeconds > 0);
+           // }
+
+        if (reviewNextBtnFooter) {
+                if (currentInteractionMode === 'single_quiz') {
+                    reviewNextBtnFooter.textContent = "Finish Quiz";
+                    // --- START OF FIX 1 ---
+                    reviewNextBtnFooter.disabled = false; // Always enabled to finish a single quiz
+                    // --- END OF FIX 1 ---
+                } else { // full_test mode
+                    if (currentModuleIndex < currentTestFlow.length - 1) {
+                        reviewNextBtnFooter.textContent = "Next Module";
+                    } else {
+                        reviewNextBtnFooter.textContent = "Finish Test";
+                    }
+                    const currentMod = getCurrentModule();
+                    reviewNextBtnFooter.disabled = !currentModuleTimeUp && (currentMod && typeof currentMod.durationSeconds === 'number' && currentMod.durationSeconds > 0);
+                }
+            }
+    } else if (currentView === 'home-view' || currentView === 'finished-view' || currentView === 'module-over-view') {
+        // No primary nav buttons needed, or handled by specific view buttons
+    }
+    // Add console log for button states
+    // console.log(`UpdateNav: NextBtn Disabled: ${nextBtnFooter.disabled}, ReviewNextBtn Disabled: ${reviewNextBtnFooter ? reviewNextBtnFooter.disabled : 'N/A'}, TimeUp: ${currentModuleTimeUp}`);
+
+console.log("DEBUG: updateNavigation COMPLETED."); // DEBUG END
+
+}
+
 
 
 function populateQNavGrid() {
@@ -411,10 +565,8 @@ function populateQNavGrid() {
         });
         qNavGridMain.appendChild(btn);
     }
-}
-
-function renderReviewPage() {
-    // (Unchanged from Phase 3)
+} 
+function renderReviewPage() { // (Unchanged from Phase 3)
     if (!reviewPageViewEl || !reviewPageViewEl.classList.contains('active')) return;
     console.log("Rendering Review Page (Phase 3)...");
     
@@ -462,45 +614,88 @@ function renderReviewPage() {
         });
         reviewPageQNavGrid.appendChild(btn);
     }
-    updateNavigation(); 
+    updateNavigation();
 }
 
-// (Confetti functions unchanged)
 let confettiAnimationId; 
 const confettiParticles = []; 
-function startConfetti() { /* ... */ }
-function stopConfetti() { /* ... */ }
 
+function startConfetti() { /* ... from your .txt file ... */ }
+
+function stopConfetti() { /* ... from your .txt file ... */ }
+
+//function handleTimerToggle(textEl, iconEl, btnEl) {  // (Unchanged from Phase 3)
+   // if (!textEl || !iconEl || !btnEl) return;
+   // isTimerHidden = !isTimerHidden; 
+   // textEl.classList.toggle('hidden', isTimerHidden); 
+   // iconEl.classList.toggle('hidden', !isTimerHidden);
+  //  btnEl.textContent = isTimerHidden ? '[Show]' : '[Hide]';
+//}
+
+// Ensure this function exists and is correct
 function handleTimerToggle(textEl, iconEl, btnEl) {
-    // (Unchanged from Phase 3)
-    if (!textEl || !iconEl || !btnEl) return;
-    isTimerHidden = !isTimerHidden; 
-    textEl.classList.toggle('hidden', isTimerHidden); 
-    iconEl.classList.toggle('hidden', !isTimerHidden);
-    btnEl.textContent = isTimerHidden ? '[Show]' : '[Hide]';
+console.log("DEBUG: handleTimerToggle called. isTimerHidden before toggle:", isTimerHidden);
+if (!textEl || !iconEl || !btnEl) {
+console.warn("DEBUG handleTimerToggle: one or more elements missing");
+return;
+}
+isTimerHidden = !isTimerHidden;
+textEl.classList.toggle('hidden', isTimerHidden);
+iconEl.classList.toggle('hidden', !isTimerHidden);
+btnEl.textContent = isTimerHidden ? '[Show]' : '[Hide]';
 }
 
-// --- View Management ---
+
+function updatePracticeQuizTimerDisplay(seconds) {  
+    if (!timerTextEl) { 
+          // console.log("DEBUG updatePracticeQuizTimerDisplay: timerTextEl not found"); 
+          return;
+      }
+      const minutes = Math.floor(seconds / 60);
+      const remainingSeconds = seconds % 60;
+      const displayString = `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+      timerTextEl.textContent = displayString;
+      // console.log("DEBUG updatePracticeQuizTimerDisplay: Set timerTextEl to", displayString);
+      
+      // Also update the review page timer text if it exists and is different
+      if (reviewTimerText && reviewTimerText !== timerTextEl) {
+        reviewTimerText.textContent = displayString;
+        // console.log("DEBUG updatePracticeQuizTimerDisplay: Set reviewTimerText to", displayString);
+      } 
+}
+
+function startPracticeQuizTimer() { 
+    if (moduleTimerInterval) clearInterval(moduleTimerInterval); 
+      if (practiceQuizTimerInterval) clearInterval(practiceQuizTimerInterval);
+
+      practiceQuizTimeElapsed = 0;
+      updatePracticeQuizTimerDisplay(practiceQuizTimeElapsed);
+      console.log("Practice quiz timer (upward counting) started.");
+
+      practiceQuizTimerInterval = setInterval(() => {
+          practiceQuizTimeElapsed++;
+          // console.log("DEBUG: Practice quiz timer tick. Elapsed:", practiceQuizTimeElapsed); // Keep for debug
+          updatePracticeQuizTimerDisplay(practiceQuizTimeElapsed);
+      }, 1000);
+}
+
+// In showView:
 function showView(viewId) {
-    console.log("Switching to view:", viewId);
-    currentView = viewId;
+    // --- DEBUG ---
+    console.log(`DEBUG showView: Attempting to switch to view: ${viewId}. Current module index: ${currentModuleIndex}, Q#: ${currentQuestionNumber}`);
+    
+    currentView = viewId; // Keep this
     allAppViews.forEach(view => view.classList.remove('active'));
     const targetView = document.getElementById(viewId);
-    if (targetView) targetView.classList.add('active');
-    else { console.error("View not found:", viewId); return; }
+    if (targetView) {
+        targetView.classList.add('active');
+    } else {
+        console.error(`View not found for ID: ${viewId}`);
+        return;
+    }
 
-    // CHANGED: Stop module timer if navigating away from test/review views
-   // if (viewId !== 'test-interface-view' && viewId !== 'review-page-view' && viewId !== 'module-over-view') {
-     //   if (moduleTimerInterval) {
-       //     clearInterval(moduleTimerInterval);
-         //   console.log("Module timer stopped due to view change from test/review.");
-        //}
-    //}
-
-// --- START OF REPLACEMENT D.1 ---
-    // Stop appropriate timers when navigating away from active testing/break views
     if (viewId !== 'test-interface-view' && viewId !== 'review-page-view' && 
-        viewId !== 'module-over-view' && viewId !== 'manual-break-view' ) { // Added manual-break-view
+        viewId !== 'module-over-view' && viewId !== 'manual-break-view') {
         if (moduleTimerInterval) {
             clearInterval(moduleTimerInterval);
             console.log("Module countdown timer stopped due to view change.");
@@ -510,76 +705,84 @@ function showView(viewId) {
             console.log("Practice quiz (upward) timer stopped due to view change.");
         }
     }
-    // --- END OF REPLACEMENT D.1 ---
-    
+
     if (viewId === 'test-interface-view') {
         if(qNavBtnFooter) qNavBtnFooter.style.display = 'flex';
         if(backBtnFooter) backBtnFooter.style.display = 'inline-block';
         if(nextBtnFooter) nextBtnFooter.style.display = 'inline-block';
+        // --- DEBUG ---
+        console.log(`DEBUG showView: About to call loadQuestion. CMI: ${currentModuleIndex}, CQN: ${currentQuestionNumber}, CQQ.length: ${currentQuizQuestions ? currentQuizQuestions.length : 'N/A'}`);
         loadQuestion();
     } else if (viewId === 'review-page-view') {
         if(qNavBtnFooter) qNavBtnFooter.style.display = 'none';
         renderReviewPage();
-    } // --- START OF MODIFICATION D.2 ---
-    else if (viewId === 'finished-view') {
+    } else if (viewId === 'finished-view') {
         startConfetti();
-        // Ensure all possible timers are stopped before submission
         if (moduleTimerInterval) clearInterval(moduleTimerInterval); 
         if (practiceQuizTimerInterval) clearInterval(practiceQuizTimerInterval);
-        // if (breakTimerInterval) clearInterval(breakTimerInterval); // For automated break (postponed)
         submitQuizData(); 
-    } 
-    // --- END OF MODIFICATION else if (viewId === 'home-view') {
-        if (moduleTimerInterval) clearInterval(moduleTimerInterval);
-        updateModuleTimerDisplay(0);
-    } 
+    } else if (viewId === 'home-view') {
         stopConfetti();
         currentTestFlow = [];
         currentQuizQuestions = [];
         currentModuleIndex = 0;
         currentQuestionNumber = 1;
         userAnswers = {};
-    
-    // --- START OF ADDITION D.3 ---
-    else if (viewId === 'manual-break-view') {
+        updateModuleTimerDisplay(0); 
+        updatePracticeQuizTimerDisplay(0);
+    } else if (viewId === 'manual-break-view') {
         console.log("Now in manual break view.");
-        // Stop any active test/quiz timers when entering the break
         if (moduleTimerInterval) clearInterval(moduleTimerInterval); 
-        if (practiceQuizTimerInterval) clearInterval(practiceQuizTimerInterval); 
-        // The main timer display (timerTextEl) might show the last module's time or 00:00.
-        // The manual break view has its own text and doesn't use an automated timer.
+        if (practiceQuizTimerInterval) clearInterval(practiceQuizTimerInterval);
     }
-    // --- END OF ADDITION D.3 ---
-
     updateNavigation();
 }
 
-
-// --- Core UI Update `loadQuestion()` ---
+// At the VERY START of loadQuestion:
 function loadQuestion() {
-    // (Unchanged from Phase 3, but ensure answerState initialization is correct)
+    // --- DEBUG ---
+    console.log(`DEBUG loadQuestion: CALLED. CMI: ${currentModuleIndex}, CQN: ${currentQuestionNumber}, Mode: ${currentInteractionMode}`);
+    console.log(`DEBUG loadQuestion: currentQuizQuestions first item ID (if exists): ${currentQuizQuestions && currentQuizQuestions.length > 0 && currentQuizQuestions[currentQuestionNumber-1] ? currentQuizQuestions[currentQuestionNumber-1].question_id : "No questions or out of bounds"}`);
+
+    // ... (rest of your existing loadQuestion function from the .txt file)
+    // Ensure the DEBUG logs I previously suggested for inside loadQuestion are also present
+    // specifically after currentModuleInfo and currentQuestionDetails are defined, and before MathJax call.
+
     if (!testInterfaceViewEl.classList.contains('active')) {
         return;
     }
     
-    // ...
-const currentModuleInfo = getCurrentModule(); 
-const currentQuestionDetails = getCurrentQuestionData(); 
+    const currentModuleInfo = getCurrentModule(); 
+    const currentQuestionDetails = getCurrentQuestionData(); 
+    // --- DEBUG ---
+    console.log("DEBUG loadQuestion (after getting details) - currentModuleInfo:", currentModuleInfo ? currentModuleInfo.name : "null");
+    console.log("DEBUG loadQuestion (after getting details) - currentQuestionDetails:", currentQuestionDetails ? currentQuestionDetails.question_id : "null");
 
-if (!currentModuleInfo || !currentQuestionDetails) {
-    // ... error handling ...
-    return;
-}
 
-// CHANGED: Ensure answerState is fully populated by getAnswerState before setting startTime
-const answerState = getAnswerState(); 
-// The getAnswerState function itself will now try to populate q_id, correct_ans, etc.
-// if currentQuestionDetails are available for the current module/question.
-// So, no explicit update block needed here for those fields anymore.
+    if (!currentModuleInfo || !currentQuestionDetails) {
+        console.error("loadQuestion: ModuleInfo or Question data is null/undefined. Aborting question load.");
+        if (questionTextMainEl) questionTextMainEl.innerHTML = "<p>Error: Critical data missing for question display.</p>";
+        if (answerOptionsMainEl) answerOptionsMainEl.innerHTML = "";
+        if(totalQFooterEl && currentQFooterEl) {
+            currentQFooterEl.textContent = currentQuestionNumber;
+            totalQFooterEl.textContent = currentQuizQuestions ? currentQuizQuestions.length : 0;
+        }
+        updateNavigation();
+        return;
+    }
+    
+    const answerState = getAnswerState(); 
+    if (answerState && (typeof answerState.q_id === 'undefined' || (answerState.q_id && answerState.q_id.endsWith('-tmp')))) {
+        answerState.q_id = currentQuestionDetails.question_id;
+        answerState.correct_ans = currentQuestionDetails.correct_answer;
+        answerState.question_type_from_json = currentQuestionDetails.question_type;
+    }
+    answerState.timeSpent = parseFloat(answerState.timeSpent) || 0;
+    questionStartTime = Date.now();
 
-answerState.timeSpent = parseFloat(answerState.timeSpent) || 0;
-questionStartTime = Date.now(); // Set startTime AFTER answerState might have been updated
-// ... rest of loadQuestion
+    // ... (Keep the rest of your loadQuestion DOM manipulation logic from the .txt file)
+    // ... from "if(sectionTitleHeader) sectionTitleHeader.textContent = ..."
+    // ... down to just BEFORE the MathJax block ...
 
     if(sectionTitleHeader) sectionTitleHeader.textContent = `Section ${currentModuleIndex + 1}: ${currentModuleInfo.name}`;
     if(questionNumberBoxMainEl) questionNumberBoxMainEl.textContent = currentQuestionDetails.question_number || currentQuestionNumber;
@@ -659,21 +862,36 @@ questionStartTime = Date.now(); // Set startTime AFTER answerState might have be
         for (const [key, value] of Object.entries(options)) {
             const isSelected = (answerState.selected === value);
             const isCrossedOut = answerState.crossedOut.includes(key);
+            
+            // --- DEBUG ---
+            // console.log(`DEBUG loadQuestion - Option ${key} (text: "${value}"): isSelected check (answerState.selected: "${answerState.selected}" vs value: "${value}") -> ${isSelected}`);
+
             const containerDiv = document.createElement('div');
             containerDiv.className = 'answer-option-container';
             containerDiv.dataset.optionKey = key;
             const optionDiv = document.createElement('div');
             optionDiv.className = 'answer-option';
-            if (isSelected && !isCrossedOut) optionDiv.classList.add('selected');
-            if (isCrossedOut) optionDiv.classList.add('crossed-out');
+            if (isSelected && !isCrossedOut) {
+                optionDiv.classList.add('selected');
+                // --- DEBUG ---
+                // console.log(`DEBUG loadQuestion - Applied .selected class to option ${key}`);
+            }
+            if (isCrossedOut) {
+                optionDiv.classList.add('crossed-out');
+            }
+            
             const answerLetterDiv = document.createElement('div');
             answerLetterDiv.className = 'answer-letter';
-            if (isSelected && !isCrossedOut) answerLetterDiv.classList.add('selected');
+            if (isSelected && !isCrossedOut) {
+                 answerLetterDiv.classList.add('selected');
+            }
             answerLetterDiv.textContent = key;
+
             const answerTextSpan = document.createElement('span');
             answerTextSpan.className = 'answer-text';
             if (isCrossedOut) answerTextSpan.classList.add('text-dimmed-for-crossout');
             answerTextSpan.innerHTML = value; 
+
             optionDiv.appendChild(answerLetterDiv);
             optionDiv.appendChild(answerTextSpan);
             containerDiv.appendChild(optionDiv);
@@ -695,16 +913,20 @@ questionStartTime = Date.now(); // Set startTime AFTER answerState might have be
             if (answerOptionsMainEl) answerOptionsMainEl.appendChild(containerDiv);
         }
     }
-       // CHANGED: More robust MathJax typesetting call
+
+    // --- DEBUG ---
+    // console.log("DEBUG: loadQuestion - DOM population for question text and options should be complete.");
+    // console.log("DEBUG: passageContentEl.innerHTML length:", passageContentEl ? passageContentEl.innerHTML.length : "N/A");
+    // console.log("DEBUG: questionTextMainEl.innerHTML length:", questionTextMainEl ? questionTextMainEl.innerHTML.length : "N/A");
+    // console.log("DEBUG: answerOptionsMainEl.innerHTML length:", answerOptionsMainEl ? answerOptionsMainEl.innerHTML.length : "N/A");
+
     if (typeof MathJax !== "undefined") {
+        // ... (Keep the robust MathJax call from your .txt file) ...
         if (MathJax.typesetPromise) {
-            // console.log("MathJax.typesetPromise available, calling directly.");
             MathJax.typesetPromise([passageContentEl, questionTextMainEl, answerOptionsMainEl, sprInstructionsContent])
                 .catch(function (err) { console.error('MathJax Typesetting Error:', err); });
         } else if (MathJax.startup && MathJax.startup.promise) {
-            // console.log("MathJax.typesetPromise not ready, using MathJax.startup.promise.");
             MathJax.startup.promise.then(() => {
-                // console.log("MathJax ready after startup.promise, typesetting now.");
                 if (MathJax.typesetPromise) {
                      MathJax.typesetPromise([passageContentEl, questionTextMainEl, answerOptionsMainEl, sprInstructionsContent])
                         .catch(function (err) { console.error('MathJax Typesetting Error (after startup.promise):', err); });
@@ -713,9 +935,7 @@ questionStartTime = Date.now(); // Set startTime AFTER answerState might have be
                 }
             }).catch(err => console.error("Error waiting for MathJax startup:", err));
         } else {
-            // Fallback if MathJax is defined but in an unexpected state
             console.warn("MathJax is defined, but neither typesetPromise nor startup.promise is available. Typesetting may fail.");
-            // As a last resort, try a small delay, though this is not ideal
             setTimeout(() => {
                 if (typeof MathJax !== "undefined" && MathJax.typesetPromise) {
                     console.log("Attempting MathJax typesetting after a short delay.");
@@ -724,7 +944,7 @@ questionStartTime = Date.now(); // Set startTime AFTER answerState might have be
                 } else {
                      console.warn("MathJax still not ready after delay for typesetting.");
                 }
-            }, 500); // 500ms delay
+            }, 500); 
         }
     } else {
         console.warn("MathJax object itself is not defined. Math content will not be rendered.");
@@ -733,73 +953,188 @@ questionStartTime = Date.now(); // Set startTime AFTER answerState might have be
 }
 
 
-function recordTimeOnCurrentQuestion() {
-    if (questionStartTime > 0 && currentQuizQuestions.length > 0 && currentQuestionNumber <= currentQuizQuestions.length) {
-        const endTime = Date.now();
-        const timeSpentSeconds = (endTime - questionStartTime) / 1000;
-        const answerState = getAnswerState(); 
-        if (answerState) { 
-            answerState.timeSpent = (parseFloat(answerState.timeSpent) || 0) + timeSpentSeconds;
+// Event Listeners for start buttons:
+// Keep the if(startFullPracticeTestBtn) and if(startSinglePracticeQuizBtn) blocks
+// from your .txt file. They contain the new logic for mode handling.
+// Make sure the old if(startTestPreviewBtn) listener is removed or commented out.
+
+if(startFullPracticeTestBtn) {
+    startFullPracticeTestBtn.addEventListener('click', async () => {
+        initializeStudentIdentifier(); 
+        console.log("Start Full Practice Test button clicked."); 
+        
+        currentInteractionMode = 'full_test';
+        currentModuleIndex = 0;
+        currentQuestionNumber = 1;
+        userAnswers = {}; 
+        isTimerHidden = false; 
+        isCrossOutToolActive = false;
+        isHighlightingActive = false; if(highlightsNotesBtn) highlightsNotesBtn.classList.remove('active');
+        if(calculatorOverlay) calculatorOverlay.classList.remove('visible');
+        if(referenceSheetPanel) referenceSheetPanel.classList.remove('visible');
+        currentModuleTimeUp = false; 
+
+        currentTestFlow = ["DT-T0-RW-M1", "DT-T0-RW-M2", "DT-T0-MT-M1", "DT-T0-MT-M2"]; 
+        console.log("Test flow set for Full Practice Test:", currentTestFlow); 
+
+        if (currentTestFlow.length > 0) {
+            const firstQuizName = currentTestFlow[currentModuleIndex];
+            const moduleInfo = moduleMetadata[firstQuizName];
+            
+            // --- DEBUG ---
+            console.log(`DEBUG startFullPracticeTestBtn: Initializing. First quiz: ${firstQuizName}. ModuleInfo found:`, !!moduleInfo);
+
+            startFullPracticeTestBtn.textContent = "Loading...";
+            startFullPracticeTestBtn.disabled = true;
+            
+            let jsonToLoad = firstQuizName;
+            if (firstQuizName === "DT-T0-RW-M2") jsonToLoad = "DT-T0-RW-M1";
+            else if (firstQuizName === "DT-T0-MT-M2") jsonToLoad = "DT-T0-MT-M1";
+            
+            const success = await loadQuizData(jsonToLoad); 
+            
+            startFullPracticeTestBtn.textContent = "Start Full Test"; 
+            startFullPracticeTestBtn.disabled = false; 
+
+            if (success && currentQuizQuestions.length > 0) {
+                 // --- DEBUG ---
+                console.log("DEBUG startFullPracticeTestBtn: Data loaded. Starting timer and showing view.");
+                if (moduleInfo && typeof moduleInfo.durationSeconds === 'number') {
+                    startModuleTimer(moduleInfo.durationSeconds); 
+                } else {
+                    console.warn(`Full Test Mode: No duration for module ${firstQuizName}. Timer not started or showing 00:00.`);
+                    updateModuleTimerDisplay(0); 
+                }
+                populateQNavGrid(); 
+                showView('test-interface-view'); 
+            } else {
+                console.error("Failed to load initial quiz data for full test.");
+                alert("Could not start the full test. Check console.");
+                showView('home-view'); 
+            }
+        } else { 
+            console.error("Full test flow is empty.");
+            alert("Full test configuration error.");
         }
-    }
-    questionStartTime = 0; 
+    });
 }
 
-// CHANGED: Function to initialize student identifier
-function initializeStudentIdentifier() {
-    const storedEmail = localStorage.getItem('bluebookStudentEmail'); // Using 'bluebookStudentEmail' as the key
-    if (storedEmail && storedEmail.trim() !== "") { // Check if it's not null and not an empty string
-        studentEmailForSubmission = storedEmail;
-        console.log(`Student identifier initialized from localStorage: ${studentEmailForSubmission}`);
-    } else {
-        // Keep the default "anonymous_student@example.com" if nothing valid is found
-        console.log(`No valid student identifier found in localStorage. Using default: ${studentEmailForSubmission}`);
-    }
+if(startSinglePracticeQuizBtn) {
+    startSinglePracticeQuizBtn.addEventListener('click', async () => {
+        initializeStudentIdentifier();
+        console.log("Start Single Practice Quiz button clicked.");
+
+        currentInteractionMode = 'single_quiz';
+        currentModuleIndex = 0; 
+        currentQuestionNumber = 1;
+        userAnswers = {};
+        isTimerHidden = false;
+        isCrossOutToolActive = false;
+        isHighlightingActive = false; if(highlightsNotesBtn) highlightsNotesBtn.classList.remove('active');
+        if(calculatorOverlay) calculatorOverlay.classList.remove('visible');
+        if(referenceSheetPanel) referenceSheetPanel.classList.remove('visible');
+
+        currentTestFlow = ["DT-T0-MT-M1"]; 
+        console.log("Test flow set for Single Practice Quiz:", currentTestFlow);
+
+        if (currentTestFlow.length > 0) {
+            const quizName = currentTestFlow[0];
+            // --- DEBUG ---
+            console.log(`DEBUG startSinglePracticeQuizBtn: Initializing. Quiz: ${quizName}`);
+            
+            startSinglePracticeQuizBtn.textContent = "Loading...";
+            startSinglePracticeQuizBtn.disabled = true;
+
+            const success = await loadQuizData(quizName);
+
+            startSinglePracticeQuizBtn.textContent = "Start Single Quiz";
+            startSinglePracticeQuizBtn.disabled = false;
+
+            if (success && currentQuizQuestions.length > 0) {
+                 // --- DEBUG ---
+                console.log("DEBUG startSinglePracticeQuizBtn: Data loaded. Starting timer and showing view.");
+                startPracticeQuizTimer(); 
+                populateQNavGrid();
+                showView('test-interface-view');
+            } else {
+                console.error("Failed to load data for single practice quiz.");
+                alert("Could not start the practice quiz. Check console.");
+                showView('home-view');
+            }
+        } else { 
+            console.error("Single quiz flow is empty.");
+            alert("Single quiz configuration error.");
+        }
+    });
 }
 
 
-// --- Event Listeners (Phase 3 versions, largely unchanged for this step, except cross-out will be simplified later) ---
-// From your Phase 4 script.js (around line 530)
+
+// Keep all other functions and event listeners from your .txt file as they were,
+// including:
+// recordTimeOnCurrentQuestion, handleAnswerSelect, handleAnswerCrossOut, handleAnswerUndoCrossOut,
+// crossOutToolBtnMain listener, sprInputFieldMain listeners,
+// updateNavigation, nextButtonClickHandler, reviewNextButtonClickHandler, backButtonClickHandler,
+// all modal button listeners, more menu listeners, submitQuizData, DOMContentLoaded listener.
+// Basically, only the loadQuizData, showView, loadQuestion, and start button listeners
+// were targeted for adding DEBUG logs in this step. The structure for other parts remains.
+
+// The Gist script ends with the DOMContentLoaded listener.
+// Make sure your .txt file also has that, and it correctly calls initializeStudentIdentifier and updateNavigation.
+// For example:
+/*
+document.addEventListener('DOMContentLoaded', () => {
+    initializeStudentIdentifier(); 
+    updateNavigation(); 
+});
+*/
+// If your .txt script already had this, keep it. If not, add it.
+
+// =======================================================================
+// === ADD THE FOLLOWING CODE AFTER LINE 768 OF YOUR EXISTING SCRIPT ===
+// This restores missing event listeners and handlers, adapted for Phase 6
+// =======================================================================
+
+// --- Event Listeners for Answer Interaction & Tools ---
 if(answerOptionsMainEl) {
     answerOptionsMainEl.addEventListener('click', function(event) {
         const target = event.target;
         const answerContainer = target.closest('.answer-option-container');
         
-        // DEBUG: Log if the listener is even firing and what was clicked
-        console.log("Answer option area clicked. Target:", target, "Container:", answerContainer);
+        // console.log("Answer option area clicked. Target:", target, "Container:", answerContainer); // Keep for debug
 
         if (!answerContainer) {
-            console.log("Click was outside an answer-option-container. Exiting listener.");
+            // console.log("Click was outside an answer-option-container. Exiting listener."); // Keep for debug
             return; 
         }
         const optionKey = answerContainer.dataset.optionKey;
-        console.log("Option key identified:", optionKey); // DEBUG
+        // console.log("Option key identified:", optionKey); // Keep for debug
         
         const actionElement = target.closest('[data-action]');
         const action = actionElement ? actionElement.dataset.action : null;
-        console.log("Action identified:", action); // DEBUG
+        // console.log("Action identified:", action); // Keep for debug
         
+        // Record time if the main option area was clicked (intending selection or interaction)
+        // and not just an auxiliary action button like the individual cross-out.
         if (!action && target.closest('.answer-option')) { 
             recordTimeOnCurrentQuestion(); 
         }
 
         if (action === 'cross-out-individual') {
-            console.log("Calling handleAnswerCrossOut for individual cross-out."); // DEBUG
+            // console.log("Calling handleAnswerCrossOut for individual cross-out."); // Keep for debug
             handleAnswerCrossOut(optionKey);
         } else if (action === 'undo-cross-out') {
-            console.log("Calling handleAnswerCrossOut for undo cross-out."); // DEBUG
+            // console.log("Calling handleAnswerUndoCrossOut for undo cross-out."); // Keep for debug
             handleAnswerUndoCrossOut(optionKey);
         } else if (target.closest('.answer-option')) { 
-            // This 'else if' implies the click was on the general option area, intended for selection.
-            console.log("Attempting to call handleAnswerSelect."); // DEBUG
+            // console.log("Attempting to call handleAnswerSelect."); // Keep for debug
             handleAnswerSelect(optionKey);
         } else {
-            console.log("Click did not match any known action or target for selection."); // DEBUG
+            // console.log("Click did not match any known action or target for selection."); // Keep for debug
         }
     });
-};
+}
 
-// REVISED handleAnswerSelect for debugging the "no selection when tool is off" issue
 function handleAnswerSelect(optionKey) {
     const answerState = getAnswerState();
     if (!answerState) {
@@ -807,58 +1142,49 @@ function handleAnswerSelect(optionKey) {
         return;
     }
 
-    // --- Core Debugging Point for Answer Selection ---
     if (isCrossOutToolActive) {
-        // If cross-out tool IS active, clicking an option might mean something else.
-        // For now, we'll allow selection to still happen to test the official Bluebook logic later
-        // (where selection removes cross-out).
-        // But the primary bug is when isCrossOutToolActive is FALSE.
         console.log("handleAnswerSelect: Cross-out tool is currently ACTIVE. Proceeding with selection (will also remove cross-out).");
-        // If you wanted to STRICTLY prevent selection when tool is active (old behavior):
-        // return; 
     } else {
         console.log("handleAnswerSelect: Cross-out tool is INACTIVE. Proceeding with selection.");
     }
     
-    // If we reach here, we are selecting the answer.
     const currentQDetails = getCurrentQuestionData();
-    let selectedOptionText = optionKey; // Fallback to key if text not found
+    let selectedOptionText = optionKey; 
     
-    // Try to get the full text for the option, as stored in JSON
-    // JSON option keys are like 'option_a', 'option_b'
     const jsonOptionKey = `option_${optionKey.toLowerCase()}`;
     if (currentQDetails && currentQDetails.hasOwnProperty(jsonOptionKey) && currentQDetails[jsonOptionKey] !== null) {
         selectedOptionText = currentQDetails[jsonOptionKey];
     } else {
-        console.warn(`handleAnswerSelect: Could not find option text for key ${optionKey} (tried ${jsonOptionKey}). Storing key itself ('${optionKey}') as selected value. This might affect 'is_correct' for MCQs if not intended.`);
+        console.warn(`handleAnswerSelect: Could not find option text for key ${optionKey} (tried ${jsonOptionKey}). Storing key itself ('${optionKey}') as selected value.`);
     }
 
     console.log(`handleAnswerSelect: Setting selected answer to: "${selectedOptionText}" (original key: ${optionKey})`);
     answerState.selected = selectedOptionText; 
 
-    // As per official Bluebook: selecting an option should remove any cross-out from that option key.
     if (answerState.crossedOut.includes(optionKey)) {
         console.log(`handleAnswerSelect: Option ${optionKey} was selected, removing it from crossedOut list.`);
         answerState.crossedOut = answerState.crossedOut.filter(opt => opt !== optionKey);
     }
     
-    loadQuestion(); // Reload to reflect selection and potential un-cross-out
+    loadQuestion(); 
 }
+
 function handleAnswerCrossOut(optionKey) { 
      const answerState = getAnswerState();
      if (!answerState) return;
+
      if (!answerState.crossedOut.includes(optionKey)) {
          answerState.crossedOut.push(optionKey);
-     } else { // If already crossed out, clicking 'x' again could uncross it (optional refinement)
-         // answerState.crossedOut = answerState.crossedOut.filter(opt => opt !== optionKey);
-     }
-     loadQuestion();
+     } 
+     // Selected answer remains selected even if crossed out by individual button
+     loadQuestion(); 
 }
+
 function handleAnswerUndoCrossOut(optionKey) { 
      const answerState = getAnswerState();
      if (!answerState) return;
      answerState.crossedOut = answerState.crossedOut.filter(opt => opt !== optionKey);
-     loadQuestion();
+     loadQuestion(); 
 }
 
 if(crossOutToolBtnMain) {
@@ -869,6 +1195,7 @@ if(crossOutToolBtnMain) {
         loadQuestion();
     });
 }
+
 if(sprInputFieldMain) {
     sprInputFieldMain.addEventListener('input', (event) => {
         const answerState = getAnswerState();
@@ -882,154 +1209,12 @@ if(sprInputFieldMain) {
     });
 }
 
-// REPLACE your entire updateNavigation_OLD function with this new updateNavigation
-function updateNavigation() {
-    if (!backBtnFooter || !nextBtnFooter || !currentQFooterEl || !totalQFooterEl) {
-        console.error("Navigation elements missing for updateNavigation.");
-        return;
-    }
+// --- Navigation Button Click Handlers & Listeners ---
+// (These include the Phase 6 mode-aware logic)
 
-    const moduleIsLoaded = currentQuizQuestions && currentQuizQuestions.length > 0;
-    const totalQuestionsInModule = moduleIsLoaded ? currentQuizQuestions.length : 0;
-
-    currentQFooterEl.textContent = moduleIsLoaded ? currentQuestionNumber : '0';
-    totalQFooterEl.textContent = totalQuestionsInModule;
-    
-    // Back button logic (no change for module rule here, just within module)
-    backBtnFooter.disabled = (currentQuestionNumber === 1);
-
-    // Default visibility
-    nextBtnFooter.style.display = 'none';
-    backBtnFooter.style.display = 'none';
-    if (reviewNextBtnFooter) reviewNextBtnFooter.style.display = 'none';
-    if (reviewBackBtnFooter) reviewBackBtnFooter.style.display = 'none';
-
-    if (currentView === 'test-interface-view') {
-        nextBtnFooter.style.display = 'inline-block';
-        backBtnFooter.style.display = 'inline-block';
-        if (!moduleIsLoaded) {
-            nextBtnFooter.textContent = "Next";
-            nextBtnFooter.disabled = true;
-        } else if (currentQuestionNumber < totalQuestionsInModule) {
-            nextBtnFooter.textContent = "Next";
-            nextBtnFooter.disabled = false;
-        } else { // Last question of the module
-            nextBtnFooter.textContent = "Review Section";
-            // --- START OF MODIFICATION 6.A ---
-            const currentMod = getCurrentModule();
-            // Disable "Review Section" if module time is not up (for timed modules)
-            nextBtnFooter.disabled = !currentModuleTimeUp && (currentMod && typeof currentMod.durationSeconds === 'number' && currentMod.durationSeconds > 0);
-            // --- END OF MODIFICATION 6.A ---
-            // CHANGED: Disable "Review Section" if module time is not up
-            nextBtnFooter.disabled = !currentModuleTimeUp && (getCurrentModule()?.durationSeconds > 0);
-        }
-    } else if (currentView === 'review-page-view') {
-        if (reviewBackBtnFooter) reviewBackBtnFooter.style.display = 'inline-block';
-        if (reviewNextBtnFooter) reviewNextBtnFooter.style.display = 'inline-block';
-        
-        if (reviewBackBtnFooter) reviewBackBtnFooter.disabled = false; // Can always go back to test interface from review
-/*
-        if (reviewNextBtnFooter) {
-            if (currentModuleIndex < currentTestFlow.length - 1) {
-                reviewNextBtnFooter.textContent = "Next Module";
-                const nextModuleInfo = getCurrentModule();
-                if (nextModuleInfo && typeof nextModuleInfo.durationSeconds === 'number') {
-    startModuleTimer(nextModuleInfo.durationSeconds);
-} else {
-    updateModuleTimerDisplay(0);
-}
-            } else {
-                reviewNextBtnFooter.textContent = "Finish Test";
-            }
-            */
-  // --- START OF REPLACEMENT E.1 ---
-        if (reviewNextBtnFooter) {
-            if (currentInteractionMode === 'single_quiz') {
-                reviewNextBtnFooter.textContent = "Finish Quiz";
-                reviewNextBtnFooter.disabled = false; // Always enabled to finish single quiz
-            } else { // full_test mode
-                if (currentModuleIndex < currentTestFlow.length - 1) {
-                    reviewNextBtnFooter.textContent = "Next Module";
-                } else {
-                    reviewNextBtnFooter.textContent = "Finish Test";
-                }
-                const currentMod = getCurrentModule();
-                reviewNextBtnFooter.disabled = !currentModuleTimeUp && (currentMod && typeof currentMod.durationSeconds === 'number' && currentMod.durationSeconds > 0);
-            }
-        }
-        // --- END OF REPLACEMENT E.1 ---
-
-        // --- START OF ADDITION G.1 ---
-// ADDED: Listener for "Continue After Break" button (manual break)
-if (continueAfterBreakBtn) {
-    continueAfterBreakBtn.addEventListener('click', async () => {
-        console.log("Continue after manual break button clicked.");
-        // currentModuleIndex should have been advanced to the next module (e.g., Math M1, index 2)
-        // *before* showing the manual-break-view.
-
-        if (currentModuleIndex < currentTestFlow.length) {
-            currentQuestionNumber = 1;
-            currentModuleTimeUp = false; // Reset for the new module
-
-            const nextQuizName = currentTestFlow[currentModuleIndex];
-            const nextModuleInfo = moduleMetadata[nextQuizName];
-
-            let jsonToLoadForNextModule = nextQuizName;
-            if (nextQuizName === "DT-T0-MT-M2") jsonToLoadForNextModule = "DT-T0-MT-M1"; // Example if M2 uses M1 data
-            
-            continueAfterBreakBtn.textContent = "Loading next section...";
-            continueAfterBreakBtn.disabled = true;
-
-            const success = await loadQuizData(jsonToLoadForNextModule);
-            
-            continueAfterBreakBtn.textContent = "Continue to Next Section";
-            continueAfterBreakBtn.disabled = false;
-
-            if (success && currentQuizQuestions.length > 0) {
-                // For full_test mode (which is the only mode that should reach here), start the module countdown timer
-                if (currentInteractionMode === 'full_test' && nextModuleInfo && typeof nextModuleInfo.durationSeconds === 'number') {
-                    startModuleTimer(nextModuleInfo.durationSeconds);
-                } else {
-                    console.warn(`Timer mode/config issue for module ${nextQuizName} after break. Expected full_test mode.`);
-                    updateModuleTimerDisplay(0);
-                }
-                populateQNavGrid();
-                showView('test-interface-view');
-            } else {
-                console.error("Failed to load next module after break or module has no questions.");
-                alert("Error loading the next module after break. Returning to home.");
-                showView('home-view');
-            }
-        } else {
-            console.error("Continue after break clicked, but no more modules in flow. This is unexpected.");
-            showView('finished-view'); // Fallback
-        }
-    });
-}
-// --- END OF ADDITION G.1 ---
-        
-        // --- START OF MODIFICATION 6.B ---
-            const currentMod = getCurrentModule();
-            // Disable "Next Module"/"Finish Test" if module time is not up (for timed modules)
-            reviewNextBtnFooter.disabled = !currentModuleTimeUp && (currentMod && typeof currentMod.durationSeconds === 'number' && currentMod.durationSeconds > 0);
-            // --- END OF MODIFICATION 6.B ---
-            // CHANGED: Disable "Next Module" / "Finish Test" from review page if module time is not up
-            reviewNextBtnFooter.disabled = !currentModuleTimeUp && (getCurrentModule()?.durationSeconds > 0);
-        }
-    } else if (currentView === 'home-view' || currentView === 'finished-view' || currentView === 'module-over-view') {
-        // No primary nav buttons needed, or handled by specific view buttons
-    }
-    // Add console log for button states
-    // console.log(`UpdateNav: NextBtn Disabled: ${nextBtnFooter.disabled}, ReviewNextBtn Disabled: ${reviewNextBtnFooter ? reviewNextBtnFooter.disabled : 'N/A'}, TimeUp: ${currentModuleTimeUp}`);
-}
-
-if(nextBtnFooter) {
-    nextBtnFooter.removeEventListener('click', nextButtonClickHandler); 
-    nextBtnFooter.addEventListener('click', nextButtonClickHandler);
-}
 function nextButtonClickHandler() {
-    // (Unchanged from Phase 3)
     if (currentView !== 'test-interface-view') return; 
+    console.log("DEBUG: nextButtonClickHandler CALLED");
     recordTimeOnCurrentQuestion(); 
     const totalQuestionsInModule = currentQuizQuestions.length;
     if (currentQuestionNumber < totalQuestionsInModule) {
@@ -1042,15 +1227,9 @@ function nextButtonClickHandler() {
     }
 }
 
-if(reviewNextBtnFooter) {
-    // (Unchanged from Phase 3)
-    reviewNextBtnFooter.removeEventListener('click', reviewNextButtonClickHandler); 
-    reviewNextBtnFooter.addEventListener('click', reviewNextButtonClickHandler);
-}
-
-// --- START OF REPLACEMENT F.1 ---
 async function reviewNextButtonClickHandler() { 
     if (currentView !== 'review-page-view') return;
+    console.log("DEBUG: reviewNextButtonClickHandler CALLED");
     recordTimeOnCurrentQuestion(); 
 
     if (currentInteractionMode === 'single_quiz') {
@@ -1061,18 +1240,20 @@ async function reviewNextButtonClickHandler() {
     }
 
     // Logic for full_test mode
-    // currentModuleIndex is 0-indexed.
-    // After R&W M1 (index 0), next is R&W M2 (index 1).
-    // After R&W M2 (index 1), next is BREAK, then Math M1 (index 2).
-    const IS_TIME_FOR_MANUAL_BREAK = (currentModuleIndex === 1 && currentTestFlow.length === 4); // After completing the 2nd module
+   // const IS_MANUAL_BREAK_TIME = (currentModuleIndex === 1 && currentTestFlow.length === 4 && currentInteractionMode === 'full_test'); 
 
-    if (IS_TIME_FOR_MANUAL_BREAK) {
-        console.log("Transitioning to manual break instruction screen from review page for module:", currentTestFlow[currentModuleIndex]);
-        currentModuleIndex++; // Advance index to prepare for Math M1 (index 2) after break
-        showView('manual-break-view'); 
-    } else {
+    //if (IS_MANUAL_BREAK_TIME) {
+        //console.log("Transitioning to manual break instruction screen from review page for module:", currentTestFlow[currentModuleIndex]);
+      //  console.log("Transitioning to manual break. currentModuleIndex BEFORE increment for break:", currentModuleIndex);
+        //currentModuleIndex++; // Advance index to prepare for Math M1 (index 2) after break
+        //console.log("Transitioning to manual break. currentModuleIndex AFTER increment for break:", currentModuleIndex); // Should be 2
+        //showView('manual-break-view'); 
+    //} else {
         currentModuleIndex++;
-        if (currentModuleIndex < currentTestFlow.length) {
+    
+    console.log("DEBUG reviewNextBtn: Advanced currentModuleIndex to:", currentModuleIndex);
+
+    if (currentModuleIndex < currentTestFlow.length) {
             showView('module-over-view'); 
             setTimeout(async () => {
                 currentQuestionNumber = 1; 
@@ -1082,20 +1263,17 @@ async function reviewNextButtonClickHandler() {
                 const nextModuleInfo = moduleMetadata[nextQuizName];
                 
                 let jsonToLoadForNextModule = nextQuizName;
-                if (nextQuizName === "DT-T0-RW-M2") jsonToLoadForNextModule = "DT-T0-RW-M1";
-                else if (nextQuizName === "DT-T0-MT-M2") jsonToLoadForNextModule = "DT-T0-MT-M1";
 
+               console.log(`DEBUG reviewNextBtn: Preparing to load module: ${nextQuizName} (using JSON: ${jsonToLoadForNextModule})`);
                 const success = await loadQuizData(jsonToLoadForNextModule);
 
                 if (success && currentQuizQuestions.length > 0) {
-                    // Only start module countdown timer if in full_test mode and duration is set
                     if (currentInteractionMode === 'full_test' && nextModuleInfo && typeof nextModuleInfo.durationSeconds === 'number') {
                         startModuleTimer(nextModuleInfo.durationSeconds);
-                    } else {
-                        // If it was a single quiz, this path shouldn't be taken due to early exit.
-                        // If somehow in full_test without duration, log warning.
-                        console.warn(`Full Test Mode: No duration for module ${nextQuizName}. Timer not started or display 00:00.`);
+                    } else { // Should not happen in full_test if durations are set
+                        console.warn(`Timer Mode/Config issue for module ${nextQuizName}. No countdown timer started.`);
                         updateModuleTimerDisplay(0); 
+                        updatePracticeQuizTimerDisplay(0); // Also reset practice timer display
                     }
                     populateQNavGrid(); 
                     showView('test-interface-view');
@@ -1108,21 +1286,14 @@ async function reviewNextButtonClickHandler() {
         } else {
             console.log("All modules finished (from review page). Transitioning to finished view.");
             if (moduleTimerInterval) clearInterval(moduleTimerInterval); 
-            if (practiceQuizTimerInterval) clearInterval(practiceQuizTimerInterval); // Clear this too just in case
+            if (practiceQuizTimerInterval) clearInterval(practiceQuizTimerInterval);
             showView('finished-view'); 
         }
     }
-}
-// --- END OF REPLACEMENT F.1 ---
 
-if(backBtnFooter) { 
-    // (Unchanged from Phase 3)
-    backBtnFooter.removeEventListener('click', backButtonClickHandler); 
-    backBtnFooter.addEventListener('click', backButtonClickHandler);
-}
 function backButtonClickHandler() {
-    // (Unchanged from Phase 3)
     if (currentView !== 'test-interface-view') return;
+    console.log("DEBUG: backButtonClickHandler CALLED");
     recordTimeOnCurrentQuestion();
     if (currentQuestionNumber > 1) {
         currentQuestionNumber--;
@@ -1132,31 +1303,45 @@ function backButtonClickHandler() {
     }
 }
 
-// --- Event Listeners for other UI elements (Restored and Verified from Phase 3) ---
+if(nextBtnFooter) {
+    nextBtnFooter.removeEventListener('click', nextButtonClickHandler); 
+    nextBtnFooter.addEventListener('click', nextButtonClickHandler);
+}
+if(reviewNextBtnFooter) {
+    reviewNextBtnFooter.removeEventListener('click', reviewNextButtonClickHandler); 
+    reviewNextBtnFooter.addEventListener('click', reviewNextButtonClickHandler);
+}
+if(backBtnFooter) { 
+    backBtnFooter.removeEventListener('click', backButtonClickHandler); 
+    backBtnFooter.addEventListener('click', backButtonClickHandler);
+}
+
+// --- Event Listeners for other UI elements ---
 if(returnToHomeBtn) returnToHomeBtn.addEventListener('click', () => showView('home-view')); 
 if(calculatorBtnHeader) calculatorBtnHeader.addEventListener('click', () => toggleModal(calculatorOverlay, true));
 if(calculatorCloseBtn) calculatorCloseBtn.addEventListener('click', () => toggleModal(calculatorOverlay, false));
 if(referenceBtnHeader) referenceBtnHeader.addEventListener('click', () => toggleModal(referenceSheetPanel, true));
 if(referenceSheetCloseBtn) referenceSheetCloseBtn.addEventListener('click', () => toggleModal(referenceSheetPanel, false));
 
-let isCalcDraggingPhase3 = false; let currentX_calc_drag_p3, currentY_calc_drag_p3, initialX_calc_drag_p3, initialY_calc_drag_p3, xOffset_calc_drag_p3 = 0, yOffset_calc_drag_p3 = 0;
+let isCalcDragging = false; // Renamed to avoid conflict if Gist had different var names
+let currentX_calc_drag, currentY_calc_drag, initialX_calc_drag, initialY_calc_drag, xOffset_calc_drag = 0, yOffset_calc_drag = 0;
 if(calculatorHeaderDraggable) {
     calculatorHeaderDraggable.addEventListener('mousedown', (e) => { 
-        initialX_calc_drag_p3 = e.clientX - xOffset_calc_drag_p3; 
-        initialY_calc_drag_p3 = e.clientY - yOffset_calc_drag_p3; 
-        if (e.target === calculatorHeaderDraggable || e.target.tagName === 'STRONG') isCalcDraggingPhase3 = true; 
+        initialX_calc_drag = e.clientX - xOffset_calc_drag; 
+        initialY_calc_drag = e.clientY - yOffset_calc_drag; 
+        if (e.target === calculatorHeaderDraggable || e.target.tagName === 'STRONG') isCalcDragging = true; 
     });
     document.addEventListener('mousemove', (e) => { 
-        if (isCalcDraggingPhase3) { 
+        if (isCalcDragging) { 
             e.preventDefault(); 
-            currentX_calc_drag_p3 = e.clientX - initialX_calc_drag_p3; 
-            currentY_calc_drag_p3 = e.clientY - initialY_calc_drag_p3; 
-            xOffset_calc_drag_p3 = currentX_calc_drag_p3; 
-            yOffset_calc_drag_p3 = currentY_calc_drag_p3; 
-            if(calculatorOverlay) calculatorOverlay.style.transform = `translate3d(${currentX_calc_drag_p3}px, ${currentY_calc_drag_p3}px, 0)`;
+            currentX_calc_drag = e.clientX - initialX_calc_drag; 
+            currentY_calc_drag = e.clientY - initialY_calc_drag; 
+            xOffset_calc_drag = currentX_calc_drag; 
+            yOffset_calc_drag = currentY_calc_drag; 
+            if(calculatorOverlay) calculatorOverlay.style.transform = `translate3d(${currentX_calc_drag}px, ${currentY_calc_drag}px, 0)`;
         } 
     });
-    document.addEventListener('mouseup', () => isCalcDraggingPhase3 = false );
+    document.addEventListener('mouseup', () => isCalcDragging = false );
 }
 
 if(highlightsNotesBtn && (passageContentEl || questionTextMainEl) ) {
@@ -1173,20 +1358,27 @@ if(highlightsNotesBtn && (passageContentEl || questionTextMainEl) ) {
     });
 }
 function handleTextSelection() {
-    // (Unchanged from Phase 3)
     if (!isHighlightingActive) return;
     const selection = window.getSelection();
     if (!selection.rangeCount || selection.isCollapsed) return;
+    
     const range = selection.getRangeAt(0);
     const container = range.commonAncestorContainer;
+
     const isWithinPassagePane = passagePane && passagePane.style.display !== 'none' && passagePane.contains(container);
     const isWithinQuestionTextPane = questionPane && questionPane.contains(container) && questionTextMainEl.contains(container);
     const isWithinSprInstructions = sprInstructionsPane && sprInstructionsPane.style.display !== 'none' && sprInstructionsPane.contains(container);
     if (!isWithinPassagePane && !isWithinQuestionTextPane && !isWithinSprInstructions) return;
+
     const span = document.createElement('span');
     span.className = 'text-highlight';
-    try { range.surroundContents(span); } 
-    catch (e) { span.appendChild(range.extractContents()); range.insertNode(span); console.warn("Highlighting fallback.", e); }
+    try {
+        range.surroundContents(span);
+    } catch (e) { 
+        span.appendChild(range.extractContents());
+        range.insertNode(span);
+        console.warn("Highlighting across complex nodes, used extract/insert fallback.", e);
+    }
     selection.removeAllRanges();
 }
 
@@ -1229,116 +1421,79 @@ if(markReviewCheckboxMain) {
 }
 
 if(timerToggleBtn) timerToggleBtn.addEventListener('click', () => handleTimerToggle(timerTextEl, timerClockIconEl, timerToggleBtn));
-if(reviewDirectionsBtn) reviewDirectionsBtn.addEventListener('click', () => { /* Already handled by its own listener */ });
+
+if(reviewDirectionsBtn) { // Already handled by its own listener in Gist logic
+    reviewDirectionsBtn.addEventListener('click', () => {
+        const moduleInfo = getCurrentModule(); // Use current module logic
+        if (moduleInfo && directionsModalTitle) directionsModalTitle.textContent = `Section ${currentModuleIndex + 1}: ${moduleInfo.name} Directions`;
+        if (moduleInfo && directionsModalText) directionsModalText.innerHTML = moduleInfo.directions || "General directions for review.";
+        toggleModal(directionsModal, true);
+    });
+}
 if(reviewTimerToggleBtn && reviewTimerText && reviewTimerClockIcon) reviewTimerToggleBtn.addEventListener('click', () => handleTimerToggle(reviewTimerText, reviewTimerClockIcon, reviewTimerToggleBtn));
+if(reviewBackBtnFooter) {
+    reviewBackBtnFooter.addEventListener('click', () => {
+        if (currentView !== 'review-page-view') return;
+        showView('test-interface-view');
+    });
+}
 
-if(moreBtn) { /* (More Menu listeners unchanged from Phase 3) */ }
-document.body.addEventListener('click', (e) => { /* ... */ });
+
+if(moreBtn) { 
+    moreBtn.addEventListener('click', (e) => { 
+        e.stopPropagation(); 
+        if(moreMenuDropdown) moreMenuDropdown.classList.toggle('visible'); 
+    });
+}
+document.body.addEventListener('click', (e) => { 
+    if (moreMenuDropdown && moreBtn && !moreBtn.contains(e.target) && !moreMenuDropdown.contains(e.target) && moreMenuDropdown.classList.contains('visible')) {
+        moreMenuDropdown.classList.remove('visible'); 
+    }
+});
 if(moreMenuDropdown) moreMenuDropdown.addEventListener('click', (e) => e.stopPropagation()); 
-if(moreUnscheduledBreakBtn) { /* ... */ }
-if(understandLoseTimeCheckbox) { /* ... */ }
+
+if(moreUnscheduledBreakBtn) {
+    moreUnscheduledBreakBtn.addEventListener('click', () => { 
+        toggleModal(unscheduledBreakConfirmModal, true); 
+        if(moreMenuDropdown) moreMenuDropdown.classList.remove('visible'); 
+        if(understandLoseTimeCheckbox) understandLoseTimeCheckbox.checked = false; 
+        if(unscheduledBreakConfirmBtn) unscheduledBreakConfirmBtn.disabled = true; 
+    });
+}
+if(understandLoseTimeCheckbox) {
+    understandLoseTimeCheckbox.addEventListener('change', () => { 
+        if(unscheduledBreakConfirmBtn) unscheduledBreakConfirmBtn.disabled = !understandLoseTimeCheckbox.checked; 
+    });
+}
 if(unscheduledBreakCancelBtn) unscheduledBreakCancelBtn.addEventListener('click', () => toggleModal(unscheduledBreakConfirmModal, false));
-if(unscheduledBreakConfirmBtn) { /* ... */ }
-if(moreExitExamBtn) { /* ... */ }
+if(unscheduledBreakConfirmBtn) {
+    unscheduledBreakConfirmBtn.addEventListener('click', () => { 
+        alert("Unscheduled Break screen: Future"); 
+        toggleModal(unscheduledBreakConfirmModal, false); 
+    });
+}
+
+if(moreExitExamBtn) {
+    moreExitExamBtn.addEventListener('click', () => { 
+        toggleModal(exitExamConfirmModal, true); 
+        if(moreMenuDropdown) moreMenuDropdown.classList.remove('visible'); 
+    });
+}
 if(exitExamCancelBtn) exitExamCancelBtn.addEventListener('click', () => toggleModal(exitExamConfirmModal, false));
-if(exitExamConfirmBtn) { /* ... */ }
-
-
-// --- Start Button Event Listener ---
-/*
-if(startTestPreviewBtn) {
-    startTestPreviewBtn.addEventListener('click', async () => {
-        // CHANGED: Initialize student identifier on test start
-        initializeStudentIdentifier();     
-        console.log("Start Test Preview button clicked (Phase 6 - Module Timers)."); 
-        currentModuleIndex = 0;
-        currentQuestionNumber = 1;
-        userAnswers = {}; 
-        isTimerHidden = false;
-        isCrossOutToolActive = false;
-        isHighlightingActive = false;
-        if(highlightsNotesBtn) highlightsNotesBtn.classList.remove('active');
-        if(calculatorOverlay) calculatorOverlay.classList.remove('visible');
-        if(referenceSheetPanel) referenceSheetPanel.classList.remove('visible');
-        questionStartTime = 0;
-        currentModuleTimeUp = false; // Reset module time up flag
-        
-        if(highlightsNotesBtn) highlightsNotesBtn.classList.remove('active');
-        if(calculatorOverlay) calculatorOverlay.classList.remove('visible');
-        if(referenceSheetPanel) referenceSheetPanel.classList.remove('visible');
-
-        // CHANGED: Set testFlow for a full practice test (using placeholders for M2 data for now)
-        currentTestFlow = ["DT-T0-RW-M1", "DT-T0-RW-M2", "DT-T0-MT-M1", "DT-T0-MT-M2"]; 
-        
-        // For RW-M2, we'll reuse DT-T0-RW-M1.json data. For MT-M2, reuse DT-T0-MT-M1.json data.
-        // The moduleMetadata has distinct names and directions for these.
-        
-        console.log("Test flow set for Full Practice Test:", currentTestFlow); 
-
-        if (currentTestFlow.length > 0) {
-            const firstQuizName = currentTestFlow[currentModuleIndex];
-            const moduleInfo = moduleMetadata[firstQuizName];
-                        
-            console.log(`Attempting to load first quiz: ${firstQuizName}`); 
-
-            startTestPreviewBtn.textContent = "Loading...";
-            startTestPreviewBtn.disabled = true;
-
-           // For RW-M2, use DT-T0-RW-M1 JSON; for MT-M2, use DT-T0-MT-M1 JSON for data
-            let jsonToLoad = firstQuizName;
-            if (firstQuizName === "DT-T0-RW-M2") jsonToLoad = "DT-T0-RW-M2";
-            if (firstQuizName === "DT-T0-MT-M2") jsonToLoad = "DT-T0-MT-M2";
-            
-            const success = await loadQuizData(firstQuizName); 
-            
-            startTestPreviewBtn.textContent = "Start"; 
-            startTestPreviewBtn.disabled = false; 
-
-            if (success && currentQuizQuestions.length > 0) {
-                console.log("Initial quiz data loaded successfully");
-                const moduleInfo = getCurrentModule();
-                if (moduleInfo && typeof moduleInfo.durationSeconds === 'number') {
-                    // CHANGED: Start module timer
-                    startModuleTimer(moduleInfo.durationSeconds);
-                } else {
-                    console.warn(`No duration found for module ${firstQuizName}. Timer not started.`);
-                    // For practice quizzes without duration, timer might count up or not be used.
-                    // For now, full tests NEED duration.
-                    updateModuleTimerDisplay(0); // Display 00:00 if no duration
-                }
-                
-                
-                populateQNavGrid(); 
-                showView('test-interface-view'); 
-            } else {
-                console.error("Failed to load initial quiz data or no questions found after attempting load.");
-                alert("Could not start the test. Please check the console for errors. Ensure JSON files are accessible and GITHUB_JSON_BASE_URL is correct.");
-                showView('home-view'); 
-            }
-        } else {
-            console.error("Test flow is empty. Cannot start test.");
-            alert("No test configured to start.");
-        }
+if(exitExamConfirmBtn) {
+    exitExamConfirmBtn.addEventListener('click', () => { 
+        toggleModal(exitExamConfirmModal, false); 
+        showView('home-view'); 
     });
 }
-*/
-// COMMENTED OUT: Original startTestPreviewBtn listener as its ID has changed
-/*
-if(startTestPreviewBtn) { // Or whatever your old start button ID was
-    startTestPreviewBtn.addEventListener('click', async () => {
-        // ... your existing logic that launched the 4-module test ...
-    });
-}
-*/
 
-// --- START OF REPLACEMENT/ADDITION C.1 (Phase 6 - New Start Button Listeners) ---
-// Listener for "Start Full Practice Test"
+// Start Button Listeners (These are from your .txt file - they define mode behavior)
 if(startFullPracticeTestBtn) {
     startFullPracticeTestBtn.addEventListener('click', async () => {
         initializeStudentIdentifier(); 
         console.log("Start Full Practice Test button clicked."); 
         
-        currentInteractionMode = 'full_test'; // Set mode
+        currentInteractionMode = 'full_test';
         currentModuleIndex = 0;
         currentQuestionNumber = 1;
         userAnswers = {}; 
@@ -1356,6 +1511,8 @@ if(startFullPracticeTestBtn) {
             const firstQuizName = currentTestFlow[currentModuleIndex];
             const moduleInfo = moduleMetadata[firstQuizName];
             
+            console.log(`DEBUG startFullPracticeTestBtn: Initializing. First quiz: ${firstQuizName}. ModuleInfo found:`, !!moduleInfo);
+
             startFullPracticeTestBtn.textContent = "Loading...";
             startFullPracticeTestBtn.disabled = true;
             
@@ -1369,6 +1526,7 @@ if(startFullPracticeTestBtn) {
             startFullPracticeTestBtn.disabled = false; 
 
             if (success && currentQuizQuestions.length > 0) {
+                console.log("DEBUG startFullPracticeTestBtn: Data loaded. Starting timer and showing view.");
                 if (moduleInfo && typeof moduleInfo.durationSeconds === 'number') {
                     startModuleTimer(moduleInfo.durationSeconds); 
                 } else {
@@ -1389,13 +1547,12 @@ if(startFullPracticeTestBtn) {
     });
 }
 
-// Listener for "Start Single Practice Quiz"
 if(startSinglePracticeQuizBtn) {
     startSinglePracticeQuizBtn.addEventListener('click', async () => {
         initializeStudentIdentifier();
         console.log("Start Single Practice Quiz button clicked.");
 
-        currentInteractionMode = 'single_quiz'; // Set mode
+        currentInteractionMode = 'single_quiz';
         currentModuleIndex = 0; 
         currentQuestionNumber = 1;
         userAnswers = {};
@@ -1404,15 +1561,13 @@ if(startSinglePracticeQuizBtn) {
         isHighlightingActive = false; if(highlightsNotesBtn) highlightsNotesBtn.classList.remove('active');
         if(calculatorOverlay) calculatorOverlay.classList.remove('visible');
         if(referenceSheetPanel) referenceSheetPanel.classList.remove('visible');
-        // currentModuleTimeUp is not relevant for single quiz with upward timer
 
-        // For testing, let's use DT-T0-MT-M1 as the single practice quiz
-        // You can change "DT-T0-MT-M1" to any other single quizName for testing this mode
         currentTestFlow = ["DT-T0-MT-M1"]; 
         console.log("Test flow set for Single Practice Quiz:", currentTestFlow);
 
         if (currentTestFlow.length > 0) {
             const quizName = currentTestFlow[0];
+            console.log(`DEBUG startSinglePracticeQuizBtn: Initializing. Quiz: ${quizName}`);
             
             startSinglePracticeQuizBtn.textContent = "Loading...";
             startSinglePracticeQuizBtn.disabled = true;
@@ -1423,7 +1578,8 @@ if(startSinglePracticeQuizBtn) {
             startSinglePracticeQuizBtn.disabled = false;
 
             if (success && currentQuizQuestions.length > 0) {
-                startPracticeQuizTimer(); // Start upward counting timer
+                console.log("DEBUG startSinglePracticeQuizBtn: Data loaded. Starting timer and showing view.");
+                startPracticeQuizTimer(); 
                 populateQNavGrid();
                 showView('test-interface-view');
             } else {
@@ -1437,14 +1593,55 @@ if(startSinglePracticeQuizBtn) {
         }
     });
 }
-// --- END OF REPLACEMENT/ADDITION C.1 ---
 
+// Listener for continue-after-break-btn (Manual Break)
+if (continueAfterBreakBtn) {
+    continueAfterBreakBtn.addEventListener('click', async () => {
+        console.log("Continue after manual break button clicked.");
+        
+        if (currentModuleIndex < currentTestFlow.length) {
+            currentQuestionNumber = 1;
+            currentModuleTimeUp = false; 
 
+            const nextQuizName = currentTestFlow[currentModuleIndex];
+            const nextModuleInfo = moduleMetadata[nextQuizName];
 
-// --- CHANGED: SUBMISSION LOGIC (NEW FUNCTION) ---
-// CHANGED: submitQuizData function completely revised to align with old working script and use data from answerState
+            let jsonToLoadForNextModule = nextQuizName;
+            if (nextQuizName === "DT-T0-RW-M2") jsonToLoadForNextModule = "DT-T0-RW-M1";
+            else if (nextQuizName === "DT-T0-MT-M2") jsonToLoadForNextModule = "DT-T0-MT-M1";
+            
+            continueAfterBreakBtn.textContent = "Loading next section...";
+            continueAfterBreakBtn.disabled = true;
+
+            const success = await loadQuizData(jsonToLoadForNextModule);
+            
+            continueAfterBreakBtn.textContent = "Continue to Next Section";
+            continueAfterBreakBtn.disabled = false;
+
+            if (success && currentQuizQuestions.length > 0) {
+                if (currentInteractionMode === 'full_test' && nextModuleInfo && typeof nextModuleInfo.durationSeconds === 'number') {
+                    startModuleTimer(nextModuleInfo.durationSeconds);
+                } else { 
+                    console.warn(`Timer mode/config issue for module ${nextQuizName} after break. Defaulting to practice timer or no timer.`);
+                    startPracticeQuizTimer(); // Fallback or if single_quiz somehow reached here
+                }
+                populateQNavGrid();
+                showView('test-interface-view');
+            } else {
+                console.error("Failed to load next module after break or module has no questions.");
+                alert("Error loading the next module after break. Returning to home.");
+                showView('home-view');
+            }
+        } else {
+            console.error("Continue after break clicked, but no more modules in flow. This is unexpected.");
+            showView('finished-view'); 
+        }
+    });
+}
+
+// --- Submission Logic ---
 async function submitQuizData() {
-    console.log("Attempting to submit quiz data (Phase 4 - Corrected Logic)...");
+console.log("Attempting to submit quiz data (Phase 4 - Corrected Logic)...");
     recordTimeOnCurrentQuestion(); // Ensure time for the very last interaction is recorded
 
     const submissions = [];
@@ -1572,10 +1769,15 @@ async function submitQuizData() {
     }
 }
 
-
-document.addEventListener('DOMContentLoaded', () => {
-    // CHANGED: Call initializeStudentIdentifier on initial page load
-    initializeStudentIdentifier();
     
+
+
+// --- DOMContentLoaded ---
+document.addEventListener('DOMContentLoaded', () => {
+    initializeStudentIdentifier(); 
     updateNavigation(); 
 });
+
+// =======================================================================
+// === END OF ADDED/RESTORED CODE                                      ===
+// =======================================================================

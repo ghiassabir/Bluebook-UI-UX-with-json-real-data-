@@ -443,6 +443,9 @@
 </head>
 <body>
     <div class="app-wrapper">
+
+      
+
         <!-- Home Screen View -->
         <div class="app-view home-screen-view active" id="home-view">
             <header class="app-header">
@@ -477,7 +480,7 @@
                     </div>
                 </div>
             </main>
-        </div>
+        </div> 
 
         <!-- Test Interface View (Content dynamically loaded by script.js) -->
         <div class="app-view test-interface-view" id="test-interface-view">
@@ -560,23 +563,6 @@
             <div class="spinner"></div>
         </div>
 
-        <!-- ADDED for Phase 6: Manual Break Instruction View -->
-        <div class="app-view fullscreen-transition-view" id="manual-break-view" style="display: none;">
-            <main style="text-align: center; padding: 2rem; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; background-color: white;">
-                <h1>10-Minute Break</h1>
-                <p class="message" style="font-size: 1.25rem; margin-bottom: 1.5rem;">
-                    Please take a 10-minute break. <br>
-                    You may leave your seat. Remember to manage your time.
-                </p>
-                <p class="message" style="margin-bottom: 2.5rem;">
-                    Click "Continue to Next Section" when you are ready to begin the Math section.
-                </p>
-                <button id="continue-after-break-btn" class="modal-button yellow" style="padding: 0.75rem 3rem; font-size: 1.125rem;">Continue to Next Section</button>
-            </main>
-        </div>
-
-
-        <!-- Finished Test View -->
         <div class="app-view fullscreen-transition-view" id="finished-view" style="z-index: 1;">
             <canvas id="confetti-canvas"></canvas>
             <div style="position: relative; z-index: 2;">
@@ -619,6 +605,29 @@
                 <div class="footer-right"> <button class="nav-button primary" id="review-back-btn-footer">Back</button> <button class="nav-button primary" id="review-next-btn-footer">Next</button> </div>
             </footer>
         </div>
+
+
+<!-- ADDED for Phase 6: Manual Break Instruction View -->
+        <div class="app-view fullscreen-transition-view active" id="manual-break-view" 
+            <!-- style="display: none;" --> > 
+            <main style="text-align: center; padding: 2rem; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; background-color: white;">
+                <h1>10-Minute Break</h1>
+                <p class="message" style="font-size: 1.25rem; margin-bottom: 1.5rem;">
+                    Please take a 10-minute break. <br>
+                    You may leave your seat. Remember to manage your time.
+                </p>
+                <p class="message" style="margin-bottom: 2.5rem;">
+                    Click "Continue to Next Section" when you are ready to begin the Math section.
+                </p>
+                <button id="continue-after-break-btn" class="modal-button yellow" style="padding: 0.75rem 3rem; font-size: 1.125rem;border: 2px solid blue;"
+                    onclick="console.log('INLINE CLICK on manual break button'); alert('MANUAL BREAK BUTTON INLINE CLICKED');">
+                    Continue to Next Section (VISIBLE TEST)
+                </button>
+            </main>
+        </div>
+
+
+      
 
         <div id="modals-container">
             <div class="modal-overlay" id="directions-modal"> <div class="modal-content"> <h2 id="directions-modal-title"></h2> <p id="directions-modal-text"></p> <button class="modal-button yellow" id="directions-modal-close-btn">Close</button> </div> </div>
