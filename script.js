@@ -246,6 +246,7 @@ function startModuleTimer(durationSeconds) { /* ... from your .txt file ... */
         }
     }, 1000);
 }
+
 function getAnswerState(moduleIdx = currentModuleIndex, qNum = currentQuestionNumber) { /* ... from your .txt file ... */ 
     const key = getAnswerStateKey(moduleIdx, qNum);
     if (!userAnswers[key]) {
@@ -278,6 +279,33 @@ function getAnswerState(moduleIdx = currentModuleIndex, qNum = currentQuestionNu
     }
     return userAnswers[key];
 }
+
+// --- START OF ADDITION ---
+// ADD THIS FUNCTION DEFINITION AFTER getAnswerState
+function recordTimeOnCurrentQuestion() {
+    if (questionStartTime > 0 && currentQuizQuestions.length > 0 && currentQuestionNumber > 0 && currentQuestionNumber <= currentQuizQuestions.length) {
+        // Ensure currentQuestionNumber is valid for currentQuizQuestions array
+        if (currentQuizQuestions[currentQuestionNumber - 1]) { // Check if question data exists
+            const endTime = Date.now();
+            const timeSpentSeconds = (endTime - questionStartTime) / 1000;
+            
+            // Get answer state for the *actual current question* being timed
+            const answerState = getAnswerState(currentModuleIndex, currentQuestionNumber); 
+            
+            if (answerState) { 
+                answerState.timeSpent = (parseFloat(answerState.timeSpent) || 0) + timeSpentSeconds;
+                // console.log(`DEBUG recordTime: QKey: ${currentModuleIndex}-${currentQuestionNumber}, TimeAdded: ${timeSpentSeconds.toFixed(2)}, NewTotal: ${answerState.timeSpent.toFixed(2)}`);
+            } else {
+                // console.warn(`DEBUG recordTime: Could not get answerState for ${currentModuleIndex}-${currentQuestionNumber}`);
+            }
+        } else {
+            // console.warn(`DEBUG recordTime: currentQuestionDetails not found for CMI: ${currentModuleIndex}, CQN: ${currentQuestionNumber}. Time not recorded.`);
+        }
+    }
+    questionStartTime = 0; // Reset for the next question or interaction
+}
+// --- END OF ADDITION ---
+
 
 // REPLACE your entire updateNavigation_OLD function with this new updateNavigation
 function updateNavigation() {
