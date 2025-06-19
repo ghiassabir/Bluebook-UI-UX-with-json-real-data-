@@ -383,7 +383,7 @@ function getAnswerState(moduleIdx = currentModuleIndex, qNum = currentQuestionNu
             q_id: questionDetails ? questionDetails.question_id : `M${moduleIdx}-Q${qNum}-tmp`, 
             correct_ans: questionDetails ? questionDetails.correct_answer : null,
             question_type_from_json: questionDetails ? questionDetails.question_type : null,
-            quizName_from_flow: (currentTestFlow && currentTestFlow[moduleIdx]) ? currentTestFlow[moduleIdx] : "UNKNOWN_QUIZ_AT_GETSTATE"
+            quizName_from_flow: (currentTestFlow && currentTestFlow[moduleIdx]) ? currentTestFlow[moduleIdx] : "UNKNOWN_QUIZ_AT_GETSTATE",
             // CHANGED: Added for tracking answer changes
             selectionChanges: 0         
         };
