@@ -950,9 +950,11 @@ if(startSinglePracticeQuizBtn) {
 
 // Add listener for continueAfterBreakBtn (from your .txt file, ensure it's there)
 //if (continueAfterBreakBtn) { /* ... from your .txt file ... */ }
+console.log("DEBUG: Checking continueAfterBreakBtn element:", continueAfterBreakBtn); // DEBUG Line 1
 if (continueAfterBreakBtn) {
     continueAfterBreakBtn.addEventListener('click', async () => {
-        console.log("Continue after manual break button clicked.");
+        console.log("DEBUG:Continue after manual break button clicked."); // DEBUG Line 2
+        console.log("DEBUG: currentModuleIndex at continue click:", currentModuleIndex); // DEBUG Line 3
         // currentModuleIndex should be 2 here (for Math M1)
 
         if (currentModuleIndex < currentTestFlow.length) {
@@ -963,11 +965,10 @@ if (continueAfterBreakBtn) {
             const nextModuleInfo = moduleMetadata[nextQuizName];
 
             let jsonToLoadForNextModule = nextQuizName;
-            // This mapping is important if your M2 modules reuse M1 JSON data
-            if (nextQuizName === "DT-T0-RW-M2") jsonToLoadForNextModule = "DT-T0-RW-M1"; 
-            else if (nextQuizName === "DT-T0-MT-M2") jsonToLoadForNextModule = "DT-T0-MT-M1";
-            
-            console.log(`DEBUG ContinueBreak: Loading module ${nextQuizName} (data from ${jsonToLoadForNextModule})`);
+                       
+            //console.log(`DEBUG ContinueBreak: Loading module ${nextQuizName} (data from ${jsonToLoadForNextModule})`);
+
+            console.log(`DEBUG ContinueBreak: Preparing to load module: ${nextQuizName} (using JSON data from: ${jsonToLoadForNextModule})`); // DEBUG Line 4
             
             continueAfterBreakBtn.textContent = "Loading next section...";
             continueAfterBreakBtn.disabled = true;
@@ -978,22 +979,30 @@ if (continueAfterBreakBtn) {
             continueAfterBreakBtn.disabled = false;
 
             if (success && currentQuizQuestions.length > 0) {
+                console.log(`DEBUG ContinueBreak: Successfully loaded data for ${nextQuizName}. Starting timer and showing view.`); // DEBUG Line 5
                 // Ensure correct timer is started for 'full_test' mode
                 if (currentInteractionMode === 'full_test' && nextModuleInfo && typeof nextModuleInfo.durationSeconds === 'number') {
                     startModuleTimer(nextModuleInfo.durationSeconds);
                 } else {
-                    console.warn(`Timer mode/config issue for module ${nextQuizName} after break.`);
+                    console.warn(`Timer mode/config issue for module ${nextQuizName} after break. Current mode: ${currentInteractionMode}`);
+                    // For full_test, a duration is expected. If single_quiz somehow got here, it would be an issue.
                     updateModuleTimerDisplay(0); 
                 }
                 populateQNavGrid();
                 showView('test-interface-view');
-            } else { /* ... error handling ... */ }
-        } else { /* ... error handling ... */ }
+            } else {console.error(`DEBUG ContinueBreak: Failed to load quiz data for ${jsonToLoadForNextModule} or no questions. Success: ${success}, Questions length: ${currentQuizQuestions ? currentQuizQuestions.length : 'undefined'}`);
+                alert("Error loading the next section after break. Please try restarting the test.");
+                showView('home-view');
+               }
+          } else { 
+            console.error("DEBUG ContinueBreak: Clicked continue, but currentModuleIndex (" + currentModuleIndex + ") is out of bounds for currentTestFlow. Test flow length: " + currentTestFlow.length);
+            alert("Test flow error after break. Returning to home.");
+            showView('finished-view'); 
+        }
     });
-}
-
-
-
+} else { 
+    console.error("DEBUG: continue-after-break-btn was NOT FOUND in the DOM."); // DEBUG Line 6
+    }
 
 // Keep all other functions and event listeners from your .txt file as they were,
 // including:
@@ -1165,11 +1174,13 @@ async function reviewNextButtonClickHandler() {
     }
 
     // Logic for full_test mode
-    const IS_MANUAL_BREAK_TIME = (currentModuleIndex === 1 && currentTestFlow.length === 4); 
+    const IS_MANUAL_BREAK_TIME = (currentModuleIndex === 1 && currentTestFlow.length === 4 && currentInteractionMode === 'full_test'); 
 
     if (IS_MANUAL_BREAK_TIME) {
-        console.log("Transitioning to manual break instruction screen from review page for module:", currentTestFlow[currentModuleIndex]);
-        currentModuleIndex++; 
+        //console.log("Transitioning to manual break instruction screen from review page for module:", currentTestFlow[currentModuleIndex]);
+        console.log("Transitioning to manual break. currentModuleIndex BEFORE increment for break:", currentModuleIndex);
+        currentModuleIndex++; // Advance index to prepare for Math M1 (index 2) after break
+        console.log("Transitioning to manual break. currentModuleIndex AFTER increment for break:", currentModuleIndex); // Should be 2
         showView('manual-break-view'); 
     } else {
         currentModuleIndex++;
