@@ -279,7 +279,7 @@ function getAnswerState(moduleIdx = currentModuleIndex, qNum = currentQuestionNu
     return userAnswers[key];
 }
 
-/ REPLACE your entire updateNavigation_OLD function with this new updateNavigation
+// REPLACE your entire updateNavigation_OLD function with this new updateNavigation
 function updateNavigation() {
     if (!backBtnFooter || !nextBtnFooter || !currentQFooterEl || !totalQFooterEl) {
         console.error("Navigation elements missing for updateNavigation.");
