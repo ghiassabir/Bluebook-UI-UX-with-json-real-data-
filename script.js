@@ -281,6 +281,8 @@ function getAnswerState(moduleIdx = currentModuleIndex, qNum = currentQuestionNu
 
 // REPLACE your entire updateNavigation_OLD function with this new updateNavigation
 function updateNavigation() {
+   console.log("DEBUG: updateNavigation CALLED. CurrentView:", currentView, "Q#:", currentQuestionNumber, "ModuleTimeUp:", currentModuleTimeUp); // DEBUG START
+    
     if (!backBtnFooter || !nextBtnFooter || !currentQFooterEl || !totalQFooterEl) {
         console.error("Navigation elements missing for updateNavigation.");
         return;
@@ -335,6 +337,9 @@ function updateNavigation() {
     }
     // Add console log for button states
     // console.log(`UpdateNav: NextBtn Disabled: ${nextBtnFooter.disabled}, ReviewNextBtn Disabled: ${reviewNextBtnFooter ? reviewNextBtnFooter.disabled : 'N/A'}, TimeUp: ${currentModuleTimeUp}`);
+
+console.log("DEBUG: updateNavigation COMPLETED."); // DEBUG END
+
 }
 
 
