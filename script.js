@@ -342,8 +342,14 @@ function updateNavigation() {
             nextBtnFooter.disabled = false;
         } else { // Last question of the module
             nextBtnFooter.textContent = "Review Section";
-            // CHANGED: Disable "Review Section" if module time is not up
-            nextBtnFooter.disabled = !currentModuleTimeUp && (getCurrentModule()?.durationSeconds > 0);
+             // --- START OF MODIFICATION ---
+            if (currentInteractionMode === 'full_test') {
+                const currentMod = getCurrentModule();
+                nextBtnFooter.disabled = !currentModuleTimeUp && (currentMod && typeof currentMod.durationSeconds === 'number' && currentMod.durationSeconds > 0);
+            } else { // single_quiz mode
+                nextBtnFooter.disabled = false; // Always enabled for single quiz
+            }
+            // --- END OF MODIFICATION ---
         }
     } else if (currentView === 'review-page-view') {
         if (reviewBackBtnFooter) reviewBackBtnFooter.style.display = 'inline-block';
@@ -372,14 +378,125 @@ console.log("DEBUG: updateNavigation COMPLETED."); // DEBUG END
 
 
 
-function populateQNavGrid() { /* ... from your .txt file ... */ }
-function renderReviewPage() { /* ... from your .txt file ... */ }
+function populateQNavGrid() {
+    if (!qNavGridMain || !qNavTitle) { console.error("QNav grid or title element not found for populating."); return; }
+    qNavGridMain.innerHTML = '';
+    
+    const moduleInfo = getCurrentModule();
+    if (!moduleInfo || !currentQuizQuestions || currentQuizQuestions.length === 0) {
+        qNavTitle.textContent = "Questions";
+        console.warn("populateQNavGrid: No module info or questions for current module.");
+        return;
+    }
+    qNavTitle.textContent = `Section ${currentModuleIndex + 1}: ${moduleInfo.name} Questions`;
+
+    const totalQuestionsInModule = currentQuizQuestions.length;
+
+    for (let i = 1; i <= totalQuestionsInModule; i++) {
+        const qState = getAnswerState(currentModuleIndex, i); 
+        const questionDataForButton = currentQuizQuestions[i - 1]; 
+        
+        const btn = document.createElement('button');
+        btn.className = 'qnav-grid-btn';
+        if (i === currentQuestionNumber) {
+            btn.classList.add('current');
+            btn.innerHTML = `<span class="q-num-current-dot"></span>`; 
+        } else {
+            btn.textContent = questionDataForButton?.question_number || i;
+        }
+
+        let isUnanswered = true; 
+        if (questionDataForButton) { 
+            if (questionDataForButton.question_type === 'student_produced_response') { 
+                isUnanswered = !qState.spr_answer;
+            } else { 
+                isUnanswered = !qState.selected;
+            }
+        }
+
+        if (isUnanswered && i !== currentQuestionNumber) btn.classList.add('unanswered');
+        if (qState.marked) btn.innerHTML += `<span class="review-flag-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg></span>`;
+        
+        btn.dataset.question = i; 
+        btn.addEventListener('click', () => {
+            recordTimeOnCurrentQuestion();
+            currentQuestionNumber = parseInt(btn.dataset.question); 
+            isCrossOutToolActive = false; 
+            isHighlightingActive = false; if(highlightsNotesBtn) highlightsNotesBtn.classList.remove('active');
+            loadQuestion();
+            toggleModal(qNavPopup, false);
+        });
+        qNavGridMain.appendChild(btn);
+    }
+} 
+function renderReviewPage() { // (Unchanged from Phase 3)
+    if (!reviewPageViewEl || !reviewPageViewEl.classList.contains('active')) return;
+    console.log("Rendering Review Page (Phase 3)...");
+    
+    const moduleInfo = getCurrentModule();
+    if(!moduleInfo || !currentQuizQuestions || currentQuizQuestions.length === 0) {
+         if(reviewPageSectionName) reviewPageSectionName.textContent = "Section Review";
+         if(reviewPageQNavGrid) reviewPageQNavGrid.innerHTML = '<p>No questions to review for this module.</p>';
+         console.warn("renderReviewPage: No module info or questions for current module.");
+        updateNavigation(); 
+        return;
+    }
+    if(reviewPageSectionName) reviewPageSectionName.textContent = `Section ${currentModuleIndex + 1}: ${moduleInfo.name} Questions`;
+    
+    if(timerTextEl && reviewTimerText) reviewTimerText.textContent = timerTextEl.textContent;
+    if(timerClockIconEl && reviewTimerClockIcon) reviewTimerClockIcon.className = timerClockIconEl.className;
+    if(timerToggleBtn && reviewTimerToggleBtn) reviewTimerToggleBtn.textContent = timerToggleBtn.textContent;
+
+    if(reviewPageQNavGrid) reviewPageQNavGrid.innerHTML = ''; else { console.error("Review page QNav grid not found."); return;}
+
+    const totalQuestionsInModule = currentQuizQuestions.length;
+    for (let i = 1; i <= totalQuestionsInModule; i++) {
+        const qState = getAnswerState(currentModuleIndex, i);
+        const qDataForBtn = currentQuizQuestions[i-1];
+        const btn = document.createElement('button');
+        btn.className = 'qnav-grid-btn';
+        btn.textContent = qDataForBtn?.question_number || i; 
+
+        let isUnanswered = true;
+        if (qDataForBtn) {
+            if (qDataForBtn.question_type === 'student_produced_response') {
+                isUnanswered = !qState.spr_answer;
+            } else {
+                isUnanswered = !qState.selected;
+            }
+        }
+        if (isUnanswered) btn.classList.add('unanswered');
+
+        if (qState.marked) {
+            btn.innerHTML += `<span class="review-flag-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg></span>`;
+        }
+        btn.dataset.question = i; 
+        btn.addEventListener('click', () => {
+            currentQuestionNumber = parseInt(btn.dataset.question); 
+            showView('test-interface-view');
+        });
+        reviewPageQNavGrid.appendChild(btn);
+    }
+    updateNavigation();
+}
+
 let confettiAnimationId; 
 const confettiParticles = []; 
+
 function startConfetti() { /* ... from your .txt file ... */ }
+
 function stopConfetti() { /* ... from your .txt file ... */ }
-function handleTimerToggle(textEl, iconEl, btnEl) { /* ... from your .txt file ... */ }
+
+function handleTimerToggle(textEl, iconEl, btnEl) {  // (Unchanged from Phase 3)
+    if (!textEl || !iconEl || !btnEl) return;
+    isTimerHidden = !isTimerHidden; 
+    textEl.classList.toggle('hidden', isTimerHidden); 
+    iconEl.classList.toggle('hidden', !isTimerHidden);
+    btnEl.textContent = isTimerHidden ? '[Show]' : '[Hide]';
+}
+
 function updatePracticeQuizTimerDisplay(seconds) { /* ... from your .txt file ... */ }
+
 function startPracticeQuizTimer() { /* ... from your .txt file ... */ }
 
 // In showView:
