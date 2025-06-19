@@ -278,6 +278,67 @@ function getAnswerState(moduleIdx = currentModuleIndex, qNum = currentQuestionNu
     }
     return userAnswers[key];
 }
+
+/ REPLACE your entire updateNavigation_OLD function with this new updateNavigation
+function updateNavigation() {
+    if (!backBtnFooter || !nextBtnFooter || !currentQFooterEl || !totalQFooterEl) {
+        console.error("Navigation elements missing for updateNavigation.");
+        return;
+    }
+
+    const moduleIsLoaded = currentQuizQuestions && currentQuizQuestions.length > 0;
+    const totalQuestionsInModule = moduleIsLoaded ? currentQuizQuestions.length : 0;
+
+    currentQFooterEl.textContent = moduleIsLoaded ? currentQuestionNumber : '0';
+    totalQFooterEl.textContent = totalQuestionsInModule;
+    
+    // Back button logic (no change for module rule here, just within module)
+    backBtnFooter.disabled = (currentQuestionNumber === 1);
+
+    // Default visibility
+    nextBtnFooter.style.display = 'none';
+    backBtnFooter.style.display = 'none';
+    if (reviewNextBtnFooter) reviewNextBtnFooter.style.display = 'none';
+    if (reviewBackBtnFooter) reviewBackBtnFooter.style.display = 'none';
+
+    if (currentView === 'test-interface-view') {
+        nextBtnFooter.style.display = 'inline-block';
+        backBtnFooter.style.display = 'inline-block';
+        if (!moduleIsLoaded) {
+            nextBtnFooter.textContent = "Next";
+            nextBtnFooter.disabled = true;
+        } else if (currentQuestionNumber < totalQuestionsInModule) {
+            nextBtnFooter.textContent = "Next";
+            nextBtnFooter.disabled = false;
+        } else { // Last question of the module
+            nextBtnFooter.textContent = "Review Section";
+            // CHANGED: Disable "Review Section" if module time is not up
+            nextBtnFooter.disabled = !currentModuleTimeUp && (getCurrentModule()?.durationSeconds > 0);
+        }
+    } else if (currentView === 'review-page-view') {
+        if (reviewBackBtnFooter) reviewBackBtnFooter.style.display = 'inline-block';
+        if (reviewNextBtnFooter) reviewNextBtnFooter.style.display = 'inline-block';
+        
+        if (reviewBackBtnFooter) reviewBackBtnFooter.disabled = false; // Can always go back to test interface from review
+
+        if (reviewNextBtnFooter) {
+            if (currentModuleIndex < currentTestFlow.length - 1) {
+                reviewNextBtnFooter.textContent = "Next Module";
+            } else {
+                reviewNextBtnFooter.textContent = "Finish Test";
+            }
+            // CHANGED: Disable "Next Module" / "Finish Test" from review page if module time is not up
+            reviewNextBtnFooter.disabled = !currentModuleTimeUp && (getCurrentModule()?.durationSeconds > 0);
+        }
+    } else if (currentView === 'home-view' || currentView === 'finished-view' || currentView === 'module-over-view') {
+        // No primary nav buttons needed, or handled by specific view buttons
+    }
+    // Add console log for button states
+    // console.log(`UpdateNav: NextBtn Disabled: ${nextBtnFooter.disabled}, ReviewNextBtn Disabled: ${reviewNextBtnFooter ? reviewNextBtnFooter.disabled : 'N/A'}, TimeUp: ${currentModuleTimeUp}`);
+}
+
+
+
 function populateQNavGrid() { /* ... from your .txt file ... */ }
 function renderReviewPage() { /* ... from your .txt file ... */ }
 let confettiAnimationId; 
