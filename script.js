@@ -765,3 +765,561 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 */
 // If your .txt script already had this, keep it. If not, add it.
+
+// =======================================================================
+// === ADD THE FOLLOWING CODE AFTER LINE 768 OF YOUR EXISTING SCRIPT ===
+// This restores missing event listeners and handlers, adapted for Phase 6
+// =======================================================================
+
+// --- Event Listeners for Answer Interaction & Tools ---
+if(answerOptionsMainEl) {
+    answerOptionsMainEl.addEventListener('click', function(event) {
+        const target = event.target;
+        const answerContainer = target.closest('.answer-option-container');
+        
+        // console.log("Answer option area clicked. Target:", target, "Container:", answerContainer); // Keep for debug
+
+        if (!answerContainer) {
+            // console.log("Click was outside an answer-option-container. Exiting listener."); // Keep for debug
+            return; 
+        }
+        const optionKey = answerContainer.dataset.optionKey;
+        // console.log("Option key identified:", optionKey); // Keep for debug
+        
+        const actionElement = target.closest('[data-action]');
+        const action = actionElement ? actionElement.dataset.action : null;
+        // console.log("Action identified:", action); // Keep for debug
+        
+        // Record time if the main option area was clicked (intending selection or interaction)
+        // and not just an auxiliary action button like the individual cross-out.
+        if (!action && target.closest('.answer-option')) { 
+            recordTimeOnCurrentQuestion(); 
+        }
+
+        if (action === 'cross-out-individual') {
+            // console.log("Calling handleAnswerCrossOut for individual cross-out."); // Keep for debug
+            handleAnswerCrossOut(optionKey);
+        } else if (action === 'undo-cross-out') {
+            // console.log("Calling handleAnswerUndoCrossOut for undo cross-out."); // Keep for debug
+            handleAnswerUndoCrossOut(optionKey);
+        } else if (target.closest('.answer-option')) { 
+            // console.log("Attempting to call handleAnswerSelect."); // Keep for debug
+            handleAnswerSelect(optionKey);
+        } else {
+            // console.log("Click did not match any known action or target for selection."); // Keep for debug
+        }
+    });
+}
+
+function handleAnswerSelect(optionKey) {
+    const answerState = getAnswerState();
+    if (!answerState) {
+        console.error("handleAnswerSelect: No answer state found for current question.");
+        return;
+    }
+
+    if (isCrossOutToolActive) {
+        console.log("handleAnswerSelect: Cross-out tool is currently ACTIVE. Proceeding with selection (will also remove cross-out).");
+    } else {
+        console.log("handleAnswerSelect: Cross-out tool is INACTIVE. Proceeding with selection.");
+    }
+    
+    const currentQDetails = getCurrentQuestionData();
+    let selectedOptionText = optionKey; 
+    
+    const jsonOptionKey = `option_${optionKey.toLowerCase()}`;
+    if (currentQDetails && currentQDetails.hasOwnProperty(jsonOptionKey) && currentQDetails[jsonOptionKey] !== null) {
+        selectedOptionText = currentQDetails[jsonOptionKey];
+    } else {
+        console.warn(`handleAnswerSelect: Could not find option text for key ${optionKey} (tried ${jsonOptionKey}). Storing key itself ('${optionKey}') as selected value.`);
+    }
+
+    console.log(`handleAnswerSelect: Setting selected answer to: "${selectedOptionText}" (original key: ${optionKey})`);
+    answerState.selected = selectedOptionText; 
+
+    if (answerState.crossedOut.includes(optionKey)) {
+        console.log(`handleAnswerSelect: Option ${optionKey} was selected, removing it from crossedOut list.`);
+        answerState.crossedOut = answerState.crossedOut.filter(opt => opt !== optionKey);
+    }
+    
+    loadQuestion(); 
+}
+
+function handleAnswerCrossOut(optionKey) { 
+     const answerState = getAnswerState();
+     if (!answerState) return;
+
+     if (!answerState.crossedOut.includes(optionKey)) {
+         answerState.crossedOut.push(optionKey);
+     } 
+     // Selected answer remains selected even if crossed out by individual button
+     loadQuestion(); 
+}
+
+function handleAnswerUndoCrossOut(optionKey) { 
+     const answerState = getAnswerState();
+     if (!answerState) return;
+     answerState.crossedOut = answerState.crossedOut.filter(opt => opt !== optionKey);
+     loadQuestion(); 
+}
+
+if(crossOutToolBtnMain) {
+    crossOutToolBtnMain.addEventListener('click', () => {
+        const currentQData = getCurrentQuestionData();
+        if (currentQData && currentQData.question_type === 'student_produced_response') return;
+        isCrossOutToolActive = !isCrossOutToolActive;
+        loadQuestion();
+    });
+}
+
+if(sprInputFieldMain) {
+    sprInputFieldMain.addEventListener('input', (event) => {
+        const answerState = getAnswerState();
+        if (!answerState) return;
+        answerState.spr_answer = event.target.value;
+        if(sprAnswerPreviewMain) sprAnswerPreviewMain.textContent = `Answer Preview: ${event.target.value}`;
+    });
+    sprInputFieldMain.addEventListener('blur', () => { 
+        recordTimeOnCurrentQuestion();
+        questionStartTime = Date.now(); 
+    });
+}
+
+// --- Navigation Button Click Handlers & Listeners ---
+// (These include the Phase 6 mode-aware logic)
+
+function nextButtonClickHandler() {
+    if (currentView !== 'test-interface-view') return; 
+    console.log("DEBUG: nextButtonClickHandler CALLED");
+    recordTimeOnCurrentQuestion(); 
+    const totalQuestionsInModule = currentQuizQuestions.length;
+    if (currentQuestionNumber < totalQuestionsInModule) {
+        currentQuestionNumber++;
+        isCrossOutToolActive = false; 
+        isHighlightingActive = false; if(highlightsNotesBtn) highlightsNotesBtn.classList.remove('active');
+        loadQuestion();
+    } else if (currentQuestionNumber === totalQuestionsInModule) {
+        showView('review-page-view');
+    }
+}
+
+async function reviewNextButtonClickHandler() { 
+    if (currentView !== 'review-page-view') return;
+    console.log("DEBUG: reviewNextButtonClickHandler CALLED");
+    recordTimeOnCurrentQuestion(); 
+
+    if (currentInteractionMode === 'single_quiz') {
+        console.log("Single practice quiz finished from review page. Transitioning to finished view.");
+        if (practiceQuizTimerInterval) clearInterval(practiceQuizTimerInterval);
+        showView('finished-view'); 
+        return; 
+    }
+
+    // Logic for full_test mode
+    const IS_MANUAL_BREAK_TIME = (currentModuleIndex === 1 && currentTestFlow.length === 4); 
+
+    if (IS_MANUAL_BREAK_TIME) {
+        console.log("Transitioning to manual break instruction screen from review page for module:", currentTestFlow[currentModuleIndex]);
+        currentModuleIndex++; 
+        showView('manual-break-view'); 
+    } else {
+        currentModuleIndex++;
+        if (currentModuleIndex < currentTestFlow.length) {
+            showView('module-over-view'); 
+            setTimeout(async () => {
+                currentQuestionNumber = 1; 
+                currentModuleTimeUp = false; 
+
+                const nextQuizName = currentTestFlow[currentModuleIndex];
+                const nextModuleInfo = moduleMetadata[nextQuizName];
+                
+                let jsonToLoadForNextModule = nextQuizName;
+                if (nextQuizName === "DT-T0-RW-M2") jsonToLoadForNextModule = "DT-T0-RW-M1";
+                else if (nextQuizName === "DT-T0-MT-M2") jsonToLoadForNextModule = "DT-T0-MT-M1";
+
+                const success = await loadQuizData(jsonToLoadForNextModule);
+
+                if (success && currentQuizQuestions.length > 0) {
+                    if (currentInteractionMode === 'full_test' && nextModuleInfo && typeof nextModuleInfo.durationSeconds === 'number') {
+                        startModuleTimer(nextModuleInfo.durationSeconds);
+                    } else { // Should not happen in full_test if durations are set
+                        console.warn(`Timer Mode/Config issue for module ${nextQuizName}. No countdown timer started.`);
+                        updateModuleTimerDisplay(0); 
+                        updatePracticeQuizTimerDisplay(0); // Also reset practice timer display
+                    }
+                    populateQNavGrid(); 
+                    showView('test-interface-view');
+                } else {
+                    console.error("Failed to load next module or module has no questions.");
+                    alert("Error loading the next module. Returning to home.");
+                    showView('home-view'); 
+                }
+            }, 1000); 
+        } else {
+            console.log("All modules finished (from review page). Transitioning to finished view.");
+            if (moduleTimerInterval) clearInterval(moduleTimerInterval); 
+            if (practiceQuizTimerInterval) clearInterval(practiceQuizTimerInterval);
+            showView('finished-view'); 
+        }
+    }
+}
+
+function backButtonClickHandler() {
+    if (currentView !== 'test-interface-view') return;
+    console.log("DEBUG: backButtonClickHandler CALLED");
+    recordTimeOnCurrentQuestion();
+    if (currentQuestionNumber > 1) {
+        currentQuestionNumber--;
+        isCrossOutToolActive = false; 
+        isHighlightingActive = false; if(highlightsNotesBtn) highlightsNotesBtn.classList.remove('active');
+        loadQuestion();
+    }
+}
+
+if(nextBtnFooter) {
+    nextBtnFooter.removeEventListener('click', nextButtonClickHandler); 
+    nextBtnFooter.addEventListener('click', nextButtonClickHandler);
+}
+if(reviewNextBtnFooter) {
+    reviewNextBtnFooter.removeEventListener('click', reviewNextButtonClickHandler); 
+    reviewNextBtnFooter.addEventListener('click', reviewNextButtonClickHandler);
+}
+if(backBtnFooter) { 
+    backBtnFooter.removeEventListener('click', backButtonClickHandler); 
+    backBtnFooter.addEventListener('click', backButtonClickHandler);
+}
+
+// --- Event Listeners for other UI elements ---
+if(returnToHomeBtn) returnToHomeBtn.addEventListener('click', () => showView('home-view')); 
+if(calculatorBtnHeader) calculatorBtnHeader.addEventListener('click', () => toggleModal(calculatorOverlay, true));
+if(calculatorCloseBtn) calculatorCloseBtn.addEventListener('click', () => toggleModal(calculatorOverlay, false));
+if(referenceBtnHeader) referenceBtnHeader.addEventListener('click', () => toggleModal(referenceSheetPanel, true));
+if(referenceSheetCloseBtn) referenceSheetCloseBtn.addEventListener('click', () => toggleModal(referenceSheetPanel, false));
+
+let isCalcDragging = false; // Renamed to avoid conflict if Gist had different var names
+let currentX_calc_drag, currentY_calc_drag, initialX_calc_drag, initialY_calc_drag, xOffset_calc_drag = 0, yOffset_calc_drag = 0;
+if(calculatorHeaderDraggable) {
+    calculatorHeaderDraggable.addEventListener('mousedown', (e) => { 
+        initialX_calc_drag = e.clientX - xOffset_calc_drag; 
+        initialY_calc_drag = e.clientY - yOffset_calc_drag; 
+        if (e.target === calculatorHeaderDraggable || e.target.tagName === 'STRONG') isCalcDragging = true; 
+    });
+    document.addEventListener('mousemove', (e) => { 
+        if (isCalcDragging) { 
+            e.preventDefault(); 
+            currentX_calc_drag = e.clientX - initialX_calc_drag; 
+            currentY_calc_drag = e.clientY - initialY_calc_drag; 
+            xOffset_calc_drag = currentX_calc_drag; 
+            yOffset_calc_drag = currentY_calc_drag; 
+            if(calculatorOverlay) calculatorOverlay.style.transform = `translate3d(${currentX_calc_drag}px, ${currentY_calc_drag}px, 0)`;
+        } 
+    });
+    document.addEventListener('mouseup', () => isCalcDragging = false );
+}
+
+if(highlightsNotesBtn && (passageContentEl || questionTextMainEl) ) {
+    highlightsNotesBtn.addEventListener('click', () => {
+        isHighlightingActive = !isHighlightingActive;
+        highlightsNotesBtn.classList.toggle('active', isHighlightingActive);
+        if (isHighlightingActive) {
+            document.addEventListener('mouseup', handleTextSelection); 
+            if(mainContentAreaDynamic) mainContentAreaDynamic.classList.add('highlight-active'); 
+        } else {
+            document.removeEventListener('mouseup', handleTextSelection);
+            if(mainContentAreaDynamic) mainContentAreaDynamic.classList.remove('highlight-active'); 
+        }
+    });
+}
+function handleTextSelection() {
+    if (!isHighlightingActive) return;
+    const selection = window.getSelection();
+    if (!selection.rangeCount || selection.isCollapsed) return;
+    
+    const range = selection.getRangeAt(0);
+    const container = range.commonAncestorContainer;
+
+    const isWithinPassagePane = passagePane && passagePane.style.display !== 'none' && passagePane.contains(container);
+    const isWithinQuestionTextPane = questionPane && questionPane.contains(container) && questionTextMainEl.contains(container);
+    const isWithinSprInstructions = sprInstructionsPane && sprInstructionsPane.style.display !== 'none' && sprInstructionsPane.contains(container);
+    if (!isWithinPassagePane && !isWithinQuestionTextPane && !isWithinSprInstructions) return;
+
+    const span = document.createElement('span');
+    span.className = 'text-highlight';
+    try {
+        range.surroundContents(span);
+    } catch (e) { 
+        span.appendChild(range.extractContents());
+        range.insertNode(span);
+        console.warn("Highlighting across complex nodes, used extract/insert fallback.", e);
+    }
+    selection.removeAllRanges();
+}
+
+if(directionsBtn) {
+    directionsBtn.addEventListener('click', () => {
+        const moduleInfo = getCurrentModule();
+        if(moduleInfo && directionsModalTitle) directionsModalTitle.textContent = `Section ${currentModuleIndex + 1}: ${moduleInfo.name} Directions`; 
+        if(moduleInfo && directionsModalText) directionsModalText.innerHTML = moduleInfo.directions || "General directions"; 
+        toggleModal(directionsModal, true); 
+    });
+}
+if(directionsModalCloseBtn) directionsModalCloseBtn.addEventListener('click', () => toggleModal(directionsModal, false));
+if(directionsModal) directionsModal.addEventListener('click', (e) => { if (e.target === directionsModal) toggleModal(directionsModal, false); });
+
+if(qNavBtnFooter) {
+    qNavBtnFooter.addEventListener('click', () => { 
+        if (currentQuizQuestions.length > 0) { populateQNavGrid(); toggleModal(qNavPopup, true); } 
+        else { console.warn("QNav: no questions loaded."); }
+    });
+}
+if(qNavCloseBtn) qNavCloseBtn.addEventListener('click', () => toggleModal(qNavPopup, false));
+if(qNavGotoReviewBtn) {
+    qNavGotoReviewBtn.addEventListener('click', () => { 
+        toggleModal(qNavPopup, false); 
+        if (currentQuizQuestions.length > 0) { showView('review-page-view'); }
+    }); 
+}
+
+if(markReviewCheckboxMain) {
+    markReviewCheckboxMain.addEventListener('change', () => {
+        const answerState = getAnswerState();
+        if (!answerState) return;
+        answerState.marked = markReviewCheckboxMain.checked;
+        if(flagIconMain) {
+            flagIconMain.style.fill = answerState.marked ? 'var(--bluebook-red-flag)' : 'none';
+            flagIconMain.style.color = answerState.marked ? 'var(--bluebook-red-flag)' : '#9ca3af';
+        }
+        if (qNavPopup && qNavPopup.classList.contains('visible')) populateQNavGrid();
+    });
+}
+
+if(timerToggleBtn) timerToggleBtn.addEventListener('click', () => handleTimerToggle(timerTextEl, timerClockIconEl, timerToggleBtn));
+if(reviewDirectionsBtn) { // Already handled by its own listener in Gist logic
+    reviewDirectionsBtn.addEventListener('click', () => {
+        const moduleInfo = getCurrentModule(); // Use current module logic
+        if (moduleInfo && directionsModalTitle) directionsModalTitle.textContent = `Section ${currentModuleIndex + 1}: ${moduleInfo.name} Directions`;
+        if (moduleInfo && directionsModalText) directionsModalText.innerHTML = moduleInfo.directions || "General directions for review.";
+        toggleModal(directionsModal, true);
+    });
+}
+if(reviewTimerToggleBtn && reviewTimerText && reviewTimerClockIcon) reviewTimerToggleBtn.addEventListener('click', () => handleTimerToggle(reviewTimerText, reviewTimerClockIcon, reviewTimerToggleBtn));
+if(reviewBackBtnFooter) {
+    reviewBackBtnFooter.addEventListener('click', () => {
+        if (currentView !== 'review-page-view') return;
+        showView('test-interface-view');
+    });
+}
+
+
+if(moreBtn) { 
+    moreBtn.addEventListener('click', (e) => { 
+        e.stopPropagation(); 
+        if(moreMenuDropdown) moreMenuDropdown.classList.toggle('visible'); 
+    });
+}
+document.body.addEventListener('click', (e) => { 
+    if (moreMenuDropdown && moreBtn && !moreBtn.contains(e.target) && !moreMenuDropdown.contains(e.target) && moreMenuDropdown.classList.contains('visible')) {
+        moreMenuDropdown.classList.remove('visible'); 
+    }
+});
+if(moreMenuDropdown) moreMenuDropdown.addEventListener('click', (e) => e.stopPropagation()); 
+
+if(moreUnscheduledBreakBtn) {
+    moreUnscheduledBreakBtn.addEventListener('click', () => { 
+        toggleModal(unscheduledBreakConfirmModal, true); 
+        if(moreMenuDropdown) moreMenuDropdown.classList.remove('visible'); 
+        if(understandLoseTimeCheckbox) understandLoseTimeCheckbox.checked = false; 
+        if(unscheduledBreakConfirmBtn) unscheduledBreakConfirmBtn.disabled = true; 
+    });
+}
+if(understandLoseTimeCheckbox) {
+    understandLoseTimeCheckbox.addEventListener('change', () => { 
+        if(unscheduledBreakConfirmBtn) unscheduledBreakConfirmBtn.disabled = !understandLoseTimeCheckbox.checked; 
+    });
+}
+if(unscheduledBreakCancelBtn) unscheduledBreakCancelBtn.addEventListener('click', () => toggleModal(unscheduledBreakConfirmModal, false));
+if(unscheduledBreakConfirmBtn) {
+    unscheduledBreakConfirmBtn.addEventListener('click', () => { 
+        alert("Unscheduled Break screen: Future"); 
+        toggleModal(unscheduledBreakConfirmModal, false); 
+    });
+}
+
+if(moreExitExamBtn) {
+    moreExitExamBtn.addEventListener('click', () => { 
+        toggleModal(exitExamConfirmModal, true); 
+        if(moreMenuDropdown) moreMenuDropdown.classList.remove('visible'); 
+    });
+}
+if(exitExamCancelBtn) exitExamCancelBtn.addEventListener('click', () => toggleModal(exitExamConfirmModal, false));
+if(exitExamConfirmBtn) {
+    exitExamConfirmBtn.addEventListener('click', () => { 
+        toggleModal(exitExamConfirmModal, false); 
+        showView('home-view'); 
+    });
+}
+
+// Start Button Listeners (These are from your .txt file - they define mode behavior)
+if(startFullPracticeTestBtn) {
+    startFullPracticeTestBtn.addEventListener('click', async () => {
+        initializeStudentIdentifier(); 
+        console.log("Start Full Practice Test button clicked."); 
+        
+        currentInteractionMode = 'full_test';
+        currentModuleIndex = 0;
+        currentQuestionNumber = 1;
+        userAnswers = {}; 
+        isTimerHidden = false;
+        isCrossOutToolActive = false;
+        isHighlightingActive = false; if(highlightsNotesBtn) highlightsNotesBtn.classList.remove('active');
+        if(calculatorOverlay) calculatorOverlay.classList.remove('visible');
+        if(referenceSheetPanel) referenceSheetPanel.classList.remove('visible');
+        currentModuleTimeUp = false; 
+
+        currentTestFlow = ["DT-T0-RW-M1", "DT-T0-RW-M2", "DT-T0-MT-M1", "DT-T0-MT-M2"]; 
+        console.log("Test flow set for Full Practice Test:", currentTestFlow); 
+
+        if (currentTestFlow.length > 0) {
+            const firstQuizName = currentTestFlow[currentModuleIndex];
+            const moduleInfo = moduleMetadata[firstQuizName];
+            
+            console.log(`DEBUG startFullPracticeTestBtn: Initializing. First quiz: ${firstQuizName}. ModuleInfo found:`, !!moduleInfo);
+
+            startFullPracticeTestBtn.textContent = "Loading...";
+            startFullPracticeTestBtn.disabled = true;
+            
+            let jsonToLoad = firstQuizName;
+            if (firstQuizName === "DT-T0-RW-M2") jsonToLoad = "DT-T0-RW-M1";
+            else if (firstQuizName === "DT-T0-MT-M2") jsonToLoad = "DT-T0-MT-M1";
+            
+            const success = await loadQuizData(jsonToLoad); 
+            
+            startFullPracticeTestBtn.textContent = "Start Full Test"; 
+            startFullPracticeTestBtn.disabled = false; 
+
+            if (success && currentQuizQuestions.length > 0) {
+                console.log("DEBUG startFullPracticeTestBtn: Data loaded. Starting timer and showing view.");
+                if (moduleInfo && typeof moduleInfo.durationSeconds === 'number') {
+                    startModuleTimer(moduleInfo.durationSeconds); 
+                } else {
+                    console.warn(`Full Test Mode: No duration for module ${firstQuizName}. Timer not started or showing 00:00.`);
+                    updateModuleTimerDisplay(0); 
+                }
+                populateQNavGrid(); 
+                showView('test-interface-view'); 
+            } else {
+                console.error("Failed to load initial quiz data for full test.");
+                alert("Could not start the full test. Check console.");
+                showView('home-view'); 
+            }
+        } else { 
+            console.error("Full test flow is empty.");
+            alert("Full test configuration error.");
+        }
+    });
+}
+
+if(startSinglePracticeQuizBtn) {
+    startSinglePracticeQuizBtn.addEventListener('click', async () => {
+        initializeStudentIdentifier();
+        console.log("Start Single Practice Quiz button clicked.");
+
+        currentInteractionMode = 'single_quiz';
+        currentModuleIndex = 0; 
+        currentQuestionNumber = 1;
+        userAnswers = {};
+        isTimerHidden = false;
+        isCrossOutToolActive = false;
+        isHighlightingActive = false; if(highlightsNotesBtn) highlightsNotesBtn.classList.remove('active');
+        if(calculatorOverlay) calculatorOverlay.classList.remove('visible');
+        if(referenceSheetPanel) referenceSheetPanel.classList.remove('visible');
+
+        currentTestFlow = ["DT-T0-MT-M1"]; 
+        console.log("Test flow set for Single Practice Quiz:", currentTestFlow);
+
+        if (currentTestFlow.length > 0) {
+            const quizName = currentTestFlow[0];
+            console.log(`DEBUG startSinglePracticeQuizBtn: Initializing. Quiz: ${quizName}`);
+            
+            startSinglePracticeQuizBtn.textContent = "Loading...";
+            startSinglePracticeQuizBtn.disabled = true;
+
+            const success = await loadQuizData(quizName);
+
+            startSinglePracticeQuizBtn.textContent = "Start Single Quiz";
+            startSinglePracticeQuizBtn.disabled = false;
+
+            if (success && currentQuizQuestions.length > 0) {
+                console.log("DEBUG startSinglePracticeQuizBtn: Data loaded. Starting timer and showing view.");
+                startPracticeQuizTimer(); 
+                populateQNavGrid();
+                showView('test-interface-view');
+            } else {
+                console.error("Failed to load data for single practice quiz.");
+                alert("Could not start the practice quiz. Check console.");
+                showView('home-view');
+            }
+        } else { 
+            console.error("Single quiz flow is empty.");
+            alert("Single quiz configuration error.");
+        }
+    });
+}
+
+// Listener for continue-after-break-btn (Manual Break)
+if (continueAfterBreakBtn) {
+    continueAfterBreakBtn.addEventListener('click', async () => {
+        console.log("Continue after manual break button clicked.");
+        
+        if (currentModuleIndex < currentTestFlow.length) {
+            currentQuestionNumber = 1;
+            currentModuleTimeUp = false; 
+
+            const nextQuizName = currentTestFlow[currentModuleIndex];
+            const nextModuleInfo = moduleMetadata[nextQuizName];
+
+            let jsonToLoadForNextModule = nextQuizName;
+            if (nextQuizName === "DT-T0-RW-M2") jsonToLoadForNextModule = "DT-T0-RW-M1";
+            else if (nextQuizName === "DT-T0-MT-M2") jsonToLoadForNextModule = "DT-T0-MT-M1";
+            
+            continueAfterBreakBtn.textContent = "Loading next section...";
+            continueAfterBreakBtn.disabled = true;
+
+            const success = await loadQuizData(jsonToLoadForNextModule);
+            
+            continueAfterBreakBtn.textContent = "Continue to Next Section";
+            continueAfterBreakBtn.disabled = false;
+
+            if (success && currentQuizQuestions.length > 0) {
+                if (currentInteractionMode === 'full_test' && nextModuleInfo && typeof nextModuleInfo.durationSeconds === 'number') {
+                    startModuleTimer(nextModuleInfo.durationSeconds);
+                } else { 
+                    console.warn(`Timer mode/config issue for module ${nextQuizName} after break. Defaulting to practice timer or no timer.`);
+                    startPracticeQuizTimer(); // Fallback or if single_quiz somehow reached here
+                }
+                populateQNavGrid();
+                showView('test-interface-view');
+            } else {
+                console.error("Failed to load next module after break or module has no questions.");
+                alert("Error loading the next module after break. Returning to home.");
+                showView('home-view');
+            }
+        } else {
+            console.error("Continue after break clicked, but no more modules in flow. This is unexpected.");
+            showView('finished-view'); 
+        }
+    });
+}
+
+// --- Submission Logic ---
+async function submitQuizData() { /* ... (Keep Gist version, it was working) ... */ }
+
+// --- DOMContentLoaded ---
+document.addEventListener('DOMContentLoaded', () => {
+    initializeStudentIdentifier(); 
+    updateNavigation(); 
+});
+
+// =======================================================================
+// === END OF ADDED/RESTORED CODE                                      ===
+// =======================================================================
