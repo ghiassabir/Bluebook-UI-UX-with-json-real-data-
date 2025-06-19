@@ -1,6 +1,6 @@
 //script.js (Phase 5 - student email) ---
 //>>>>>>> main
-
+// 9 hours long queue
 // --- Utility Functions (Define these FIRST) ---
 function toggleModal(modalElement, show) {
     if (!modalElement) {
@@ -26,12 +26,7 @@ let currentModuleTimeLeft = 0;
 let currentModuleTimeUp = false; // Flag to indicate if current module's time is up
 // COMMENTED: Old studentEmailForSubmission, using a more dynamic approach or placeholder.
 // const studentEmailForSubmission = "teststudent@example.com"; 
-let studentEmailForSubmission = "anonymous_student@example.com";
-// --- START OF ADDITION A.1 (Phase 6 - Mode/Practice Timer) ---
-let currentInteractionMode = 'full_test'; // Default to full_test
-let practiceQuizTimerInterval;
-let practiceQuizTimeElapsed = 0;
-// --- END OF ADDITION A.1 ---
+let studentEmailForSubmission = "anonymous_student@example.com"; 
 
 // CHANGED: Placeholder for the Apps Script URL. Replace with your actual deployed URL.
 const APPS_SCRIPT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwneCF0xq9X-F-9AIxAiHpYFmRTErCzCPXlsWRloLRDWBGqwLEZC4NldCCAuND0jxUL/exec'; // <<< YOUR ACTUAL URL WAS USED HERE
@@ -113,13 +108,7 @@ const moduleOverViewEl = document.getElementById('module-over-view');
 const finishedViewEl = document.getElementById('finished-view');
 const reviewPageViewEl = document.getElementById('review-page-view');
 const confettiCanvas = document.getElementById('confetti-canvas');
-//const startTestPreviewBtn = document.getElementById('start-test-preview-btn');
-// --- START OF ADDITION A.2 (Phase 6 - New DOM Refs) ---
-const startFullPracticeTestBtn = document.getElementById('start-full-practice-test-btn');
-const startSinglePracticeQuizBtn = document.getElementById('start-single-practice-quiz-btn');
-const manualBreakViewEl = document.getElementById('manual-break-view'); 
-const continueAfterBreakBtn = document.getElementById('continue-after-break-btn');
-// --- END OF ADDITION A.2 ---
+const startTestPreviewBtn = document.getElementById('start-test-preview-btn');
 const returnToHomeBtn = document.getElementById('return-to-home-btn');
 const reviewPageSectionName = document.getElementById('review-page-section-name');
 const reviewPageQNavGrid = document.getElementById('review-page-qnav-grid');
@@ -206,76 +195,6 @@ function getCurrentQuestionData() {
 function getAnswerStateKey(moduleIdx = currentModuleIndex, qNum = currentQuestionNumber) {
     return `${moduleIdx}-${qNum}`;
 }
-
-// --- START OF ADDITION 2.A ---
-// ADDED: Functions for module-specific countdown timer
-function updateModuleTimerDisplay(seconds) {
-    if (!timerTextEl) return; 
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    const displayString = `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
-    timerTextEl.textContent = displayString;
-    if (reviewTimerText) reviewTimerText.textContent = displayString; 
-}
-
-function startModuleTimer(durationSeconds) {
-    // if (practiceQuizTimerInterval) clearInterval(practiceQuizTimerInterval); // Not needed yet
-    if (moduleTimerInterval) clearInterval(moduleTimerInterval); 
-
-    currentModuleTimeLeft = durationSeconds;
-    currentModuleTimeUp = false; 
-    updateModuleTimerDisplay(currentModuleTimeLeft);
-    updateNavigation(); // Update button states based on new timer state
-
-    console.log(`Module timer (countdown) started for ${durationSeconds} seconds.`);
-
-    moduleTimerInterval = setInterval(() => {
-        currentModuleTimeLeft--;
-        updateModuleTimerDisplay(currentModuleTimeLeft);
-
-        if (currentModuleTimeLeft <= 0) {
-            clearInterval(moduleTimerInterval);
-            currentModuleTimeLeft = 0; 
-            currentModuleTimeUp = true; 
-            updateModuleTimerDisplay(currentModuleTimeLeft); 
-            console.log("Module time is up!");
-            alert("Time for this module is up! You will be taken to the review page.");
-            
-            recordTimeOnCurrentQuestion(); 
-            
-            if (currentView !== 'review-page-view') {
-                showView('review-page-view');
-            }
-            updateNavigation(); 
-        }
-    }, 1000);
-}
-// --- END OF ADDITION 2.A ---
-
-// --- START OF ADDITION B.1 (Phase 6 - Practice Quiz Timer Functions) ---
-function updatePracticeQuizTimerDisplay(seconds) {
-    if (!timerTextEl) return;
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    const displayString = `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
-    timerTextEl.textContent = displayString;
-    if (reviewTimerText) reviewTimerText.textContent = displayString; 
-}
-
-function startPracticeQuizTimer() {
-    if (moduleTimerInterval) clearInterval(moduleTimerInterval); 
-    if (practiceQuizTimerInterval) clearInterval(practiceQuizTimerInterval);
-
-    practiceQuizTimeElapsed = 0;
-    updatePracticeQuizTimerDisplay(practiceQuizTimeElapsed);
-    console.log("Practice quiz timer (upward counting) started.");
-
-    practiceQuizTimerInterval = setInterval(() => {
-        practiceQuizTimeElapsed++;
-        updatePracticeQuizTimerDisplay(practiceQuizTimeElapsed);
-    }, 1000);
-}
-// --- END OF ADDITION B.1 ---
 
 // CHANGED: New functions for module-specific timer
 function updateModuleTimerDisplay(seconds) {
@@ -490,27 +409,12 @@ function showView(viewId) {
     else { console.error("View not found:", viewId); return; }
 
     // CHANGED: Stop module timer if navigating away from test/review views
-   // if (viewId !== 'test-interface-view' && viewId !== 'review-page-view' && viewId !== 'module-over-view') {
-     //   if (moduleTimerInterval) {
-       //     clearInterval(moduleTimerInterval);
-         //   console.log("Module timer stopped due to view change from test/review.");
-        //}
-    //}
-
-// --- START OF REPLACEMENT D.1 ---
-    // Stop appropriate timers when navigating away from active testing/break views
-    if (viewId !== 'test-interface-view' && viewId !== 'review-page-view' && 
-        viewId !== 'module-over-view' && viewId !== 'manual-break-view' ) { // Added manual-break-view
+    if (viewId !== 'test-interface-view' && viewId !== 'review-page-view' && viewId !== 'module-over-view') {
         if (moduleTimerInterval) {
             clearInterval(moduleTimerInterval);
-            console.log("Module countdown timer stopped due to view change.");
-        }
-        if (practiceQuizTimerInterval) {
-            clearInterval(practiceQuizTimerInterval);
-            console.log("Practice quiz (upward) timer stopped due to view change.");
+            console.log("Module timer stopped due to view change from test/review.");
         }
     }
-    // --- END OF REPLACEMENT D.1 ---
     
     if (viewId === 'test-interface-view') {
         if(qNavBtnFooter) qNavBtnFooter.style.display = 'flex';
@@ -520,37 +424,18 @@ function showView(viewId) {
     } else if (viewId === 'review-page-view') {
         if(qNavBtnFooter) qNavBtnFooter.style.display = 'none';
         renderReviewPage();
-    } // --- START OF MODIFICATION D.2 ---
-    else if (viewId === 'finished-view') {
+    } else if (viewId === 'finished-view') {
         startConfetti();
-        // Ensure all possible timers are stopped before submission
-        if (moduleTimerInterval) clearInterval(moduleTimerInterval); 
-        if (practiceQuizTimerInterval) clearInterval(practiceQuizTimerInterval);
-        // if (breakTimerInterval) clearInterval(breakTimerInterval); // For automated break (postponed)
+        // CHANGED: Call submitQuizData when finished-view is shown
         submitQuizData(); 
-    } 
-    // --- END OF MODIFICATION else if (viewId === 'home-view') {
-        if (moduleTimerInterval) clearInterval(moduleTimerInterval);
-        updateModuleTimerDisplay(0);
-    } 
+    } else if (viewId === 'home-view') {
         stopConfetti();
         currentTestFlow = [];
         currentQuizQuestions = [];
         currentModuleIndex = 0;
         currentQuestionNumber = 1;
         userAnswers = {};
-    
-    // --- START OF ADDITION D.3 ---
-    else if (viewId === 'manual-break-view') {
-        console.log("Now in manual break view.");
-        // Stop any active test/quiz timers when entering the break
-        if (moduleTimerInterval) clearInterval(moduleTimerInterval); 
-        if (practiceQuizTimerInterval) clearInterval(practiceQuizTimerInterval); 
-        // The main timer display (timerTextEl) might show the last module's time or 00:00.
-        // The manual break view has its own text and doesn't use an automated timer.
     }
-    // --- END OF ADDITION D.3 ---
-
     updateNavigation();
 }
 
@@ -915,11 +800,6 @@ function updateNavigation() {
             nextBtnFooter.disabled = false;
         } else { // Last question of the module
             nextBtnFooter.textContent = "Review Section";
-            // --- START OF MODIFICATION 6.A ---
-            const currentMod = getCurrentModule();
-            // Disable "Review Section" if module time is not up (for timed modules)
-            nextBtnFooter.disabled = !currentModuleTimeUp && (currentMod && typeof currentMod.durationSeconds === 'number' && currentMod.durationSeconds > 0);
-            // --- END OF MODIFICATION 6.A ---
             // CHANGED: Disable "Review Section" if module time is not up
             nextBtnFooter.disabled = !currentModuleTimeUp && (getCurrentModule()?.durationSeconds > 0);
         }
@@ -928,91 +808,13 @@ function updateNavigation() {
         if (reviewNextBtnFooter) reviewNextBtnFooter.style.display = 'inline-block';
         
         if (reviewBackBtnFooter) reviewBackBtnFooter.disabled = false; // Can always go back to test interface from review
-/*
+
         if (reviewNextBtnFooter) {
             if (currentModuleIndex < currentTestFlow.length - 1) {
                 reviewNextBtnFooter.textContent = "Next Module";
-                const nextModuleInfo = getCurrentModule();
-                if (nextModuleInfo && typeof nextModuleInfo.durationSeconds === 'number') {
-    startModuleTimer(nextModuleInfo.durationSeconds);
-} else {
-    updateModuleTimerDisplay(0);
-}
             } else {
                 reviewNextBtnFooter.textContent = "Finish Test";
             }
-            */
-  // --- START OF REPLACEMENT E.1 ---
-        if (reviewNextBtnFooter) {
-            if (currentInteractionMode === 'single_quiz') {
-                reviewNextBtnFooter.textContent = "Finish Quiz";
-                reviewNextBtnFooter.disabled = false; // Always enabled to finish single quiz
-            } else { // full_test mode
-                if (currentModuleIndex < currentTestFlow.length - 1) {
-                    reviewNextBtnFooter.textContent = "Next Module";
-                } else {
-                    reviewNextBtnFooter.textContent = "Finish Test";
-                }
-                const currentMod = getCurrentModule();
-                reviewNextBtnFooter.disabled = !currentModuleTimeUp && (currentMod && typeof currentMod.durationSeconds === 'number' && currentMod.durationSeconds > 0);
-            }
-        }
-        // --- END OF REPLACEMENT E.1 ---
-
-        // --- START OF ADDITION G.1 ---
-// ADDED: Listener for "Continue After Break" button (manual break)
-if (continueAfterBreakBtn) {
-    continueAfterBreakBtn.addEventListener('click', async () => {
-        console.log("Continue after manual break button clicked.");
-        // currentModuleIndex should have been advanced to the next module (e.g., Math M1, index 2)
-        // *before* showing the manual-break-view.
-
-        if (currentModuleIndex < currentTestFlow.length) {
-            currentQuestionNumber = 1;
-            currentModuleTimeUp = false; // Reset for the new module
-
-            const nextQuizName = currentTestFlow[currentModuleIndex];
-            const nextModuleInfo = moduleMetadata[nextQuizName];
-
-            let jsonToLoadForNextModule = nextQuizName;
-            if (nextQuizName === "DT-T0-MT-M2") jsonToLoadForNextModule = "DT-T0-MT-M1"; // Example if M2 uses M1 data
-            
-            continueAfterBreakBtn.textContent = "Loading next section...";
-            continueAfterBreakBtn.disabled = true;
-
-            const success = await loadQuizData(jsonToLoadForNextModule);
-            
-            continueAfterBreakBtn.textContent = "Continue to Next Section";
-            continueAfterBreakBtn.disabled = false;
-
-            if (success && currentQuizQuestions.length > 0) {
-                // For full_test mode (which is the only mode that should reach here), start the module countdown timer
-                if (currentInteractionMode === 'full_test' && nextModuleInfo && typeof nextModuleInfo.durationSeconds === 'number') {
-                    startModuleTimer(nextModuleInfo.durationSeconds);
-                } else {
-                    console.warn(`Timer mode/config issue for module ${nextQuizName} after break. Expected full_test mode.`);
-                    updateModuleTimerDisplay(0);
-                }
-                populateQNavGrid();
-                showView('test-interface-view');
-            } else {
-                console.error("Failed to load next module after break or module has no questions.");
-                alert("Error loading the next module after break. Returning to home.");
-                showView('home-view');
-            }
-        } else {
-            console.error("Continue after break clicked, but no more modules in flow. This is unexpected.");
-            showView('finished-view'); // Fallback
-        }
-    });
-}
-// --- END OF ADDITION G.1 ---
-        
-        // --- START OF MODIFICATION 6.B ---
-            const currentMod = getCurrentModule();
-            // Disable "Next Module"/"Finish Test" if module time is not up (for timed modules)
-            reviewNextBtnFooter.disabled = !currentModuleTimeUp && (currentMod && typeof currentMod.durationSeconds === 'number' && currentMod.durationSeconds > 0);
-            // --- END OF MODIFICATION 6.B ---
             // CHANGED: Disable "Next Module" / "Finish Test" from review page if module time is not up
             reviewNextBtnFooter.disabled = !currentModuleTimeUp && (getCurrentModule()?.durationSeconds > 0);
         }
@@ -1044,58 +846,33 @@ function nextButtonClickHandler() {
 
 if(reviewNextBtnFooter) {
     // (Unchanged from Phase 3)
-    reviewNextBtnFooter.removeEventListener('click', reviewNextButtonClickHandler); 
-    reviewNextBtnFooter.addEventListener('click', reviewNextButtonClickHandler);
-}
-
-// --- START OF REPLACEMENT F.1 ---
-async function reviewNextButtonClickHandler() { 
-    if (currentView !== 'review-page-view') return;
-    recordTimeOnCurrentQuestion(); 
-
-    if (currentInteractionMode === 'single_quiz') {
-        console.log("Single practice quiz finished from review page. Transitioning to finished view.");
-        if (practiceQuizTimerInterval) clearInterval(practiceQuizTimerInterval);
-        showView('finished-view'); 
-        return; 
-    }
-
-    // Logic for full_test mode
-    // currentModuleIndex is 0-indexed.
-    // After R&W M1 (index 0), next is R&W M2 (index 1).
-    // After R&W M2 (index 1), next is BREAK, then Math M1 (index 2).
-    const IS_TIME_FOR_MANUAL_BREAK = (currentModuleIndex === 1 && currentTestFlow.length === 4); // After completing the 2nd module
-
-    if (IS_TIME_FOR_MANUAL_BREAK) {
-        console.log("Transitioning to manual break instruction screen from review page for module:", currentTestFlow[currentModuleIndex]);
-        currentModuleIndex++; // Advance index to prepare for Math M1 (index 2) after break
-        showView('manual-break-view'); 
-    } else {
+    reviewNextBtnFooter.addEventListener('click', async () => { 
+        if (currentView !== 'review-page-view') return;
+        recordTimeOnCurrentQuestion(); 
+        
         currentModuleIndex++;
         if (currentModuleIndex < currentTestFlow.length) {
             showView('module-over-view'); 
             setTimeout(async () => {
-                currentQuestionNumber = 1; 
-                currentModuleTimeUp = false; 
+                currentQuestionNumber = 1;
+                currentModuleTimeUp = false; // Reset for new module
 
                 const nextQuizName = currentTestFlow[currentModuleIndex];
                 const nextModuleInfo = moduleMetadata[nextQuizName];
-                
+
+                // For RW-M2, use DT-T0-RW-M1 JSON; for MT-M2, use DT-T0-MT-M1 JSON for data
                 let jsonToLoadForNextModule = nextQuizName;
                 if (nextQuizName === "DT-T0-RW-M2") jsonToLoadForNextModule = "DT-T0-RW-M1";
-                else if (nextQuizName === "DT-T0-MT-M2") jsonToLoadForNextModule = "DT-T0-MT-M1";
-
-                const success = await loadQuizData(jsonToLoadForNextModule);
-
+                if (nextQuizName === "DT-T0-MT-M2") jsonToLoadForNextModule = "DT-T0-MT-M1";
+                
+                const success = await loadQuizData(currentTestFlow[currentModuleIndex]);
                 if (success && currentQuizQuestions.length > 0) {
-                    // Only start module countdown timer if in full_test mode and duration is set
-                    if (currentInteractionMode === 'full_test' && nextModuleInfo && typeof nextModuleInfo.durationSeconds === 'number') {
+                    if (nextModuleInfo && typeof nextModuleInfo.durationSeconds === 'number') {
+                        // CHANGED: Start timer for the new module
                         startModuleTimer(nextModuleInfo.durationSeconds);
                     } else {
-                        // If it was a single quiz, this path shouldn't be taken due to early exit.
-                        // If somehow in full_test without duration, log warning.
-                        console.warn(`Full Test Mode: No duration for module ${nextQuizName}. Timer not started or display 00:00.`);
-                        updateModuleTimerDisplay(0); 
+                        console.warn(`No duration for module ${nextQuizName}. Timer not started.`);
+                        updateModuleTimerDisplay(0);
                     }
                     populateQNavGrid(); 
                     showView('test-interface-view');
@@ -1106,14 +883,12 @@ async function reviewNextButtonClickHandler() {
                 }
             }, 1000); 
         } else {
-            console.log("All modules finished (from review page). Transitioning to finished view.");
-            if (moduleTimerInterval) clearInterval(moduleTimerInterval); 
-            if (practiceQuizTimerInterval) clearInterval(practiceQuizTimerInterval); // Clear this too just in case
-            showView('finished-view'); 
+            console.log("All modules finished. Transitioning to finished view.");
+            if (moduleTimerInterval) clearInterval(moduleTimerInterval); // Stop timer if any was running
+            showView('finished-view');
         }
-    }
+    });
 }
-// --- END OF REPLACEMENT F.1 ---
 
 if(backBtnFooter) { 
     // (Unchanged from Phase 3)
@@ -1245,7 +1020,6 @@ if(exitExamConfirmBtn) { /* ... */ }
 
 
 // --- Start Button Event Listener ---
-/*
 if(startTestPreviewBtn) {
     startTestPreviewBtn.addEventListener('click', async () => {
         // CHANGED: Initialize student identifier on test start
@@ -1257,9 +1031,6 @@ if(startTestPreviewBtn) {
         isTimerHidden = false;
         isCrossOutToolActive = false;
         isHighlightingActive = false;
-        if(highlightsNotesBtn) highlightsNotesBtn.classList.remove('active');
-        if(calculatorOverlay) calculatorOverlay.classList.remove('visible');
-        if(referenceSheetPanel) referenceSheetPanel.classList.remove('visible');
         questionStartTime = 0;
         currentModuleTimeUp = false; // Reset module time up flag
         
@@ -1286,8 +1057,8 @@ if(startTestPreviewBtn) {
 
            // For RW-M2, use DT-T0-RW-M1 JSON; for MT-M2, use DT-T0-MT-M1 JSON for data
             let jsonToLoad = firstQuizName;
-            if (firstQuizName === "DT-T0-RW-M2") jsonToLoad = "DT-T0-RW-M2";
-            if (firstQuizName === "DT-T0-MT-M2") jsonToLoad = "DT-T0-MT-M2";
+            if (firstQuizName === "DT-T0-RW-M2") jsonToLoad = "DT-T0-RW-M1";
+            if (firstQuizName === "DT-T0-MT-M2") jsonToLoad = "DT-T0-MT-M1";
             
             const success = await loadQuizData(firstQuizName); 
             
@@ -1296,7 +1067,6 @@ if(startTestPreviewBtn) {
 
             if (success && currentQuizQuestions.length > 0) {
                 console.log("Initial quiz data loaded successfully");
-                const moduleInfo = getCurrentModule();
                 if (moduleInfo && typeof moduleInfo.durationSeconds === 'number') {
                     // CHANGED: Start module timer
                     startModuleTimer(moduleInfo.durationSeconds);
@@ -1321,125 +1091,6 @@ if(startTestPreviewBtn) {
         }
     });
 }
-*/
-// COMMENTED OUT: Original startTestPreviewBtn listener as its ID has changed
-/*
-if(startTestPreviewBtn) { // Or whatever your old start button ID was
-    startTestPreviewBtn.addEventListener('click', async () => {
-        // ... your existing logic that launched the 4-module test ...
-    });
-}
-*/
-
-// --- START OF REPLACEMENT/ADDITION C.1 (Phase 6 - New Start Button Listeners) ---
-// Listener for "Start Full Practice Test"
-if(startFullPracticeTestBtn) {
-    startFullPracticeTestBtn.addEventListener('click', async () => {
-        initializeStudentIdentifier(); 
-        console.log("Start Full Practice Test button clicked."); 
-        
-        currentInteractionMode = 'full_test'; // Set mode
-        currentModuleIndex = 0;
-        currentQuestionNumber = 1;
-        userAnswers = {}; 
-        isTimerHidden = false;
-        isCrossOutToolActive = false;
-        isHighlightingActive = false; if(highlightsNotesBtn) highlightsNotesBtn.classList.remove('active');
-        if(calculatorOverlay) calculatorOverlay.classList.remove('visible');
-        if(referenceSheetPanel) referenceSheetPanel.classList.remove('visible');
-        currentModuleTimeUp = false; 
-
-        currentTestFlow = ["DT-T0-RW-M1", "DT-T0-RW-M2", "DT-T0-MT-M1", "DT-T0-MT-M2"]; 
-        console.log("Test flow set for Full Practice Test:", currentTestFlow); 
-
-        if (currentTestFlow.length > 0) {
-            const firstQuizName = currentTestFlow[currentModuleIndex];
-            const moduleInfo = moduleMetadata[firstQuizName];
-            
-            startFullPracticeTestBtn.textContent = "Loading...";
-            startFullPracticeTestBtn.disabled = true;
-            
-            let jsonToLoad = firstQuizName;
-            if (firstQuizName === "DT-T0-RW-M2") jsonToLoad = "DT-T0-RW-M1";
-            else if (firstQuizName === "DT-T0-MT-M2") jsonToLoad = "DT-T0-MT-M1";
-            
-            const success = await loadQuizData(jsonToLoad); 
-            
-            startFullPracticeTestBtn.textContent = "Start Full Test"; 
-            startFullPracticeTestBtn.disabled = false; 
-
-            if (success && currentQuizQuestions.length > 0) {
-                if (moduleInfo && typeof moduleInfo.durationSeconds === 'number') {
-                    startModuleTimer(moduleInfo.durationSeconds); 
-                } else {
-                    console.warn(`Full Test Mode: No duration for module ${firstQuizName}. Timer not started or showing 00:00.`);
-                    updateModuleTimerDisplay(0); 
-                }
-                populateQNavGrid(); 
-                showView('test-interface-view'); 
-            } else {
-                console.error("Failed to load initial quiz data for full test.");
-                alert("Could not start the full test. Check console.");
-                showView('home-view'); 
-            }
-        } else { 
-            console.error("Full test flow is empty.");
-            alert("Full test configuration error.");
-        }
-    });
-}
-
-// Listener for "Start Single Practice Quiz"
-if(startSinglePracticeQuizBtn) {
-    startSinglePracticeQuizBtn.addEventListener('click', async () => {
-        initializeStudentIdentifier();
-        console.log("Start Single Practice Quiz button clicked.");
-
-        currentInteractionMode = 'single_quiz'; // Set mode
-        currentModuleIndex = 0; 
-        currentQuestionNumber = 1;
-        userAnswers = {};
-        isTimerHidden = false;
-        isCrossOutToolActive = false;
-        isHighlightingActive = false; if(highlightsNotesBtn) highlightsNotesBtn.classList.remove('active');
-        if(calculatorOverlay) calculatorOverlay.classList.remove('visible');
-        if(referenceSheetPanel) referenceSheetPanel.classList.remove('visible');
-        // currentModuleTimeUp is not relevant for single quiz with upward timer
-
-        // For testing, let's use DT-T0-MT-M1 as the single practice quiz
-        // You can change "DT-T0-MT-M1" to any other single quizName for testing this mode
-        currentTestFlow = ["DT-T0-MT-M1"]; 
-        console.log("Test flow set for Single Practice Quiz:", currentTestFlow);
-
-        if (currentTestFlow.length > 0) {
-            const quizName = currentTestFlow[0];
-            
-            startSinglePracticeQuizBtn.textContent = "Loading...";
-            startSinglePracticeQuizBtn.disabled = true;
-
-            const success = await loadQuizData(quizName);
-
-            startSinglePracticeQuizBtn.textContent = "Start Single Quiz";
-            startSinglePracticeQuizBtn.disabled = false;
-
-            if (success && currentQuizQuestions.length > 0) {
-                startPracticeQuizTimer(); // Start upward counting timer
-                populateQNavGrid();
-                showView('test-interface-view');
-            } else {
-                console.error("Failed to load data for single practice quiz.");
-                alert("Could not start the practice quiz. Check console.");
-                showView('home-view');
-            }
-        } else { 
-            console.error("Single quiz flow is empty.");
-            alert("Single quiz configuration error.");
-        }
-    });
-}
-// --- END OF REPLACEMENT/ADDITION C.1 ---
-
-
 
 // --- CHANGED: SUBMISSION LOGIC (NEW FUNCTION) ---
 // CHANGED: submitQuizData function completely revised to align with old working script and use data from answerState
