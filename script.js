@@ -2001,7 +2001,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     // updateNavigation() is called by showView()
 });
-*/
+
 // AT THE VERY END OF YOUR SCRIPT.JS
 // (Ensure any older DOMContentLoaded listener is removed or commented out)
 
@@ -2191,6 +2191,110 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 */
+
+// AT THE VERY END OF YOUR SCRIPT.JS
+// COMMENT OUT OR DELETE ANY OTHER DOMContentLoaded listener you might have.
+
+// CHANGED: DOMContentLoaded listener to correctly handle email prompt THEN URL parameters.
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log("DEBUG DOMContentLoaded: Initializing application.");
+
+    // Step 1: Always try to initialize student identifier first
+    const emailIsValid = initializeStudentIdentifier(); 
+    console.log(`DEBUG DOMContentLoaded: Email valid from localStorage? ${emailIsValid}. Current email: ${studentEmailForSubmission}`);
+
+    // Step 2: Check for URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const quizNameFromUrl = urlParams.get('quiz_name');
+    const testIdFromUrl = urlParams.get('test_id'); // Check for test_id as well
+    const sourceFromUrl = urlParams.get('source'); 
+
+    if (sourceFromUrl) {
+        globalQuizSource = sourceFromUrl;
+        console.log(`DEBUG DOMContentLoaded: URL 'source' parameter found: ${globalQuizSource}`);
+    }
+
+    // Step 3: Decide initial view based on email validity and URL parameters
+    if (!emailIsValid) {
+        // Email is NOT valid/found -> Must show email input screen first.
+        // The submitEmailBtn listener will then handle launching a specific quiz/test if params were present.
+        console.log(`DEBUG DOMContentLoaded: No valid email. Showing email input screen. URL params (if any): quiz_name=${quizNameFromUrl}, test_id=${testIdFromUrl}`);
+        showView('email-input-view');
+    } else {
+        // Email IS valid. Now check if we need to launch a specific quiz/test or go to home.
+        console.log(`DEBUG DOMContentLoaded: Email is valid (${studentEmailForSubmission}). Checking for direct launch params.`);
+        if (quizNameFromUrl) {
+            // Launch single quiz directly
+            console.log(`DEBUG DOMContentLoaded: Launching single quiz from URL: ${quizNameFromUrl}`);
+            currentInteractionMode = 'single_quiz'; 
+            currentTestFlow = [quizNameFromUrl];
+            // Reset states for single quiz
+            currentModuleIndex = 0; currentQuestionNumber = 1; userAnswers = {};
+            isTimerHidden = false; isCrossOutToolActive = false; isHighlightingActive = false;
+            if(highlightsNotesBtn) highlightsNotesBtn.classList.remove('active');
+            if(calculatorOverlay) calculatorOverlay.classList.remove('visible');
+            if(referenceSheetPanel) referenceSheetPanel.classList.remove('visible');
+            currentModuleTimeUp = false; 
+
+            const success = await loadQuizData(quizNameFromUrl);
+            if (success && currentQuizQuestions.length > 0) {
+                startPracticeQuizTimer(); 
+                populateQNavGrid();
+                showView('test-interface-view'); 
+            } else {
+                alert(`Could not load the specified quiz: ${quizNameFromUrl}. Displaying home screen.`);
+                showView('home-view'); 
+            }
+        } else if (testIdFromUrl) {
+            // Launch full test directly
+            console.log(`DEBUG DOMContentLoaded: Launching full test from URL: ${testIdFromUrl}`);
+            if (fullTestDefinitions[testIdFromUrl]) {
+                currentInteractionMode = 'full_test';
+                currentTestFlow = fullTestDefinitions[testIdFromUrl].flow;
+                // Reset states for full test
+                currentModuleIndex = 0; currentQuestionNumber = 1; userAnswers = {};
+                isTimerHidden = false; isCrossOutToolActive = false; isHighlightingActive = false;
+                if(highlightsNotesBtn) highlightsNotesBtn.classList.remove('active');
+                if(calculatorOverlay) calculatorOverlay.classList.remove('visible');
+                if(referenceSheetPanel) referenceSheetPanel.classList.remove('visible');
+                currentModuleTimeUp = false;
+
+                if (currentTestFlow && currentTestFlow.length > 0) {
+                    const firstQuizName = currentTestFlow[currentModuleIndex];
+                    const moduleInfo = moduleMetadata[firstQuizName];
+                    
+                    let jsonToLoad = firstQuizName; 
+                    if (firstQuizName === "DT-T0-RW-M2") jsonToLoad = "DT-T0-RW-M1"; // Adjust if you have actual M2 files
+                    else if (firstQuizName === "DT-T0-MT-M2") jsonToLoad = "DT-T0-MT-M1"; // Adjust
+
+                    const success = await loadQuizData(jsonToLoad);
+                    if (success && currentQuizQuestions.length > 0) {
+                        if (moduleInfo && typeof moduleInfo.durationSeconds === 'number') {
+                            startModuleTimer(moduleInfo.durationSeconds);
+                        } else { updateModuleTimerDisplay(0); }
+                        populateQNavGrid();
+                        showView('test-interface-view');
+                    } else {
+                        alert(`Could not load initial module for test: ${testIdFromUrl}.`);
+                        showView('home-view');
+                    }
+                } else {
+                    alert(`Test ID '${testIdFromUrl}' found, but no flow defined for it.`);
+                    showView('home-view');
+                }
+            } else {
+                alert(`Unknown Test ID: ${testIdFromUrl}. Cannot start test.`);
+                showView('home-view');
+            }
+        } else {
+            // No specific quiz or test in URL, and email is valid -> Show home screen.
+            console.log("DEBUG DOMContentLoaded: Email valid, no direct launch params. Displaying home screen.");
+            showView('home-view');
+        }
+    }
+    // updateNavigation() is implicitly called by showView()
+});
+
 // =======================================================================
 // === END OF ADDED/RESTORED CODE                                      ===
 // =======================================================================
