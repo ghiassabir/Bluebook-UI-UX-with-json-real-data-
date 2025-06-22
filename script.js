@@ -37,37 +37,38 @@ const fullTestDefinitions = {
     "DT-T0": { // This is the test_id value from the URL
         flow: ["DT-T0-RW-M1", "DT-T0-RW-M2", "DT-T0-MT-M1", "DT-T0-MT-M2"],
         name: "Digital SAT Practice Test 0 Preview" // Optional: for logging or future UI
-    }
+    },
     // Add other full test definitions here if you have more Test IDs
     // "ANOTHER-TEST-ID": { flow: ["quizA", "quizB", ...], name: "Another Full Test"}
     "CBT-T4": { // This is the test_id value from the URL
         flow: ["CBT-T4-RW-M1", "CBT-T4-RW-M2", "CBT-T4-MT-M1", "CBT-T4-MT-M2"],
         name: "Digital SAT Practice Test 0 Preview" // Optional: for logging or future UI
-    }
+    },
     "CBT-T5": { // This is the test_id value from the URL
         flow: ["CBT-T5-RW-M1", "CBT-T5-RW-M2", "CBT-T5-MT-M1", "CBT-T5-MT-M2"],
         name: "Digital SAT Practice Test 5 Preview" // Optional: for logging or future UI
-    }
+    },
     "CBT-T6": { // This is the test_id value from the URL
         flow: ["CBT-T6-RW-M1", "CBT-T6-RW-M2", "CBT-T6-MT-M1", "CBT-T6-MT-M2"],
         name: "Digital SAT Practice Test 6" // Optional: for logging or future UI
-    }
+    },
     "CBT-T7": { // This is the test_id value from the URL
         flow: ["CBT-T7-RW-M1", "CBT-T7-RW-M2", "CBT-T7-MT-M1", "CBT-T7-MT-M2"],
         name: "Digital SAT Practice Test 7" // Optional: for logging or future UI
-    }
+    },
     "CBT-T8": { // This is the test_id value from the URL
         flow: ["CBT-T8-RW-M1", "CBT-T8-RW-M2", "CBT-T8-MT-M1", "CBT-T8-MT-M2"],
         name: "Digital SAT Practice Test 8" // Optional: for logging or future UI
-    }
+    },
     "CBT-T9": { // This is the test_id value from the URL
         flow: ["CBT-T9-RW-M1", "CBT-T9-RW-M2", "CBT-T9-MT-M1", "CBT-T9-MT-M2"],
         name: "Digital SAT Practice Test 9" // Optional: for logging or future UI
-    }
+    },
     "CBT-T10": { // This is the test_id value from the URL
         flow: ["CBT-T10-RW-M1", "CBT-T10-RW-M2", "CBT-T10-MT-M1", "CBT-T10-MT-M2"],
         name: "Digital SAT Practice Test 10" // Optional: for logging or future UI
     }
+       
 };
 
 const moduleMetadata = {
