@@ -2001,7 +2001,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     // updateNavigation() is called by showView()
 });
-
+*/
 // AT THE VERY END OF YOUR SCRIPT.JS
 // (Ensure any older DOMContentLoaded listener is removed or commented out)
 
@@ -2072,8 +2072,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     // updateNavigation() is called by showView()
 });
-*/
 
+/*
 // REPLACE your existing DOMContentLoaded listener with this:
 document.addEventListener('DOMContentLoaded', async () => {
     console.log("DEBUG DOMContentLoaded: Initializing application state and view.");
@@ -2190,7 +2190,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 });
-
+*/
 // =======================================================================
 // === END OF ADDED/RESTORED CODE                                      ===
 // =======================================================================
