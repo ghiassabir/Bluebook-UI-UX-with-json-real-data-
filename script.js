@@ -24,7 +24,7 @@ let questionStartTime = 0;
 let moduleTimerInterval;
 let currentModuleTimeLeft = 0;
 let currentModuleTimeUp = false; 
-let studentEmailForSubmission = "anonymous_student@example.com"; 
+//let studentEmailForSubmission = "anonymous_student@example.com"; 
 let currentInteractionMode = 'full_test'; 
 let practiceQuizTimerInterval;
 let practiceQuizTimeElapsed = 0;
