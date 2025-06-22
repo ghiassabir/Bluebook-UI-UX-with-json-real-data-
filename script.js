@@ -1829,6 +1829,7 @@ console.log("Attempting to submit quiz data (Phase 4 - Corrected Logic)...");
 
 // --- DOMContentLoaded ---
 // REPLACE your existing DOMContentLoaded listener with this:
+/*
 document.addEventListener('DOMContentLoaded', async () => {
     console.log("DOM Content Loaded. Initializing...");
 
@@ -1872,6 +1873,79 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     // updateNavigation() is called by showView()
 });
+*/
+
+// AT THE VERY END OF YOUR SCRIPT.JS
+// (Ensure any older DOMContentLoaded listener is removed or commented out)
+
+// CHANGED: DOMContentLoaded listener to handle URL parameters for direct quiz launch
+// AND integrate with the new email input flow.
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log("DEBUG DOMContentLoaded: Initializing application state and view.");
+
+    const emailIsValid = initializeStudentIdentifier(); // This function now returns true/false
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const quizNameFromUrl = urlParams.get('quiz_name');
+    const sourceFromUrl = urlParams.get('source'); 
+    
+    if (sourceFromUrl) { // Store source if present, regardless of other conditions
+        globalQuizSource = sourceFromUrl; 
+        console.log(`DEBUG DOMContentLoaded: URL parameter 'source' found and stored: ${globalQuizSource}`);
+    }
+
+    if (quizNameFromUrl) {
+        // A specific quiz is requested via URL
+        console.log(`DEBUG DOMContentLoaded: 'quiz_name' URL parameter found: ${quizNameFromUrl}.`);
+        if (emailIsValid) {
+            console.log(`DEBUG DOMContentLoaded: Email is valid. Proceeding to launch quiz: ${quizNameFromUrl} directly.`);
+            currentInteractionMode = 'single_quiz'; 
+            currentTestFlow = [quizNameFromUrl];
+            currentModuleIndex = 0; 
+            currentQuestionNumber = 1;
+            userAnswers = {};
+            // Reset other relevant states (timers, UI elements)
+            isTimerHidden = false;
+            isCrossOutToolActive = false;
+            isHighlightingActive = false; if(highlightsNotesBtn) highlightsNotesBtn.classList.remove('active');
+            if(calculatorOverlay) calculatorOverlay.classList.remove('visible');
+            if(referenceSheetPanel) referenceSheetPanel.classList.remove('visible');
+            currentModuleTimeUp = false; 
+
+            const success = await loadQuizData(quizNameFromUrl);
+
+            if (success && currentQuizQuestions.length > 0) {
+                console.log(`DEBUG DOMContentLoaded Direct launch: Data loaded for ${quizNameFromUrl}. Starting quiz timer and view.`);
+                startPracticeQuizTimer(); // Start upward counting timer for single quiz
+                populateQNavGrid();
+                showView('test-interface-view'); 
+            } else {
+                console.error(`DEBUG DOMContentLoaded Direct launch: Failed to load quiz data for ${quizNameFromUrl} or no questions found. Displaying home screen as fallback.`);
+                alert(`Could not load the specified quiz: ${quizNameFromUrl}.`);
+                showView('home-view'); // Fallback to home screen
+            }
+        } else {
+            // Quiz in URL, but email is NOT valid/found -> show email input screen first.
+            // The submitEmailBtn listener will then handle launching this specific quiz.
+            console.log(`DEBUG DOMContentLoaded: 'quiz_name' (${quizNameFromUrl}) found, but no valid email. Showing email input screen.`);
+            showView('email-input-view');
+        }
+    } else {
+        // No 'quiz_name' parameter in URL. Standard app start.
+        console.log("DEBUG DOMContentLoaded: No 'quiz_name' URL parameter.");
+        if (emailIsValid) {
+            // Email is valid, show the app's home screen for mode selection.
+            console.log("DEBUG DOMContentLoaded: Email is valid. Displaying home screen.");
+            showView('home-view');
+        } else {
+            // No email, show the email input screen. submitEmailBtn will lead to home-view.
+            console.log("DEBUG DOMContentLoaded: No valid email. Displaying email input screen.");
+            showView('email-input-view');
+        }
+    }
+    // updateNavigation() is called by showView()
+});
+
 
 // =======================================================================
 // === END OF ADDED/RESTORED CODE                                      ===
