@@ -9,6 +9,8 @@ function toggleModal(modalElement, show) {
 }
 
 // --- GLOBAL CONFIGURATION & STATE ---
+// Near top of script
+let studentEmailForSubmission = null; // Initialize as null
 let currentQuizQuestions = []; 
 let currentTestFlow = [];      
 let currentView = 'home';
@@ -177,6 +179,10 @@ const startFullPracticeTestBtn = document.getElementById('start-full-practice-te
 const startSinglePracticeQuizBtn = document.getElementById('start-single-practice-quiz-btn');
 const manualBreakViewEl = document.getElementById('manual-break-view');
 const continueAfterBreakBtn = document.getElementById('continue-after-break-btn');
+// Add with other DOM element consts
+const emailInputViewEl = document.getElementById('email-input-view');
+const studentEmailField = document.getElementById('student-email-field');
+const submitEmailBtn = document.getElementById('submit-email-btn');
 
 // Add listener for continueAfterBreakBtn (from your .txt file, ensure it's there)
 //if (continueAfterBreakBtn) { /* ... from your .txt file ... */ }
@@ -300,16 +306,19 @@ async function continueAfterBreakBtnClickHandler() { // Made it a named async fu
 }
 
 // --- Helper Functions --- (Keep all helper functions from your .txt file as they are for now)
-function initializeStudentIdentifier() { /* ... from your .txt file ... */ 
-    const storedEmail = localStorage.getItem('bluebookStudentEmail'); 
-    if (storedEmail && storedEmail.trim() !== "") { 
+function initializeStudentIdentifier() {
+    const storedEmail = localStorage.getItem('bluebookStudentEmail');
+    if (storedEmail && storedEmail.trim() !== "" && storedEmail.includes('@')) { // Basic validation
         studentEmailForSubmission = storedEmail;
         console.log(`Student identifier initialized from localStorage: ${studentEmailForSubmission}`);
+        return true; // Indicate email is validly set
     } else {
-        studentEmailForSubmission = "anonymous_student@example.com"; 
-        console.log(`No valid student identifier found in localStorage. Using default: ${studentEmailForSubmission}`);
+        studentEmailForSubmission = null; // Ensure it's null if invalid
+        console.log(`No valid student identifier found in localStorage.`);
+        return false; // Indicate email is NOT validly set
     }
 }
+
 function getCurrentModule() { /* ... from your .txt file ... */ 
     if (currentTestFlow.length > 0 && currentModuleIndex < currentTestFlow.length) {
         const currentQuizName = currentTestFlow[currentModuleIndex];
@@ -958,9 +967,55 @@ function loadQuestion() {
 // from your .txt file. They contain the new logic for mode handling.
 // Make sure the old if(startTestPreviewBtn) listener is removed or commented out.
 
+// Add with other event listeners
+if (submitEmailBtn) {
+    submitEmailBtn.addEventListener('click', () => {
+        if (studentEmailField && studentEmailField.value.trim() !== "" && studentEmailField.value.includes('@')) {
+            studentEmailForSubmission = studentEmailField.value.trim();
+            localStorage.setItem('bluebookStudentEmail', studentEmailForSubmission);
+            console.log(`Email submitted and saved to localStorage: ${studentEmailForSubmission}`);
+            
+            // After email is set, proceed to check URL params or show home
+            const urlParams = new URLSearchParams(window.location.search);
+            const quizNameFromUrl = urlParams.get('quiz_name');
+            // const sourceFromUrl = urlParams.get('source'); // Optional
+
+            if (quizNameFromUrl) {
+                // If there was a quiz in URL, try to launch it now that email is set
+                console.log(`Email set. Proceeding with direct quiz launch: ${quizNameFromUrl}`);
+                currentInteractionMode = 'single_quiz';
+                currentTestFlow = [quizNameFromUrl];
+                currentModuleIndex = 0;
+                currentQuestionNumber = 1;
+                userAnswers = {};
+                // ... (other state resets for quiz start)
+                
+                // Re-use the async part of the original DOMContentLoaded direct launch
+                (async () => {
+                    const success = await loadQuizData(quizNameFromUrl);
+                    if (success && currentQuizQuestions.length > 0) {
+                        startPracticeQuizTimer();
+                        populateQNavGrid();
+                        showView('test-interface-view');
+                    } else {
+                        alert(`Could not load the specified quiz: ${quizNameFromUrl} after email entry. Displaying home screen.`);
+                        showView('home-view');
+                    }
+                })();
+
+            } else {
+                // No quiz in URL, just go to home screen
+                showView('home-view');
+            }
+        } else {
+            alert("Please enter a valid email address.");
+        }
+    });
+}
+
 if(startFullPracticeTestBtn) {
     startFullPracticeTestBtn.addEventListener('click', async () => {
-        initializeStudentIdentifier(); 
+       // initializeStudentIdentifier(); 
         console.log("Start Full Practice Test button clicked."); 
         
         currentInteractionMode = 'full_test';
@@ -1021,7 +1076,7 @@ if(startFullPracticeTestBtn) {
 
 if(startSinglePracticeQuizBtn) {
     startSinglePracticeQuizBtn.addEventListener('click', async () => {
-        initializeStudentIdentifier();
+        //initializeStudentIdentifier();
         console.log("Start Single Practice Quiz button clicked.");
 
         currentInteractionMode = 'single_quiz';
@@ -1773,9 +1828,49 @@ console.log("Attempting to submit quiz data (Phase 4 - Corrected Logic)...");
 
 
 // --- DOMContentLoaded ---
-document.addEventListener('DOMContentLoaded', () => {
-    initializeStudentIdentifier(); 
-    updateNavigation(); 
+// REPLACE your existing DOMContentLoaded listener with this:
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log("DOM Content Loaded. Initializing...");
+
+    const emailIsValid = initializeStudentIdentifier(); // Tries to load from localStorage
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const quizNameFromUrl = urlParams.get('quiz_name');
+    // const sourceFromUrl = urlParams.get('source'); // Read if needed
+
+    if (emailIsValid) {
+        console.log(`Email found: ${studentEmailForSubmission}. Checking for direct quiz launch.`);
+        if (quizNameFromUrl) {
+            console.log(`URL parameter 'quiz_name' found: ${quizNameFromUrl}. Bypassing home screen.`);
+            // if (sourceFromUrl) console.log(`URL parameter 'source' found: ${sourceFromUrl}`);
+
+            currentInteractionMode = 'single_quiz';
+            currentTestFlow = [quizNameFromUrl];
+            currentModuleIndex = 0;
+            currentQuestionNumber = 1;
+            userAnswers = {};
+            // ... other state resets ...
+            
+            const success = await loadQuizData(quizNameFromUrl);
+            if (success && currentQuizQuestions.length > 0) {
+                startPracticeQuizTimer();
+                populateQNavGrid();
+                showView('test-interface-view');
+            } else {
+                alert(`Could not load the specified quiz: ${quizNameFromUrl}. Displaying home screen.`);
+                showView('home-view');
+            }
+        } else {
+            console.log("No 'quiz_name' URL parameter. Email is valid. Displaying home screen for mode selection.");
+            showView('home-view');
+        }
+    } else {
+        console.log("No valid email in localStorage. Displaying email input screen.");
+        // If there's a quiz_name in URL, email-input-view's "Continue" button will handle it.
+        // If not, it will proceed to home-view after email entry.
+        showView('email-input-view');
+    }
+    // updateNavigation() is called by showView()
 });
 
 // =======================================================================
