@@ -1146,7 +1146,7 @@ function loadQuestion() {
     }
     updateNavigation();
 }
-*/
+
 
 // Event Listeners for start buttons:
 // Keep the if(startFullPracticeTestBtn) and if(startSinglePracticeQuizBtn) blocks
