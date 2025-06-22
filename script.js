@@ -347,7 +347,120 @@ async function continueAfterBreakBtnClickHandler() { // Made it a named async fu
     }
 }
 
+
 // --- Helper Functions --- (Keep all helper functions from your .txt file as they are for now)
+
+// --- Helper function to attempt stem extraction (add this with other helper functions) ---
+function extractPassageAndStem(fullText) {
+    // List of common question-starting phrases (case-insensitive). Prioritize longer, more specific phrases.
+    // This list will likely need refinement based on your actual question data.
+    const stemStarters = [
+        "Which choice most effectively uses data from the chart to complete the example?", // Very specific
+        "Which quotation from .* most effectively illustrates that claim?", // Specific with placeholder
+        "Which choice best states the main purpose of the text?",
+        "Which choice best describes the function of the underlined sentence",
+        "Which choice best describes how the underlined sentence functions",
+        "Which choice best states the main idea of the text?",
+        "Which choice best completes the text with the most logical and precise word or phrase?",
+        "Which choice completes the text so that it conforms to the conventions of Standard English?",
+        "Which choice completes the text with the most logical transition?",
+        "The author of Passage 1 would most likely respond to",
+        "The author’s attitude toward .* can best be described as", // Specific with placeholder
+        "Washington's primary purpose in the text above is most likely", // From your example
+        "According to the text, which characteristic of a comet is most essential", // Example
+        "The text most strongly suggests that the encryption used by Julius Caesar was successful", // Example
+        "The text suggests that Maxwell was able to make a scientific breakthrough", // Example
+        "It is reasonable to conclude from the text that a bacteriostatic medicine", // Example
+        "The main idea conveyed in the above monologue can best be summarized as", // Example
+        "The student wants to emphasize a similarity", // Example
+        "Which of the following completes the text with the most specific expression", // Example
+        "Which sentence, if inserted in the underlined portion, would best strengthen", // Example
+        "As used in the text, what does the word",
+        "What function does the underlined sentence serve",
+        "Which choice best describes",
+        "Which choice best states",
+        "Which choice completes",
+        "The main purpose of the text is",
+        "The main idea of the passage is",
+        "According to the text,",
+        "The author implies that",
+        "The author's primary purpose in the passage is to",
+        "The passage primarily serves to",
+        "It can be inferred from the passage that"
+        // Add more as needed, from most specific to more general
+    ];
+
+    let passage = fullText;
+    let stem = "";
+
+    for (const starter of stemStarters) {
+        // Use a regex for case-insensitive search and to handle placeholders in starters
+        // For starters with placeholders like .*, we need to be careful or make them more specific if possible.
+        // For this example, I'll treat .* as a simple string part.
+        const regex = new RegExp(starter.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), "i"); // Escape special chars for regex
+        const matchIndex = passage.search(regex);
+
+        if (matchIndex !== -1) {
+            // Check if this starter phrase is reasonably close to the end, or if it's a very specific one
+            // This helps avoid matching something deep within a long passage.
+            // A simple heuristic: if it's in the latter half of the text, or a very unique starter.
+            // Or, more simply, just take the first one found from our prioritized list.
+            // For now, let's take the text from this match onwards as the stem.
+            
+            // A better approach might be to find the *last* occurrence of any of these,
+            // or the one that results in the shortest, most plausible stem.
+            // For simplicity here, let's assume the first match from the prioritized list is good.
+            
+            stem = fullText.substring(matchIndex);
+            passage = fullText.substring(0, matchIndex);
+            // console.log(`DEBUG extractPassageAndStem: Found starter "${starter}". Stem: "${stem.substring(0,50)}...", Passage: "...${passage.slice(-50)}"`);
+            break; // Found a likely stem, stop searching
+        }
+    }
+
+    if (!stem && passage.includes("?")) { // Fallback: if no starter found, but there's a question mark
+        const lastQuestionMark = passage.lastIndexOf("?");
+        if (lastQuestionMark !== -1 && passage.length - lastQuestionMark < 300) { // Arbitrary length for a plausible stem
+             // Try to find the beginning of the sentence containing the last question mark
+            let sentenceStart = passage.lastIndexOf(". ", lastQuestionMark) + 2;
+            if (sentenceStart === 1 || sentenceStart < lastQuestionMark - 300) sentenceStart = Math.max(0, lastQuestionMark - 300); // Limit stem length
+            
+            stem = passage.substring(sentenceStart, lastQuestionMark + 1).trim();
+            passage = passage.substring(0, sentenceStart).trim();
+            // console.log(`DEBUG extractPassageAndStem: Fallback using last '?'. Stem: "${stem.substring(0,50)}...", Passage: "...${passage.slice(-50)}"`);
+        }
+    }
+    
+    if (!stem) { // If still no stem, assume the whole thing is the stem (e.g., for short questions without explicit passage)
+        // This might happen for some grammar questions that are just one sentence.
+        // console.log("DEBUG extractPassageAndStem: No clear stem starter found, assuming entire text is stem, or passage is minimal.");
+        // If the text is short, maybe it's all stem. If long, maybe it's all passage.
+        // This part needs careful thought. For now, if no specific starter is found,
+        // let's assume for R&W the primary content is passage if it's long.
+        // The original problem was R&W MCQs putting everything in the left.
+        // If we can't find a stem, maybe the original behavior was better for those cases.
+        // OR, for R&W, if no stem found, put first N words in passage, rest in stem?
+        // This is where heuristics get very tricky.
+        // Let's try: if no stem found, and it's an R&W MCQ, assume the whole thing is passage
+        // and the question is implicitly "choose the best option". This means stem would be empty.
+        // This contradicts the goal of putting stem above options.
+        //
+        // Safer fallback: if no specific stem starter is found, put a small portion of the end as stem.
+        const words = fullText.split(' ');
+        if (words.length > 15) { // If text is reasonably long
+            const presumedStemWords = Math.min(15, Math.floor(words.length / 3)); // Take last 15 words or last third
+            stem = words.slice(-presumedStemWords).join(' ') + (fullText.endsWith('?') ? '' : '...'); // Add ellipsis if not ending with ?
+            passage = words.slice(0, words.length - presumedStemWords).join(' ');
+        } else { // Short text, assume it's all stem
+            stem = fullText;
+            passage = "";
+        }
+    }
+
+    return { passageText: passage.trim(), questionStem: stem.trim() };
+}
+
+
 function initializeStudentIdentifier() {
     const storedEmail = localStorage.getItem('bluebookStudentEmail');
     if (storedEmail && storedEmail.trim() !== "" && storedEmail.includes('@')) { // Basic validation
@@ -790,6 +903,7 @@ function showView(viewId) {
 }
 
 // At the VERY START of loadQuestion:
+
 function loadQuestion() {
     // --- DEBUG ---
     console.log(`DEBUG loadQuestion: CALLED. CMI: ${currentModuleIndex}, CQN: ${currentQuestionNumber}, Mode: ${currentInteractionMode}`);
@@ -864,11 +978,34 @@ function loadQuestion() {
     answerOptionsMainEl.style.display = 'none'; 
     sprInputContainerMain.style.display = 'none'; 
 
+    let passageForDisplay = "";
+    let stemForDisplay = currentQuestionDetails.question_text || '<p>Question text/stem missing.</p>';
 
-    if (currentQuestionDetails.question_type === 'student_produced_response') {
+    // Default to full text as stem
+
+    if (currentModuleInfo.type === "RW" && currentQuestionDetails.question_type.includes('multiple_choice')) {
+        const extracted = extractPassageAndStem(currentQuestionDetails.question_text);
+        passageForDisplay = extracted.passageText;
+        stemForDisplay = extracted.questionStem;
+        // console.log("DEBUG R&W Extracted - Passage:", passageForDisplay.substring(0,100)+"...", "Stem:", stemForDisplay.substring(0,100)+"...");
+
+        if (passageForDisplay) {
+            mainContentAreaDynamic.classList.remove('single-pane');
+            passagePane.style.display = 'flex'; 
+            paneDivider.style.display = 'block'; 
+            if(passageContentEl) passageContentEl.innerHTML = passageForDisplay;
+        } else {
+            // No distinct passage found, treat as single pane with stem only
+            mainContentAreaDynamic.classList.add('single-pane');
+        }
+        if(questionTextMainEl) questionTextMainEl.innerHTML = stemForDisplay || "<p>Question not found.</p>"; // Stem in right pane
+        answerOptionsMainEl.style.display = 'flex'; 
+        sprInputContainerMain.style.display = 'none';
+
+    } else if (currentQuestionDetails.question_type === 'student_produced_response') {
         mainContentAreaDynamic.classList.remove('single-pane');
         sprInstructionsPane.style.display = 'flex';
-        passagePane.style.display = 'none'; 
+        // passagePane.style.display = 'none'; 
         paneDivider.style.display = 'block';
         if(sprInstructionsContent) sprInstructionsContent.innerHTML = (currentModuleInfo.spr_directions || 'SPR Directions Missing') + (currentModuleInfo.spr_examples_table || '');
         
@@ -878,8 +1015,18 @@ function loadQuestion() {
         if(sprAnswerPreviewMain) sprAnswerPreviewMain.textContent = `Answer Preview: ${answerState.spr_answer || ''}`;
         answerOptionsMainEl.style.display = 'none';
 
-    } else if (currentModuleInfo.type === "RW" && currentQuestionDetails.question_type.includes('multiple_choice')) {
+    } else { // Math MCQs or other types that default to single-pane
+        mainContentAreaDynamic.classList.add('single-pane');
+        if(questionTextMainEl) questionTextMainEl.innerHTML = stemForDisplay; // Full question_text is the stem
+        answerOptionsMainEl.style.display = 'flex'; 
+        sprInputContainerMain.style.display = 'none';
+    }
+    // --- END CHANGED: Pane Content Logic ---
+               
+         // ... (MCQ option rendering logic - this remains the same, using currentQuestionDetails.option_a etc.) ...       
+        if (currentModuleInfo.type === "RW" && currentQuestionDetails.question_type.includes('multiple_choice')) {
         mainContentAreaDynamic.classList.remove('single-pane');
+
         passagePane.style.display = 'flex'; 
         paneDivider.style.display = 'block'; 
         
@@ -913,11 +1060,8 @@ function loadQuestion() {
         for (const [key, value] of Object.entries(options)) {
             const isSelected = (answerState.selected === value);
             const isCrossedOut = answerState.crossedOut.includes(key);
+            const containerDiv = document.createElement('div'); /*...*/ // Your full option rendering logic
             
-            // --- DEBUG ---
-            // console.log(`DEBUG loadQuestion - Option ${key} (text: "${value}"): isSelected check (answerState.selected: "${answerState.selected}" vs value: "${value}") -> ${isSelected}`);
-
-            const containerDiv = document.createElement('div');
             containerDiv.className = 'answer-option-container';
             containerDiv.dataset.optionKey = key;
             const optionDiv = document.createElement('div');
@@ -1002,7 +1146,7 @@ function loadQuestion() {
     }
     updateNavigation();
 }
-
+*/
 
 // Event Listeners for start buttons:
 // Keep the if(startFullPracticeTestBtn) and if(startSinglePracticeQuizBtn) blocks
@@ -1055,7 +1199,10 @@ if (submitEmailBtn) {
         }
     });
 }
-*/
+
+
+
+
 
 /*
 // Inside submitEmailBtn listener
