@@ -272,7 +272,6 @@ if (userAnswers[key] && (userAnswers[key].q_id.endsWith('-tmp') || !userAnswers[
     }
 }
 return userAnswers[key];
-Use code with caution.
 }
 function recordTimeOnCurrentQuestion() {
 if (questionStartTime > 0 && currentQuizQuestions && currentQuizQuestions.length > 0 && currentQuestionNumber > 0 && currentQuestionNumber <= currentQuizQuestions.length) {
