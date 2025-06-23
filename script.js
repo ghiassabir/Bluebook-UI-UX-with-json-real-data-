@@ -234,7 +234,8 @@ return currentQuizQuestions[currentQuestionNumber - 1];
 return null;
 }
 function getAnswerStateKey(moduleIdx = currentModuleIndex, qNum = currentQuestionNumber) {
-return ${moduleIdx}-${qNum};
+    // CHANGED: Added backticks for template literal
+    return `${moduleIdx}-${qNum}`; 
 }
 function getAnswerState(moduleIdx = currentModuleIndex, qNum = currentQuestionNumber) {
 const key = getAnswerStateKey(moduleIdx, qNum);
