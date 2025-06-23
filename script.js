@@ -329,15 +329,17 @@ moduleTimerInterval = setInterval(() => {
 
 
     }
-function updatePracticeQuizTimerDisplay(seconds) {
-if (!timerTextEl) return;
-const minutes = Math.floor(seconds / 60);
-const remainingSeconds = seconds % 60;
-const displayString = ${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')};
-timerTextEl.textContent = displayString;
-if (reviewTimerText && reviewTimerText !== timerTextEl) {
-reviewTimerText.textContent = displayString;
-}
+// Inside your script.js, correct this line within updatePracticeQuizTimerDisplay
+function updatePracticeQuizTimerDisplay(seconds) {  
+    if (!timerTextEl) return;
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    // CHANGED: Added backticks for template literal
+    const displayString = `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+    timerTextEl.textContent = displayString;
+    if (reviewTimerText && reviewTimerText !== timerTextEl) {
+        reviewTimerText.textContent = displayString;
+    } 
 }
 function startPracticeQuizTimer() {
 if (moduleTimerInterval) clearInterval(moduleTimerInterval);
