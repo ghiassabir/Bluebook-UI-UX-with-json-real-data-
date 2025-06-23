@@ -210,7 +210,8 @@ function initializeStudentIdentifier() {
 const storedEmail = localStorage.getItem('bluebookStudentEmail');
 if (storedEmail && storedEmail.trim() !== "" && storedEmail.includes('@')) {
 studentEmailForSubmission = storedEmail;
-console.log(Student identifier initialized from localStorage: ${studentEmailForSubmission});
+    // CHANGED: Added backticks for template literal
+        console.log(`Student identifier initialized from localStorage: ${studentEmailForSubmission}`);
 return true;
 } else {
 studentEmailForSubmission = null;
