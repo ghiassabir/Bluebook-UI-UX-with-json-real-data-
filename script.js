@@ -352,6 +352,8 @@ async function continueAfterBreakBtnClickHandler() { // Made it a named async fu
 
 // --- Helper function to attempt stem extraction (add this with other helper functions) ---
 function extractPassageAndStem(fullText) {
+    console.log("DEBUG extractPassageAndStem: Attempting to split full text (first 150 chars):", fullText.substring(0,150));
+    
     // List of common question-starting phrases (case-insensitive). Prioritize longer, more specific phrases.
     // This list will likely need refinement based on your actual question data.
     const stemStarters = [
@@ -392,7 +394,8 @@ function extractPassageAndStem(fullText) {
 
     let passage = fullText;
     let stem = "";
-
+    let foundStarter = null;
+    
     for (const starter of stemStarters) {
         // Use a regex for case-insensitive search and to handle placeholders in starters
         // For starters with placeholders like .*, we need to be careful or make them more specific if possible.
@@ -414,11 +417,48 @@ function extractPassageAndStem(fullText) {
             stem = fullText.substring(matchIndex);
             passage = fullText.substring(0, matchIndex);
             // console.log(`DEBUG extractPassageAndStem: Found starter "${starter}". Stem: "${stem.substring(0,50)}...", Passage: "...${passage.slice(-50)}"`);
+            console.log(`DEBUG extractPassageAndStem: MATCHED starter: "${foundStarter}"`);
             break; // Found a likely stem, stop searching
+            
         }
     }
 
-    if (!stem && passage.includes("?")) { // Fallback: if no starter found, but there's a question mark
+     if (!foundStarter) {
+        console.log("DEBUG extractPassageAndStem: NO specific starter phrase matched.");
+        // Fallback: if no starter found, assume the last sentence is the stem, if it contains a question mark.
+        // This is a very basic heuristic.
+        const lastSentenceEnd = fullText.lastIndexOf("?");
+        if (lastSentenceEnd > -1 && fullText.length - lastSentenceEnd < 250) { // Stem likely not >250 chars
+            let approxSentenceStart = fullText.substring(0, lastSentenceEnd).lastIndexOf(". ") + 2;
+            if (approxSentenceStart === 1 || lastSentenceEnd - approxSentenceStart > 250) { // if no ". " or sentence is too long
+                approxSentenceStart = Math.max(0, lastSentenceEnd - 150); // take approx 150 chars before ?
+            }
+            stem = fullText.substring(approxSentenceStart).trim();
+            passage = fullText.substring(0, approxSentenceStart).trim();
+            console.log("DEBUG extractPassageAndStem: Fallback - Used last question mark logic.");
+        } else {
+            // If still no clear stem, this is where it gets tricky.
+            // For R&W, if we can't split, the original behavior was to put all in left.
+            // To force stem to have content for testing "stem above options":
+            console.log("DEBUG extractPassageAndStem: Fallback - Could not reliably split. Putting most in passage, short tail in stem.");
+            const words = fullText.split(/\s+/);
+            if (words.length > 10) { // If there are enough words to split
+                const stemWordCount = Math.min(10, Math.floor(words.length * 0.25)); // Take last 10 words or 25%
+                stem = words.slice(-stemWordCount).join(" ");
+                passage = words.slice(0, words.length - stemWordCount).join(" ");
+            } else { // Very short, assume all is stem
+                stem = fullText;
+                passage = "";
+            }
+        }
+    }
+    
+    console.log(`DEBUG extractPassageAndStem FINAL - Passage (first 50): "${passage.substring(0,50)}...", Stem (first 50): "${stem.substring(0,50)}..."`);
+    return { passageText: passage.trim(), questionStem: stem.trim() };
+}
+
+/*
+if (!stem && passage.includes("?")) { // Fallback: if no starter found, but there's a question mark
         const lastQuestionMark = passage.lastIndexOf("?");
         if (lastQuestionMark !== -1 && passage.length - lastQuestionMark < 300) { // Arbitrary length for a plausible stem
              // Try to find the beginning of the sentence containing the last question mark
@@ -459,7 +499,7 @@ function extractPassageAndStem(fullText) {
 
     return { passageText: passage.trim(), questionStem: stem.trim() };
 }
-
+*/
 
 function initializeStudentIdentifier() {
     const storedEmail = localStorage.getItem('bluebookStudentEmail');
@@ -967,6 +1007,7 @@ function loadQuestion() {
     if(mainContentAreaDynamic) mainContentAreaDynamic.classList.toggle('cross-out-active', isCrossOutToolActive && currentQuestionDetails.question_type !== 'student_produced_response');
     if(crossOutToolBtnMain) crossOutToolBtnMain.classList.toggle('active', isCrossOutToolActive && currentQuestionDetails.question_type !== 'student_produced_response');
 
+    // --- REVISED: Pane Content Logic with Stem Extraction & Debugging ---
     passagePane.style.display = 'none';
     if (passageContentEl) passageContentEl.innerHTML = ''; 
     sprInstructionsPane.style.display = 'none';
@@ -978,18 +1019,73 @@ function loadQuestion() {
     answerOptionsMainEl.style.display = 'none'; 
     sprInputContainerMain.style.display = 'none'; 
 
-    let passageForDisplay = "";
-    let stemForDisplay = currentQuestionDetails.question_text || '<p>Question text/stem missing.</p>';
+    let finalPassageText = "";
+    let finalStemText = currentQuestionDetails.question_text || '<p>Question text missing.</p>'; // Default
+    
+    //let passageForDisplay = "";
+    //let stemForDisplay = currentQuestionDetails.question_text || '<p>Question text/stem missing.</p>';
 
     // Default to full text as stem
 
     if (currentModuleInfo.type === "RW" && currentQuestionDetails.question_type.includes('multiple_choice')) {
+        console.log("DEBUG loadQuestion: R&W MCQ detected. Attempting stem extraction.");
         const extracted = extractPassageAndStem(currentQuestionDetails.question_text);
-        passageForDisplay = extracted.passageText;
-        stemForDisplay = extracted.questionStem;
+        finalPassageText = extracted.passageText;
+        finalStemText = extracted.questionStem;
+        //passageForDisplay = extracted.passageText;
+        //stemForDisplay = extracted.questionStem;
         // console.log("DEBUG R&W Extracted - Passage:", passageForDisplay.substring(0,100)+"...", "Stem:", stemForDisplay.substring(0,100)+"...");
 
-        if (passageForDisplay) {
+        if (!finalStemText && finalPassageText) { // If extraction resulted in empty stem, put all in passage (original behavior)
+        console.warn("DEBUG loadQuestion: Stem extraction resulted in empty stem. Displaying full text as passage.");
+        finalStemText = ""; // Ensure stem area is empty
+    } else if (!finalPassageText && finalStemText) { // If extraction resulted in empty passage, all is stem
+         console.log("DEBUG loadQuestion: Stem extraction resulted in empty passage. Displaying full text as stem in single pane.");
+    }
+
+    if (finalPassageText) { // If there's content for the passage pane
+        mainContentAreaDynamic.classList.remove('single-pane');
+        passagePane.style.display = 'flex'; 
+        paneDivider.style.display = 'block'; 
+        if(passageContentEl) passageContentEl.innerHTML = finalPassageText;
+    } else { // No distinct passage, or treating as single pane
+        mainContentAreaDynamic.classList.add('single-pane');
+        passagePane.style.display = 'none';
+        paneDivider.style.display = 'none';
+    }
+
+        if(questionTextMainEl) questionTextMainEl.innerHTML = finalStemText || "<p>Question stem could not be determined.</p>"; 
+    answerOptionsMainEl.style.display = 'flex'; 
+    sprInputContainerMain.style.display = 'none';
+
+} else if (currentQuestionDetails.question_type === 'student_produced_response') {
+    console.log("DEBUG loadQuestion: SPR detected.");
+    mainContentAreaDynamic.classList.remove('single-pane');
+    sprInstructionsPane.style.display = 'flex';
+    passagePane.style.display = 'none'; // Ensure passage pane is hidden for SPR
+    paneDivider.style.display = 'block';
+    if(sprInstructionsContent) sprInstructionsContent.innerHTML = (currentModuleInfo.spr_directions || 'SPR Directions Missing') + (currentModuleInfo.spr_examples_table || '');
+    
+    if(questionTextMainEl) questionTextMainEl.innerHTML = finalStemText; // Full question_text is the stem for SPR
+    sprInputContainerMain.style.display = 'block';
+    if(sprInputFieldMain) sprInputFieldMain.value = answerState.spr_answer || '';
+    if(sprAnswerPreviewMain) sprAnswerPreviewMain.textContent = `Answer Preview: ${answerState.spr_answer || ''}`;
+    answerOptionsMainEl.style.display = 'none';
+
+} else { // Math MCQs or other single-pane types
+    console.log("DEBUG loadQuestion: Math MCQ or other single-pane type detected.");
+    mainContentAreaDynamic.classList.add('single-pane');
+    passagePane.style.display = 'none';
+    sprInstructionsPane.style.display = 'none';
+    paneDivider.style.display = 'none';
+
+    if(questionTextMainEl) questionTextMainEl.innerHTML = finalStemText; // Full question_text is the stem
+    answerOptionsMainEl.style.display = 'flex'; 
+    sprInputContainerMain.style.display = 'none';
+}
+// --- END REVISED: Pane Content Logic ---
+  /*      
+    if (passageForDisplay) {
             mainContentAreaDynamic.classList.remove('single-pane');
             passagePane.style.display = 'flex'; 
             paneDivider.style.display = 'block'; 
@@ -1014,8 +1110,8 @@ function loadQuestion() {
         if(sprInputFieldMain) sprInputFieldMain.value = answerState.spr_answer || '';
         if(sprAnswerPreviewMain) sprAnswerPreviewMain.textContent = `Answer Preview: ${answerState.spr_answer || ''}`;
         answerOptionsMainEl.style.display = 'none';
-
-    } else { // Math MCQs or other types that default to single-pane
+*/
+     else { // Math MCQs or other types that default to single-pane
         mainContentAreaDynamic.classList.add('single-pane');
         if(questionTextMainEl) questionTextMainEl.innerHTML = stemForDisplay; // Full question_text is the stem
         answerOptionsMainEl.style.display = 'flex'; 
