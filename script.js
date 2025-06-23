@@ -9,6 +9,8 @@ function toggleModal(modalElement, show) {
 }
 
 // --- GLOBAL CONFIGURATION & STATE ---
+// Near top of script
+let studentEmailForSubmission = null; // Initialize as null
 let currentQuizQuestions = []; 
 let currentTestFlow = [];      
 let currentView = 'home';
@@ -16,13 +18,16 @@ let currentModuleIndex = 0;
 let currentQuestionNumber = 1; 
 let userAnswers = {}; 
 let isTimerHidden = false;
+// Near line 20, after currentInteractionMode
+let globalOriginPageId = null; // To store the page ID from URL for "Go Back"
+let globalQuizSource = null;   // To store the source from URL
 let isCrossOutToolActive = false;
 let isHighlightingActive = false;
 let questionStartTime = 0;
 let moduleTimerInterval;
 let currentModuleTimeLeft = 0;
 let currentModuleTimeUp = false; 
-let studentEmailForSubmission = "anonymous_student@example.com"; 
+//let studentEmailForSubmission = "anonymous_student@example.com"; 
 let currentInteractionMode = 'full_test'; 
 let practiceQuizTimerInterval;
 let practiceQuizTimeElapsed = 0;
@@ -35,39 +40,39 @@ const fullTestDefinitions = {
     "DT-T0": { // This is the test_id value from the URL
         flow: ["DT-T0-RW-M1", "DT-T0-RW-M2", "DT-T0-MT-M1", "DT-T0-MT-M2"],
         name: "Digital SAT Practice Test 0 Preview" // Optional: for logging or future UI
-    }
+    },
     // Add other full test definitions here if you have more Test IDs
     // "ANOTHER-TEST-ID": { flow: ["quizA", "quizB", ...], name: "Another Full Test"}
     "CBT-T4": { // This is the test_id value from the URL
         flow: ["CBT-T4-RW-M1", "CBT-T4-RW-M2", "CBT-T4-MT-M1", "CBT-T4-MT-M2"],
         name: "Digital SAT Practice Test 0 Preview" // Optional: for logging or future UI
-    }
+    },
     "CBT-T5": { // This is the test_id value from the URL
         flow: ["CBT-T5-RW-M1", "CBT-T5-RW-M2", "CBT-T5-MT-M1", "CBT-T5-MT-M2"],
         name: "Digital SAT Practice Test 5 Preview" // Optional: for logging or future UI
-    }
+    },
     "CBT-T6": { // This is the test_id value from the URL
         flow: ["CBT-T6-RW-M1", "CBT-T6-RW-M2", "CBT-T6-MT-M1", "CBT-T6-MT-M2"],
         name: "Digital SAT Practice Test 6" // Optional: for logging or future UI
-    }
+    },
     "CBT-T7": { // This is the test_id value from the URL
         flow: ["CBT-T7-RW-M1", "CBT-T7-RW-M2", "CBT-T7-MT-M1", "CBT-T7-MT-M2"],
         name: "Digital SAT Practice Test 7" // Optional: for logging or future UI
-    }
+    },
     "CBT-T8": { // This is the test_id value from the URL
         flow: ["CBT-T8-RW-M1", "CBT-T8-RW-M2", "CBT-T8-MT-M1", "CBT-T8-MT-M2"],
         name: "Digital SAT Practice Test 8" // Optional: for logging or future UI
-    }
+    },
     "CBT-T9": { // This is the test_id value from the URL
         flow: ["CBT-T9-RW-M1", "CBT-T9-RW-M2", "CBT-T9-MT-M1", "CBT-T9-MT-M2"],
         name: "Digital SAT Practice Test 9" // Optional: for logging or future UI
-    }
+    },
     "CBT-T10": { // This is the test_id value from the URL
         flow: ["CBT-T10-RW-M1", "CBT-T10-RW-M2", "CBT-T10-MT-M1", "CBT-T10-MT-M2"],
         name: "Digital SAT Practice Test 10" // Optional: for logging or future UI
     }
+       
 };
-
 
 const moduleMetadata = {
     "DT-T0-RW-M1": {
@@ -216,6 +221,10 @@ const startFullPracticeTestBtn = document.getElementById('start-full-practice-te
 const startSinglePracticeQuizBtn = document.getElementById('start-single-practice-quiz-btn');
 const manualBreakViewEl = document.getElementById('manual-break-view');
 const continueAfterBreakBtn = document.getElementById('continue-after-break-btn');
+// Add with other DOM element consts
+const emailInputViewEl = document.getElementById('email-input-view');
+const studentEmailField = document.getElementById('student-email-field');
+const submitEmailBtn = document.getElementById('submit-email-btn');
 
 // Add listener for continueAfterBreakBtn (from your .txt file, ensure it's there)
 //if (continueAfterBreakBtn) { /* ... from your .txt file ... */ }
@@ -338,105 +347,133 @@ async function continueAfterBreakBtnClickHandler() { // Made it a named async fu
     }
 }
 
-// Inside submitEmailBtn listener
-if (submitEmailBtn) {
-    submitEmailBtn.addEventListener('click', () => { // Make this outer function async
-        if (studentEmailField && studentEmailField.value.trim() !== "" && studentEmailField.value.includes('@')) {
-            studentEmailForSubmission = studentEmailField.value.trim();
-            localStorage.setItem('bluebookStudentEmail', studentEmailForSubmission);
-            console.log(`Email submitted: ${studentEmailForSubmission} and saved to localStorage.`);
-            
-            const urlParams = new URLSearchParams(window.location.search);
-            const quizNameFromUrl = urlParams.get('quiz_name');
-            const testIdFromUrl = urlParams.get('test_id'); // CHANGED: Read test_id
-
-            // Prioritize quiz_name if both somehow exist
-            if (quizNameFromUrl) {
-                console.log(`Email set. Proceeding with direct single quiz launch: ${quizNameFromUrl}`);
-                currentInteractionMode = 'single_quiz';
-                currentTestFlow = [quizNameFromUrl];
-                // ... (reset states for single quiz) ...
-                currentModuleIndex = 0; currentQuestionNumber = 1; userAnswers = {};
-                isTimerHidden = false; isCrossOutToolActive = false; isHighlightingActive = false;
-                if(highlightsNotesBtn) highlightsNotesBtn.classList.remove('active');
-                if(calculatorOverlay) calculatorOverlay.classList.remove('visible');
-                if(referenceSheetPanel) referenceSheetPanel.classList.remove('visible');
-                currentModuleTimeUp = false; 
-
-                (async () => { // IIFE to use await
-                    const success = await loadQuizData(quizNameFromUrl);
-                    if (success && currentQuizQuestions.length > 0) {
-                        startPracticeQuizTimer();
-                        populateQNavGrid();
-                        showView('test-interface-view');
-                    } else {
-                        alert(`Could not load the specified quiz: ${quizNameFromUrl} after email entry. Displaying home screen.`);
-                        showView('home-view');
-                    }
-                })();
-            } else if (testIdFromUrl) { // CHANGED: Handle test_id after email submission
-                console.log(`Email set. Proceeding with direct full test launch: ${testIdFromUrl}`);
-                if (fullTestDefinitions[testIdFromUrl]) {
-                    currentInteractionMode = 'full_test';
-                    currentTestFlow = fullTestDefinitions[testIdFromUrl].flow;
-                    // ... (reset states for full test) ...
-                    currentModuleIndex = 0; currentQuestionNumber = 1; userAnswers = {};
-                    isTimerHidden = false; isCrossOutToolActive = false; isHighlightingActive = false;
-                    if(highlightsNotesBtn) highlightsNotesBtn.classList.remove('active');
-                    if(calculatorOverlay) calculatorOverlay.classList.remove('visible');
-                    if(referenceSheetPanel) referenceSheetPanel.classList.remove('visible');
-                    currentModuleTimeUp = false;
-
-                    if (currentTestFlow && currentTestFlow.length > 0) {
-                        (async () => { // IIFE
-                            const firstQuizName = currentTestFlow[currentModuleIndex];
-                            const moduleInfo = moduleMetadata[firstQuizName];
-                            let jsonToLoad = firstQuizName;
-                            if (firstQuizName === "DT-T0-RW-M2") jsonToLoad = "DT-T0-RW-M1";
-                            else if (firstQuizName === "DT-T0-MT-M2") jsonToLoad = "DT-T0-MT-M1";
-
-                            const success = await loadQuizData(jsonToLoad);
-                            if (success && currentQuizQuestions.length > 0) {
-                                if (moduleInfo && typeof moduleInfo.durationSeconds === 'number') {
-                                    startModuleTimer(moduleInfo.durationSeconds);
-                                } else { updateModuleTimerDisplay(0); }
-                                populateQNavGrid();
-                                showView('test-interface-view');
-                            } else {
-                                alert(`Could not load initial module for test: ${testIdFromUrl} after email entry.`);
-                                showView('home-view');
-                            }
-                        })();
-                    } else {
-                        alert(`Test ID '${testIdFromUrl}' found, but no flow defined after email entry.`);
-                        showView('home-view');
-                    }
-                } else {
-                    alert(`Unknown Test ID: ${testIdFromUrl} after email entry.`);
-                    showView('home-view');
-                }
-            } else {
-                // No specific quiz or test in URL, just go to home screen for mode selection
-                showView('home-view');
-            }
-        } else {
-            alert("Please enter a valid email address.");
-        }
-    });
-}
-
 
 // --- Helper Functions --- (Keep all helper functions from your .txt file as they are for now)
-function initializeStudentIdentifier() { /* ... from your .txt file ... */ 
-    const storedEmail = localStorage.getItem('bluebookStudentEmail'); 
-    if (storedEmail && storedEmail.trim() !== "") { 
+
+// --- Helper function to attempt stem extraction (add this with other helper functions) ---
+function extractPassageAndStem(fullText) {
+    // List of common question-starting phrases (case-insensitive). Prioritize longer, more specific phrases.
+    // This list will likely need refinement based on your actual question data.
+    const stemStarters = [
+        "Which choice most effectively uses data from the chart to complete the example?", // Very specific
+        "Which quotation from .* most effectively illustrates that claim?", // Specific with placeholder
+        "Which choice best states the main purpose of the text?",
+        "Which choice best describes the function of the underlined sentence",
+        "Which choice best describes how the underlined sentence functions",
+        "Which choice best states the main idea of the text?",
+        "Which choice best completes the text with the most logical and precise word or phrase?",
+        "Which choice completes the text so that it conforms to the conventions of Standard English?",
+        "Which choice completes the text with the most logical transition?",
+        "The author of Passage 1 would most likely respond to",
+        "The author’s attitude toward .* can best be described as", // Specific with placeholder
+        "Washington's primary purpose in the text above is most likely", // From your example
+        "According to the text, which characteristic of a comet is most essential", // Example
+        "The text most strongly suggests that the encryption used by Julius Caesar was successful", // Example
+        "The text suggests that Maxwell was able to make a scientific breakthrough", // Example
+        "It is reasonable to conclude from the text that a bacteriostatic medicine", // Example
+        "The main idea conveyed in the above monologue can best be summarized as", // Example
+        "The student wants to emphasize a similarity", // Example
+        "Which of the following completes the text with the most specific expression", // Example
+        "Which sentence, if inserted in the underlined portion, would best strengthen", // Example
+        "As used in the text, what does the word",
+        "What function does the underlined sentence serve",
+        "Which choice best describes",
+        "Which choice best states",
+        "Which choice completes",
+        "The main purpose of the text is",
+        "The main idea of the passage is",
+        "According to the text,",
+        "The author implies that",
+        "The author's primary purpose in the passage is to",
+        "The passage primarily serves to",
+        "It can be inferred from the passage that"
+        // Add more as needed, from most specific to more general
+    ];
+
+    let passage = fullText;
+    let stem = "";
+
+    for (const starter of stemStarters) {
+        // Use a regex for case-insensitive search and to handle placeholders in starters
+        // For starters with placeholders like .*, we need to be careful or make them more specific if possible.
+        // For this example, I'll treat .* as a simple string part.
+        const regex = new RegExp(starter.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), "i"); // Escape special chars for regex
+        const matchIndex = passage.search(regex);
+
+        if (matchIndex !== -1) {
+            // Check if this starter phrase is reasonably close to the end, or if it's a very specific one
+            // This helps avoid matching something deep within a long passage.
+            // A simple heuristic: if it's in the latter half of the text, or a very unique starter.
+            // Or, more simply, just take the first one found from our prioritized list.
+            // For now, let's take the text from this match onwards as the stem.
+            
+            // A better approach might be to find the *last* occurrence of any of these,
+            // or the one that results in the shortest, most plausible stem.
+            // For simplicity here, let's assume the first match from the prioritized list is good.
+            
+            stem = fullText.substring(matchIndex);
+            passage = fullText.substring(0, matchIndex);
+            // console.log(`DEBUG extractPassageAndStem: Found starter "${starter}". Stem: "${stem.substring(0,50)}...", Passage: "...${passage.slice(-50)}"`);
+            break; // Found a likely stem, stop searching
+        }
+    }
+
+    if (!stem && passage.includes("?")) { // Fallback: if no starter found, but there's a question mark
+        const lastQuestionMark = passage.lastIndexOf("?");
+        if (lastQuestionMark !== -1 && passage.length - lastQuestionMark < 300) { // Arbitrary length for a plausible stem
+             // Try to find the beginning of the sentence containing the last question mark
+            let sentenceStart = passage.lastIndexOf(". ", lastQuestionMark) + 2;
+            if (sentenceStart === 1 || sentenceStart < lastQuestionMark - 300) sentenceStart = Math.max(0, lastQuestionMark - 300); // Limit stem length
+            
+            stem = passage.substring(sentenceStart, lastQuestionMark + 1).trim();
+            passage = passage.substring(0, sentenceStart).trim();
+            // console.log(`DEBUG extractPassageAndStem: Fallback using last '?'. Stem: "${stem.substring(0,50)}...", Passage: "...${passage.slice(-50)}"`);
+        }
+    }
+    
+    if (!stem) { // If still no stem, assume the whole thing is the stem (e.g., for short questions without explicit passage)
+        // This might happen for some grammar questions that are just one sentence.
+        // console.log("DEBUG extractPassageAndStem: No clear stem starter found, assuming entire text is stem, or passage is minimal.");
+        // If the text is short, maybe it's all stem. If long, maybe it's all passage.
+        // This part needs careful thought. For now, if no specific starter is found,
+        // let's assume for R&W the primary content is passage if it's long.
+        // The original problem was R&W MCQs putting everything in the left.
+        // If we can't find a stem, maybe the original behavior was better for those cases.
+        // OR, for R&W, if no stem found, put first N words in passage, rest in stem?
+        // This is where heuristics get very tricky.
+        // Let's try: if no stem found, and it's an R&W MCQ, assume the whole thing is passage
+        // and the question is implicitly "choose the best option". This means stem would be empty.
+        // This contradicts the goal of putting stem above options.
+        //
+        // Safer fallback: if no specific stem starter is found, put a small portion of the end as stem.
+        const words = fullText.split(' ');
+        if (words.length > 15) { // If text is reasonably long
+            const presumedStemWords = Math.min(15, Math.floor(words.length / 3)); // Take last 15 words or last third
+            stem = words.slice(-presumedStemWords).join(' ') + (fullText.endsWith('?') ? '' : '...'); // Add ellipsis if not ending with ?
+            passage = words.slice(0, words.length - presumedStemWords).join(' ');
+        } else { // Short text, assume it's all stem
+            stem = fullText;
+            passage = "";
+        }
+    }
+
+    return { passageText: passage.trim(), questionStem: stem.trim() };
+}
+
+
+function initializeStudentIdentifier() {
+    const storedEmail = localStorage.getItem('bluebookStudentEmail');
+    if (storedEmail && storedEmail.trim() !== "" && storedEmail.includes('@')) { // Basic validation
         studentEmailForSubmission = storedEmail;
         console.log(`Student identifier initialized from localStorage: ${studentEmailForSubmission}`);
+        return true; // Indicate email is validly set
     } else {
-        studentEmailForSubmission = "anonymous_student@example.com"; 
-        console.log(`No valid student identifier found in localStorage. Using default: ${studentEmailForSubmission}`);
+        studentEmailForSubmission = null; // Ensure it's null if invalid
+        console.log(`No valid student identifier found in localStorage.`);
+        return false; // Indicate email is NOT validly set
     }
 }
+
 function getCurrentModule() { /* ... from your .txt file ... */ 
     if (currentTestFlow.length > 0 && currentModuleIndex < currentTestFlow.length) {
         const currentQuizName = currentTestFlow[currentModuleIndex];
@@ -866,6 +903,7 @@ function showView(viewId) {
 }
 
 // At the VERY START of loadQuestion:
+
 function loadQuestion() {
     // --- DEBUG ---
     console.log(`DEBUG loadQuestion: CALLED. CMI: ${currentModuleIndex}, CQN: ${currentQuestionNumber}, Mode: ${currentInteractionMode}`);
@@ -940,11 +978,34 @@ function loadQuestion() {
     answerOptionsMainEl.style.display = 'none'; 
     sprInputContainerMain.style.display = 'none'; 
 
+    let passageForDisplay = "";
+    let stemForDisplay = currentQuestionDetails.question_text || '<p>Question text/stem missing.</p>';
 
-    if (currentQuestionDetails.question_type === 'student_produced_response') {
+    // Default to full text as stem
+
+    if (currentModuleInfo.type === "RW" && currentQuestionDetails.question_type.includes('multiple_choice')) {
+        const extracted = extractPassageAndStem(currentQuestionDetails.question_text);
+        passageForDisplay = extracted.passageText;
+        stemForDisplay = extracted.questionStem;
+        // console.log("DEBUG R&W Extracted - Passage:", passageForDisplay.substring(0,100)+"...", "Stem:", stemForDisplay.substring(0,100)+"...");
+
+        if (passageForDisplay) {
+            mainContentAreaDynamic.classList.remove('single-pane');
+            passagePane.style.display = 'flex'; 
+            paneDivider.style.display = 'block'; 
+            if(passageContentEl) passageContentEl.innerHTML = passageForDisplay;
+        } else {
+            // No distinct passage found, treat as single pane with stem only
+            mainContentAreaDynamic.classList.add('single-pane');
+        }
+        if(questionTextMainEl) questionTextMainEl.innerHTML = stemForDisplay || "<p>Question not found.</p>"; // Stem in right pane
+        answerOptionsMainEl.style.display = 'flex'; 
+        sprInputContainerMain.style.display = 'none';
+
+    } else if (currentQuestionDetails.question_type === 'student_produced_response') {
         mainContentAreaDynamic.classList.remove('single-pane');
         sprInstructionsPane.style.display = 'flex';
-        passagePane.style.display = 'none'; 
+        // passagePane.style.display = 'none'; 
         paneDivider.style.display = 'block';
         if(sprInstructionsContent) sprInstructionsContent.innerHTML = (currentModuleInfo.spr_directions || 'SPR Directions Missing') + (currentModuleInfo.spr_examples_table || '');
         
@@ -954,8 +1015,18 @@ function loadQuestion() {
         if(sprAnswerPreviewMain) sprAnswerPreviewMain.textContent = `Answer Preview: ${answerState.spr_answer || ''}`;
         answerOptionsMainEl.style.display = 'none';
 
-    } else if (currentModuleInfo.type === "RW" && currentQuestionDetails.question_type.includes('multiple_choice')) {
+    } else { // Math MCQs or other types that default to single-pane
+        mainContentAreaDynamic.classList.add('single-pane');
+        if(questionTextMainEl) questionTextMainEl.innerHTML = stemForDisplay; // Full question_text is the stem
+        answerOptionsMainEl.style.display = 'flex'; 
+        sprInputContainerMain.style.display = 'none';
+    }
+    // --- END CHANGED: Pane Content Logic ---
+               
+         // ... (MCQ option rendering logic - this remains the same, using currentQuestionDetails.option_a etc.) ...       
+        if (currentModuleInfo.type === "RW" && currentQuestionDetails.question_type.includes('multiple_choice')) {
         mainContentAreaDynamic.classList.remove('single-pane');
+
         passagePane.style.display = 'flex'; 
         paneDivider.style.display = 'block'; 
         
@@ -989,11 +1060,8 @@ function loadQuestion() {
         for (const [key, value] of Object.entries(options)) {
             const isSelected = (answerState.selected === value);
             const isCrossedOut = answerState.crossedOut.includes(key);
+            const containerDiv = document.createElement('div'); /*...*/ // Your full option rendering logic
             
-            // --- DEBUG ---
-            // console.log(`DEBUG loadQuestion - Option ${key} (text: "${value}"): isSelected check (answerState.selected: "${answerState.selected}" vs value: "${value}") -> ${isSelected}`);
-
-            const containerDiv = document.createElement('div');
             containerDiv.className = 'answer-option-container';
             containerDiv.dataset.optionKey = key;
             const optionDiv = document.createElement('div');
@@ -1078,16 +1146,247 @@ function loadQuestion() {
     }
     updateNavigation();
 }
-
+*/
 
 // Event Listeners for start buttons:
 // Keep the if(startFullPracticeTestBtn) and if(startSinglePracticeQuizBtn) blocks
 // from your .txt file. They contain the new logic for mode handling.
 // Make sure the old if(startTestPreviewBtn) listener is removed or commented out.
 
+// Add with other event listeners
+/*
+if (submitEmailBtn) {
+    submitEmailBtn.addEventListener('click', () => {
+        if (studentEmailField && studentEmailField.value.trim() !== "" && studentEmailField.value.includes('@')) {
+            studentEmailForSubmission = studentEmailField.value.trim();
+            localStorage.setItem('bluebookStudentEmail', studentEmailForSubmission);
+            console.log(`Email submitted and saved to localStorage: ${studentEmailForSubmission}`);
+            
+            // After email is set, proceed to check URL params or show home
+            const urlParams = new URLSearchParams(window.location.search);
+            const quizNameFromUrl = urlParams.get('quiz_name');
+            // const sourceFromUrl = urlParams.get('source'); // Optional
+
+            if (quizNameFromUrl) {
+                // If there was a quiz in URL, try to launch it now that email is set
+                console.log(`Email set. Proceeding with direct quiz launch: ${quizNameFromUrl}`);
+                currentInteractionMode = 'single_quiz';
+                currentTestFlow = [quizNameFromUrl];
+                currentModuleIndex = 0;
+                currentQuestionNumber = 1;
+                userAnswers = {};
+                // ... (other state resets for quiz start)
+                
+                // Re-use the async part of the original DOMContentLoaded direct launch
+                (async () => {
+                    const success = await loadQuizData(quizNameFromUrl);
+                    if (success && currentQuizQuestions.length > 0) {
+                        startPracticeQuizTimer();
+                        populateQNavGrid();
+                        showView('test-interface-view');
+                    } else {
+                        alert(`Could not load the specified quiz: ${quizNameFromUrl} after email entry. Displaying home screen.`);
+                        showView('home-view');
+                    }
+                })();
+
+            } else {
+                // No quiz in URL, just go to home screen
+                showView('home-view');
+            }
+        } else {
+            alert("Please enter a valid email address.");
+        }
+    });
+}
+
+
+
+
+
+/*
+// Inside submitEmailBtn listener
+if (submitEmailBtn) {
+    submitEmailBtn.addEventListener('click', () => { // Make this outer function async
+        if (studentEmailField && studentEmailField.value.trim() !== "" && studentEmailField.value.includes('@')) {
+            studentEmailForSubmission = studentEmailField.value.trim();
+            localStorage.setItem('bluebookStudentEmail', studentEmailForSubmission);
+            console.log(`Email submitted: ${studentEmailForSubmission} and saved to localStorage.`);
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const quizNameFromUrl = urlParams.get('quiz_name');
+            const testIdFromUrl = urlParams.get('test_id'); // CHANGED: Read test_id
+
+            // Prioritize quiz_name if both somehow exist
+            if (quizNameFromUrl) {
+                console.log(`Email set. Proceeding with direct single quiz launch: ${quizNameFromUrl}`);
+                currentInteractionMode = 'single_quiz';
+                currentTestFlow = [quizNameFromUrl];
+                // ... (reset states for single quiz) ...
+                currentModuleIndex = 0; currentQuestionNumber = 1; userAnswers = {};
+                isTimerHidden = false; isCrossOutToolActive = false; isHighlightingActive = false;
+                if(highlightsNotesBtn) highlightsNotesBtn.classList.remove('active');
+                if(calculatorOverlay) calculatorOverlay.classList.remove('visible');
+                if(referenceSheetPanel) referenceSheetPanel.classList.remove('visible');
+                currentModuleTimeUp = false; 
+
+                (async () => { // IIFE to use await
+                    const success = await loadQuizData(quizNameFromUrl);
+                    if (success && currentQuizQuestions.length > 0) {
+                        startPracticeQuizTimer();
+                        populateQNavGrid();
+                        showView('test-interface-view');
+                    } else {
+                        alert(`Could not load the specified quiz: ${quizNameFromUrl} after email entry. Displaying home screen.`);
+                        showView('home-view');
+                    }
+                })();
+            } else if (testIdFromUrl) { // CHANGED: Handle test_id after email submission
+                console.log(`Email set. Proceeding with direct full test launch: ${testIdFromUrl}`);
+                if (fullTestDefinitions[testIdFromUrl]) {
+                    currentInteractionMode = 'full_test';
+                    currentTestFlow = fullTestDefinitions[testIdFromUrl].flow;
+                    // ... (reset states for full test) ...
+                    currentModuleIndex = 0; currentQuestionNumber = 1; userAnswers = {};
+                    isTimerHidden = false; isCrossOutToolActive = false; isHighlightingActive = false;
+                    if(highlightsNotesBtn) highlightsNotesBtn.classList.remove('active');
+                    if(calculatorOverlay) calculatorOverlay.classList.remove('visible');
+                    if(referenceSheetPanel) referenceSheetPanel.classList.remove('visible');
+                    currentModuleTimeUp = false;
+
+                    if (currentTestFlow && currentTestFlow.length > 0) {
+                        (async () => { // IIFE
+                            const firstQuizName = currentTestFlow[currentModuleIndex];
+                            const moduleInfo = moduleMetadata[firstQuizName];
+                            let jsonToLoad = firstQuizName;
+                            if (firstQuizName === "DT-T0-RW-M2") jsonToLoad = "DT-T0-RW-M1";
+                            else if (firstQuizName === "DT-T0-MT-M2") jsonToLoad = "DT-T0-MT-M1";
+
+                            const success = await loadQuizData(jsonToLoad);
+                            if (success && currentQuizQuestions.length > 0) {
+                                if (moduleInfo && typeof moduleInfo.durationSeconds === 'number') {
+                                    startModuleTimer(moduleInfo.durationSeconds);
+                                } else { updateModuleTimerDisplay(0); }
+                                populateQNavGrid();
+                                showView('test-interface-view');
+                            } else {
+                                alert(`Could not load initial module for test: ${testIdFromUrl} after email entry.`);
+                                showView('home-view');
+                            }
+                        })();
+                    } else {
+                        alert(`Test ID '${testIdFromUrl}' found, but no flow defined after email entry.`);
+                        showView('home-view');
+                    }
+                } else {
+                    alert(`Unknown Test ID: ${testIdFromUrl} after email entry.`);
+                    showView('home-view');
+                }
+            } else {
+                // No specific quiz or test in URL, just go to home screen for mode selection
+                showView('home-view');
+            }
+        } else {
+            alert("Please enter a valid email address.");
+        }
+    });
+}
+*/
+
+//   **Find your `submitEmailBtn` listener (around line 1100 in the script you provided):**
+//   **Replace its entire `if (submitEmailBtn) { ... }` block with this:**
+  
+    // CHANGED: submitEmailBtn listener updated to check for test_id and quiz_name from URL
+    if (submitEmailBtn) {
+        submitEmailBtn.addEventListener('click', async () => { // Added async here
+            if (studentEmailField && studentEmailField.value.trim() !== "" && studentEmailField.value.includes('@')) {
+                studentEmailForSubmission = studentEmailField.value.trim();
+                localStorage.setItem('bluebookStudentEmail', studentEmailForSubmission);
+                console.log(`DEBUG submitEmailBtn: Email submitted: ${studentEmailForSubmission}, saved to localStorage.`);
+                
+                const urlParams = new URLSearchParams(window.location.search);
+                const quizNameFromUrl = urlParams.get('quiz_name');
+                const testIdFromUrl = urlParams.get('test_id');
+                // globalOriginPageId and globalQuizSource should have been set by DOMContentLoaded
+
+                console.log(`DEBUG submitEmailBtn: After email. quizNameFromUrl: ${quizNameFromUrl}, testIdFromUrl: ${testIdFromUrl}`);
+
+                if (testIdFromUrl) { // Prioritize test_id if present
+                    console.log(`DEBUG submitEmailBtn: Launching full test '${testIdFromUrl}' after email submission.`);
+                    if (fullTestDefinitions[testIdFromUrl]) {
+                        currentInteractionMode = 'full_test';
+                        currentTestFlow = fullTestDefinitions[testIdFromUrl].flow;
+                        // Reset states for full test
+                        currentModuleIndex = 0; currentQuestionNumber = 1; userAnswers = {};
+                        isTimerHidden = false; isCrossOutToolActive = false; isHighlightingActive = false;
+                        if(highlightsNotesBtn) highlightsNotesBtn.classList.remove('active');
+                        if(calculatorOverlay) calculatorOverlay.classList.remove('visible');
+                        if(referenceSheetPanel) referenceSheetPanel.classList.remove('visible');
+                        currentModuleTimeUp = false;
+
+                        if (currentTestFlow && currentTestFlow.length > 0) {
+                            const firstQuizName = currentTestFlow[currentModuleIndex];
+                            const moduleInfo = moduleMetadata[firstQuizName];
+                            let jsonToLoad = firstQuizName; // Adjust if using placeholders for M2
+                            if (firstQuizName === "DT-T0-RW-M2" && moduleMetadata[firstQuizName]?.isPlaceholder) jsonToLoad = "DT-T0-RW-M1";
+                            else if (firstQuizName === "DT-T0-MT-M2" && moduleMetadata[firstQuizName]?.isPlaceholder) jsonToLoad = "DT-T0-MT-M1";
+
+                            const success = await loadQuizData(jsonToLoad);
+                            if (success && currentQuizQuestions.length > 0) {
+                                if (moduleInfo && typeof moduleInfo.durationSeconds === 'number') {
+                                    startModuleTimer(moduleInfo.durationSeconds);
+                                } else { updateModuleTimerDisplay(0); }
+                                populateQNavGrid();
+                                showView('test-interface-view');
+                            } else {
+                                alert(`Could not load initial module for test: ${testIdFromUrl} after email entry.`);
+                                showView('home-view'); // Fallback to internal home
+                            }
+                        } else {
+                            alert(`Test ID '${testIdFromUrl}' found, but no flow defined after email entry.`);
+                            showView('home-view');
+                        }
+                    } else {
+                        alert(`Unknown Test ID: ${testIdFromUrl} after email entry.`);
+                        showView('home-view');
+                    }
+                } else if (quizNameFromUrl) {
+                    console.log(`DEBUG submitEmailBtn: Launching single quiz '${quizNameFromUrl}' after email submission.`);
+                    currentInteractionMode = 'single_quiz';
+                    currentTestFlow = [quizNameFromUrl];
+                    // Reset states for single quiz
+                    currentModuleIndex = 0; currentQuestionNumber = 1; userAnswers = {};
+                    isTimerHidden = false; isCrossOutToolActive = false; isHighlightingActive = false;
+                    if(highlightsNotesBtn) highlightsNotesBtn.classList.remove('active');
+                    if(calculatorOverlay) calculatorOverlay.classList.remove('visible');
+                    if(referenceSheetPanel) referenceSheetPanel.classList.remove('visible');
+                    currentModuleTimeUp = false; 
+
+                    const success = await loadQuizData(quizNameFromUrl);
+                    if (success && currentQuizQuestions.length > 0) {
+                        startPracticeQuizTimer();
+                        populateQNavGrid();
+                        showView('test-interface-view');
+                    } else {
+                        alert(`Could not load the specified quiz: ${quizNameFromUrl} after email entry. Displaying home screen.`);
+                        showView('home-view');
+                    }
+                } else {
+                    // No specific quiz or test in URL, just go to home screen for mode selection
+                    console.log("DEBUG submitEmailBtn: No quiz/test in URL. Showing home view.");
+                    showView('home-view');
+                }
+            } else {
+                alert("Please enter a valid email address.");
+            }
+        });
+    }
+    
+
+/*
 if(startFullPracticeTestBtn) {
     startFullPracticeTestBtn.addEventListener('click', async () => {
-        initializeStudentIdentifier(); 
+       // initializeStudentIdentifier(); 
         console.log("Start Full Practice Test button clicked."); 
         
         currentInteractionMode = 'full_test';
@@ -1148,7 +1447,7 @@ if(startFullPracticeTestBtn) {
 
 if(startSinglePracticeQuizBtn) {
     startSinglePracticeQuizBtn.addEventListener('click', async () => {
-        initializeStudentIdentifier();
+        //initializeStudentIdentifier();
         console.log("Start Single Practice Quiz button clicked.");
 
         currentInteractionMode = 'single_quiz';
@@ -1194,7 +1493,7 @@ if(startSinglePracticeQuizBtn) {
         }
     });
 }
-
+*/
 
 
 // Keep all other functions and event listeners from your .txt file as they were,
@@ -1900,11 +2199,124 @@ console.log("Attempting to submit quiz data (Phase 4 - Corrected Logic)...");
 
 
 // --- DOMContentLoaded ---
-//document.addEventListener('DOMContentLoaded', () => {
-  //  initializeStudentIdentifier(); 
-    //updateNavigation(); 
-//});
+// REPLACE your existing DOMContentLoaded listener with this:
+/*
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log("DOM Content Loaded. Initializing...");
 
+    const emailIsValid = initializeStudentIdentifier(); // Tries to load from localStorage
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const quizNameFromUrl = urlParams.get('quiz_name');
+    // const sourceFromUrl = urlParams.get('source'); // Read if needed
+
+    if (emailIsValid) {
+        console.log(`Email found: ${studentEmailForSubmission}. Checking for direct quiz launch.`);
+        if (quizNameFromUrl) {
+            console.log(`URL parameter 'quiz_name' found: ${quizNameFromUrl}. Bypassing home screen.`);
+            // if (sourceFromUrl) console.log(`URL parameter 'source' found: ${sourceFromUrl}`);
+
+            currentInteractionMode = 'single_quiz';
+            currentTestFlow = [quizNameFromUrl];
+            currentModuleIndex = 0;
+            currentQuestionNumber = 1;
+            userAnswers = {};
+            // ... other state resets ...
+            
+            const success = await loadQuizData(quizNameFromUrl);
+            if (success && currentQuizQuestions.length > 0) {
+                startPracticeQuizTimer();
+                populateQNavGrid();
+                showView('test-interface-view');
+            } else {
+                alert(`Could not load the specified quiz: ${quizNameFromUrl}. Displaying home screen.`);
+                showView('home-view');
+            }
+        } else {
+            console.log("No 'quiz_name' URL parameter. Email is valid. Displaying home screen for mode selection.");
+            showView('home-view');
+        }
+    } else {
+        console.log("No valid email in localStorage. Displaying email input screen.");
+        // If there's a quiz_name in URL, email-input-view's "Continue" button will handle it.
+        // If not, it will proceed to home-view after email entry.
+        showView('email-input-view');
+    }
+    // updateNavigation() is called by showView()
+});
+
+// AT THE VERY END OF YOUR SCRIPT.JS
+// (Ensure any older DOMContentLoaded listener is removed or commented out)
+
+// CHANGED: DOMContentLoaded listener to handle URL parameters for direct quiz launch
+// AND integrate with the new email input flow.
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log("DEBUG DOMContentLoaded: Initializing application state and view.");
+
+    const emailIsValid = initializeStudentIdentifier(); // This function now returns true/false
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const quizNameFromUrl = urlParams.get('quiz_name');
+    const sourceFromUrl = urlParams.get('source'); 
+    
+    if (sourceFromUrl) { // Store source if present, regardless of other conditions
+        globalQuizSource = sourceFromUrl; 
+        console.log(`DEBUG DOMContentLoaded: URL parameter 'source' found and stored: ${globalQuizSource}`);
+    }
+
+    if (quizNameFromUrl) {
+        // A specific quiz is requested via URL
+        console.log(`DEBUG DOMContentLoaded: 'quiz_name' URL parameter found: ${quizNameFromUrl}.`);
+        if (emailIsValid) {
+            console.log(`DEBUG DOMContentLoaded: Email is valid. Proceeding to launch quiz: ${quizNameFromUrl} directly.`);
+            currentInteractionMode = 'single_quiz'; 
+            currentTestFlow = [quizNameFromUrl];
+            currentModuleIndex = 0; 
+            currentQuestionNumber = 1;
+            userAnswers = {};
+            // Reset other relevant states (timers, UI elements)
+            isTimerHidden = false;
+            isCrossOutToolActive = false;
+            isHighlightingActive = false; if(highlightsNotesBtn) highlightsNotesBtn.classList.remove('active');
+            if(calculatorOverlay) calculatorOverlay.classList.remove('visible');
+            if(referenceSheetPanel) referenceSheetPanel.classList.remove('visible');
+            currentModuleTimeUp = false; 
+
+            const success = await loadQuizData(quizNameFromUrl);
+
+            if (success && currentQuizQuestions.length > 0) {
+                console.log(`DEBUG DOMContentLoaded Direct launch: Data loaded for ${quizNameFromUrl}. Starting quiz timer and view.`);
+                startPracticeQuizTimer(); // Start upward counting timer for single quiz
+                populateQNavGrid();
+                showView('test-interface-view'); 
+            } else {
+                console.error(`DEBUG DOMContentLoaded Direct launch: Failed to load quiz data for ${quizNameFromUrl} or no questions found. Displaying home screen as fallback.`);
+                alert(`Could not load the specified quiz: ${quizNameFromUrl}.`);
+                showView('home-view'); // Fallback to home screen
+            }
+        } else {
+            // Quiz in URL, but email is NOT valid/found -> show email input screen first.
+            // The submitEmailBtn listener will then handle launching this specific quiz.
+            console.log(`DEBUG DOMContentLoaded: 'quiz_name' (${quizNameFromUrl}) found, but no valid email. Showing email input screen.`);
+            showView('email-input-view');
+        }
+    } else {
+        // No 'quiz_name' parameter in URL. Standard app start.
+        console.log("DEBUG DOMContentLoaded: No 'quiz_name' URL parameter.");
+        if (emailIsValid) {
+            // Email is valid, show the app's home screen for mode selection.
+            console.log("DEBUG DOMContentLoaded: Email is valid. Displaying home screen.");
+            showView('home-view');
+        } else {
+            // No email, show the email input screen. submitEmailBtn will lead to home-view.
+            console.log("DEBUG DOMContentLoaded: No valid email. Displaying email input screen.");
+            showView('email-input-view');
+        }
+    }
+    // updateNavigation() is called by showView()
+});
+
+/*
 // REPLACE your existing DOMContentLoaded listener with this:
 document.addEventListener('DOMContentLoaded', async () => {
     console.log("DEBUG DOMContentLoaded: Initializing application state and view.");
@@ -2021,7 +2433,110 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 });
+*/
 
+// AT THE VERY END OF YOUR SCRIPT.JS
+// COMMENT OUT OR DELETE ANY OTHER DOMContentLoaded listener you might have.
+
+// CHANGED: DOMContentLoaded listener to correctly handle email prompt THEN URL parameters.
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log("DEBUG DOMContentLoaded: Initializing application.");
+
+    // Step 1: Always try to initialize student identifier first
+    const emailIsValid = initializeStudentIdentifier(); 
+    console.log(`DEBUG DOMContentLoaded: Email valid from localStorage? ${emailIsValid}. Current email: ${studentEmailForSubmission}`);
+
+    // Step 2: Check for URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const quizNameFromUrl = urlParams.get('quiz_name');
+    const testIdFromUrl = urlParams.get('test_id'); // Check for test_id as well
+    const sourceFromUrl = urlParams.get('source'); 
+
+    if (sourceFromUrl) {
+        globalQuizSource = sourceFromUrl;
+        console.log(`DEBUG DOMContentLoaded: URL 'source' parameter found: ${globalQuizSource}`);
+    }
+
+    // Step 3: Decide initial view based on email validity and URL parameters
+    if (!emailIsValid) {
+        // Email is NOT valid/found -> Must show email input screen first.
+        // The submitEmailBtn listener will then handle launching a specific quiz/test if params were present.
+        console.log(`DEBUG DOMContentLoaded: No valid email. Showing email input screen. URL params (if any): quiz_name=${quizNameFromUrl}, test_id=${testIdFromUrl}`);
+        showView('email-input-view');
+    } else {
+        // Email IS valid. Now check if we need to launch a specific quiz/test or go to home.
+        console.log(`DEBUG DOMContentLoaded: Email is valid (${studentEmailForSubmission}). Checking for direct launch params.`);
+        if (quizNameFromUrl) {
+            // Launch single quiz directly
+            console.log(`DEBUG DOMContentLoaded: Launching single quiz from URL: ${quizNameFromUrl}`);
+            currentInteractionMode = 'single_quiz'; 
+            currentTestFlow = [quizNameFromUrl];
+            // Reset states for single quiz
+            currentModuleIndex = 0; currentQuestionNumber = 1; userAnswers = {};
+            isTimerHidden = false; isCrossOutToolActive = false; isHighlightingActive = false;
+            if(highlightsNotesBtn) highlightsNotesBtn.classList.remove('active');
+            if(calculatorOverlay) calculatorOverlay.classList.remove('visible');
+            if(referenceSheetPanel) referenceSheetPanel.classList.remove('visible');
+            currentModuleTimeUp = false; 
+
+            const success = await loadQuizData(quizNameFromUrl);
+            if (success && currentQuizQuestions.length > 0) {
+                startPracticeQuizTimer(); 
+                populateQNavGrid();
+                showView('test-interface-view'); 
+            } else {
+                alert(`Could not load the specified quiz: ${quizNameFromUrl}. Displaying home screen.`);
+                showView('home-view'); 
+            }
+        } else if (testIdFromUrl) {
+            // Launch full test directly
+            console.log(`DEBUG DOMContentLoaded: Launching full test from URL: ${testIdFromUrl}`);
+            if (fullTestDefinitions[testIdFromUrl]) {
+                currentInteractionMode = 'full_test';
+                currentTestFlow = fullTestDefinitions[testIdFromUrl].flow;
+                // Reset states for full test
+                currentModuleIndex = 0; currentQuestionNumber = 1; userAnswers = {};
+                isTimerHidden = false; isCrossOutToolActive = false; isHighlightingActive = false;
+                if(highlightsNotesBtn) highlightsNotesBtn.classList.remove('active');
+                if(calculatorOverlay) calculatorOverlay.classList.remove('visible');
+                if(referenceSheetPanel) referenceSheetPanel.classList.remove('visible');
+                currentModuleTimeUp = false;
+
+                if (currentTestFlow && currentTestFlow.length > 0) {
+                    const firstQuizName = currentTestFlow[currentModuleIndex];
+                    const moduleInfo = moduleMetadata[firstQuizName];
+                    
+                    let jsonToLoad = firstQuizName; 
+                    if (firstQuizName === "DT-T0-RW-M2") jsonToLoad = "DT-T0-RW-M1"; // Adjust if you have actual M2 files
+                    else if (firstQuizName === "DT-T0-MT-M2") jsonToLoad = "DT-T0-MT-M1"; // Adjust
+
+                    const success = await loadQuizData(jsonToLoad);
+                    if (success && currentQuizQuestions.length > 0) {
+                        if (moduleInfo && typeof moduleInfo.durationSeconds === 'number') {
+                            startModuleTimer(moduleInfo.durationSeconds);
+                        } else { updateModuleTimerDisplay(0); }
+                        populateQNavGrid();
+                        showView('test-interface-view');
+                    } else {
+                        alert(`Could not load initial module for test: ${testIdFromUrl}.`);
+                        showView('home-view');
+                    }
+                } else {
+                    alert(`Test ID '${testIdFromUrl}' found, but no flow defined for it.`);
+                    showView('home-view');
+                }
+            } else {
+                alert(`Unknown Test ID: ${testIdFromUrl}. Cannot start test.`);
+                showView('home-view');
+            }
+        } else {
+            // No specific quiz or test in URL, and email is valid -> Show home screen.
+            console.log("DEBUG DOMContentLoaded: Email valid, no direct launch params. Displaying home screen.");
+            showView('home-view');
+        }
+    }
+    // updateNavigation() is implicitly called by showView()
+});
 
 // =======================================================================
 // === END OF ADDED/RESTORED CODE                                      ===
