@@ -1082,40 +1082,9 @@ function loadQuestion() {
     if(questionTextMainEl) questionTextMainEl.innerHTML = finalStemText; // Full question_text is the stem
     answerOptionsMainEl.style.display = 'flex'; 
     sprInputContainerMain.style.display = 'none';
-// --- END REVISED: Pane Content Logic ---
-  /*      
-    if (passageForDisplay) {
-            mainContentAreaDynamic.classList.remove('single-pane');
-            passagePane.style.display = 'flex'; 
-            paneDivider.style.display = 'block'; 
-            if(passageContentEl) passageContentEl.innerHTML = passageForDisplay;
-        } else {
-            // No distinct passage found, treat as single pane with stem only
-            mainContentAreaDynamic.classList.add('single-pane');
-        }
-        if(questionTextMainEl) questionTextMainEl.innerHTML = stemForDisplay || "<p>Question not found.</p>"; // Stem in right pane
-        answerOptionsMainEl.style.display = 'flex'; 
-        sprInputContainerMain.style.display = 'none';
 
-    } else if (currentQuestionDetails.question_type === 'student_produced_response') {
-        mainContentAreaDynamic.classList.remove('single-pane');
-        sprInstructionsPane.style.display = 'flex';
-        // passagePane.style.display = 'none'; 
-        paneDivider.style.display = 'block';
-        if(sprInstructionsContent) sprInstructionsContent.innerHTML = (currentModuleInfo.spr_directions || 'SPR Directions Missing') + (currentModuleInfo.spr_examples_table || '');
-        
-        if(questionTextMainEl) questionTextMainEl.innerHTML = currentQuestionDetails.question_text || '<p>Question text missing.</p>';
-        sprInputContainerMain.style.display = 'block';
-        if(sprInputFieldMain) sprInputFieldMain.value = answerState.spr_answer || '';
-        if(sprAnswerPreviewMain) sprAnswerPreviewMain.textContent = `Answer Preview: ${answerState.spr_answer || ''}`;
-        answerOptionsMainEl.style.display = 'none';
-*/
-} else { // Math MCQs or other types that default to single-pane
-        mainContentAreaDynamic.classList.add('single-pane');
-        if(questionTextMainEl) questionTextMainEl.innerHTML = stemForDisplay; // Full question_text is the stem
-        answerOptionsMainEl.style.display = 'flex'; 
-        sprInputContainerMain.style.display = 'none';
-    }
+} 
+       
     // --- END CHANGED: Pane Content Logic ---
                
          // ... (MCQ option rendering logic - this remains the same, using currentQuestionDetails.option_a etc.) ...       
