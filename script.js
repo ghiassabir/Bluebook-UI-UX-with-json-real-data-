@@ -286,13 +286,15 @@ answerState.timeSpent = (parseFloat(answerState.timeSpent) || 0) + timeSpentSeco
 }
 questionStartTime = 0;
 }
+// Inside your script.js, correct this line within updateModuleTimerDisplay
 function updateModuleTimerDisplay(seconds) {
-if (!timerTextEl) return;
-const minutes = Math.floor(seconds / 60);
-const remainingSeconds = seconds % 60;
-const displayString = ${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')};
-timerTextEl.textContent = displayString;
-if (reviewTimerText) reviewTimerText.textContent = displayString;
+    if (!timerTextEl) return;
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    // CHANGED: Added backticks for template literal
+    const displayString = `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`; 
+    timerTextEl.textContent = displayString;
+    if (reviewTimerText) reviewTimerText.textContent = displayString;
 }
 function startModuleTimer(durationSeconds) {
 if (practiceQuizTimerInterval) clearInterval(practiceQuizTimerInterval);
