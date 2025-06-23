@@ -215,7 +215,8 @@ studentEmailForSubmission = storedEmail;
 return true;
 } else {
 studentEmailForSubmission = null;
-console.log(No valid student identifier found in localStorage.);
+// CHANGED: Added backticks for template literal
+console.log(`No valid student identifier found in localStorage. Using default: ${studentEmailForSubmission}`);
 return false;
 }
 }
