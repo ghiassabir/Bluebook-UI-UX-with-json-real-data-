@@ -1082,7 +1082,6 @@ function loadQuestion() {
     if(questionTextMainEl) questionTextMainEl.innerHTML = finalStemText; // Full question_text is the stem
     answerOptionsMainEl.style.display = 'flex'; 
     sprInputContainerMain.style.display = 'none';
-}
 // --- END REVISED: Pane Content Logic ---
   /*      
     if (passageForDisplay) {
@@ -1111,7 +1110,7 @@ function loadQuestion() {
         if(sprAnswerPreviewMain) sprAnswerPreviewMain.textContent = `Answer Preview: ${answerState.spr_answer || ''}`;
         answerOptionsMainEl.style.display = 'none';
 */
-     else { // Math MCQs or other types that default to single-pane
+} else { // Math MCQs or other types that default to single-pane
         mainContentAreaDynamic.classList.add('single-pane');
         if(questionTextMainEl) questionTextMainEl.innerHTML = stemForDisplay; // Full question_text is the stem
         answerOptionsMainEl.style.display = 'flex'; 
