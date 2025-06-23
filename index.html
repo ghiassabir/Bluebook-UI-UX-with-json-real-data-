@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bluebook Prototype - Phase 6 (Modes & Manual Break)</title>
+    <title>Bluebook Quiz Player</title>
     <style>
         :root {
             --bluebook-dark-blue: #0d2f5a;
-            --bluebook-header-blue-home: #003366;
+            --bluebook-header-blue-home: #003366; /* Used by old home, can be removed if not used */
             --bluebook-footer-blue: #e0e7ff;
             --bluebook-button-blue: #2563eb;
             --bluebook-button-secondary-bg: #1e293b;
@@ -29,15 +29,16 @@
             --bluebook-highlight-yellow: #fef9c3;
             --bluebook-spr-input-bg: #ffffff;
             --bluebook-spr-input-border: #6b7280;
-            --bluebook-home-bg: #f0f4f8;
-            --bluebook-card-bg: #ffffff;
+            --bluebook-home-bg: #f0f4f8; /* Used by email input and new home */
+            --bluebook-card-bg: #ffffff; /* Used by email input card */
         }
 
         body, html {
             margin: 0; padding: 0; height: 100%; font-family: 'Inter', sans-serif;
-            background-color: #f0f4f8; color: var(--bluebook-text-color);
+            background-color: var(--bluebook-home-bg); /* Light grey for overall page */
+            color: var(--bluebook-text-color);
             -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
-            overflow: hidden;
+            overflow: hidden; /* Prevent body scrollbars */
         }
 
         .app-view {
@@ -47,9 +48,10 @@
         }
         .app-view.active { display: flex; }
 
-        /* --- Test Interface & Review Page & Break View Common Header Styles --- */
-        .test-interface-view .app-header, 
-        .review-page-view .app-header { 
+        /* Styles for Test Interface, Review Page, Modals, etc. (Keep all your existing styles from before) */
+        /* ... */
+        /* --- Test Interface & Review Page Common Header Styles --- */
+        .test-interface-view .app-header, .review-page-view .app-header {
             display: flex; justify-content: space-between; align-items: center;
             padding: 0 1rem; background-color: var(--bluebook-dark-blue); color: white;
             height: 50px; flex-shrink: 0; z-index: 10;
@@ -58,10 +60,7 @@
         .review-page-view .header-left, .review-page-view .header-center, .review-page-view .header-right {
              display: flex; align-items: center; gap: 1rem;
         }
-        .test-interface-view .header-center, 
-        .review-page-view .header-center { 
-            position: absolute; left: 50%; transform: translateX(-50%); 
-        }
+        .test-interface-view .header-center, .review-page-view .header-center { position: absolute; left: 50%; transform: translateX(-50%); }
 
         .directions-btn {
             display: flex; align-items: center; gap: 0.25rem; cursor: pointer;
@@ -344,11 +343,11 @@
         }
         .confirm-checkbox-label input { margin-right: 0.5rem; width: 1rem; height: 1rem;}
 
-        /* Home Screen Styles */
-        .home-screen-view .app-header {
+        /* Home Screen Styles (Simplified for Fallback) */
+        .home-screen-view .app-header { /* Keep header for consistency */
             display: flex; justify-content: space-between; align-items: center;
-            padding: 0 1.5rem; background-color: var(--bluebook-header-blue-home); color: white;
-            height: 60px; flex-shrink: 0;
+            padding: 0 1.5rem; background-color: var(--bluebook-dark-blue); /* Changed to dark blue */
+            color: white; height: 60px; flex-shrink: 0;
         }
         .home-screen-view .logo { font-size: 1.5rem; font-weight: bold; }
         .home-screen-view .user-info { display: flex; align-items: center; gap: 0.75rem; font-size: 0.875rem;}
@@ -357,26 +356,21 @@
             background-color: var(--bluebook-footer-blue); color: var(--bluebook-dark-blue);
             display: flex; align-items: center; justify-content: center; font-weight: bold;
         }
-        .home-screen-view .main-home-content {
+        .home-screen-view .main-home-content { /* Styles for centered message */
             flex-grow: 1; overflow-y: auto; padding: 2rem;
             background-color: var(--bluebook-home-bg);
+            display: flex; flex-direction: column; 
+            align-items: center; justify-content: center; text-align: center;
         }
-        .home-screen-view h1 { font-size: 2rem; font-weight: bold; margin-bottom: 0.25rem; }
-        .home-screen-view .subtitle { font-size: 1rem; color: var(--bluebook-light-text); margin-bottom: 2.5rem; }
-        .home-screen-view h2 { font-size: 1.25rem; font-weight: bold; margin-bottom: 1rem; }
-        .home-practice-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
-        .home-practice-card {
-            background-color: var(--bluebook-card-bg); padding: 1.5rem; border-radius: 0.75rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.07); display: flex; flex-direction: column;
+        .home-screen-view .main-home-content h1 { /* Main title for fallback */
+            font-size: 1.75rem; font-weight: bold; margin-bottom: 1rem; 
+            color: var(--bluebook-dark-blue);
         }
-        .home-practice-card h3 { font-size: 1.125rem; font-weight: bold; margin-bottom: 0.5rem; }
-        .home-practice-card p { font-size: 0.875rem; color: var(--bluebook-light-text); margin-bottom: 1rem; flex-grow: 1; }
-        .home-practice-card .start-btn {
-            background-color: var(--bluebook-button-blue); color: white; padding: 0.625rem 1.5rem; border-radius: 9999px;
-            font-weight: 600; text-align: center; cursor: pointer; border: none; align-self: flex-start;
+        .home-screen-view .main-home-content .subtitle { /* Subtitle for fallback */
+            font-size: 1rem; color: var(--bluebook-light-text); 
+            margin-bottom: 1.5rem; max-width: 500px;
         }
-        .home-practice-card .start-btn:hover { background-color: #1d4ed8; }
-        .home-practice-card .start-btn.disabled { background-color: #9ca3af; cursor: not-allowed; }
+
 
         .fullscreen-transition-view {
             background-color: white; align-items: center; justify-content: center; text-align: center; padding: 2rem;
@@ -396,7 +390,7 @@
         .finished-screen-content-box .finished-img-placeholder { width: 120px; height: 120px; margin: 0 auto 1.5rem auto; border-radius:50%; background-color: #e0e7ff; display:flex; align-items:center; justify-content:center; font-size: 3rem;}
         .finished-screen-content-box .reminder { font-size: 0.875rem; margin-bottom: 1.5rem; }
         .finished-screen-content-box .test-day-msg { font-size: 0.875rem; color: var(--bluebook-light-text); margin-bottom: 2rem; }
-        .finished-screen-view .return-home-btn {
+        .finished-screen-view .return-home-btn { /* This button will now have new "Go Back" logic */
              background-color: var(--bluebook-yellow-button); color: var(--bluebook-yellow-button-text);
              padding: 0.75rem 3rem; border-radius: 9999px; font-weight: bold; font-size: 1.125rem;
              cursor: pointer; border: none;
@@ -423,6 +417,53 @@
         .review-legend { display: flex; gap: 1rem; font-size: 0.75rem; color: var(--bluebook-light-text); }
         .review-legend .legend-item { display: flex; align-items: center; gap: 0.25rem; }
         .review-q-grid { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+
+        /* Styles for Email Input View (if different from fullscreen-transition-view) */
+        #email-input-view {
+            background-color: var(--bluebook-home-bg); /* Consistent background */
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+        }
+        #email-input-view div { /* The inner card */
+            background-color: var(--bluebook-card-bg); /* White card */
+            padding: 2.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-width: 400px;
+            width: 90%;
+        }
+        #email-input-view h2 {
+            font-size: 1.75rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: var(--bluebook-dark-blue);
+        }
+        #email-input-view p {
+            font-size: 1rem;
+            color: var(--bluebook-light-text);
+            margin-bottom: 1.5rem;
+        }
+        #student-email-field { /* Input field specific styles */
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--bluebook-border-color);
+            border-radius: 0.375rem;
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        #student-email-field:focus {
+            border-color: var(--bluebook-button-blue);
+            outline: 1px solid var(--bluebook-button-blue);
+        }
+        #submit-email-btn { /* Button specific styles */
+            /* Inherits .modal-button.yellow, but can add overrides */
+            width: 100%;
+            font-size: 1rem; /* Ensure consistent font size */
+        }
+
     </style>
     <!-- MathJax Configuration -->
     <script>
@@ -443,51 +484,44 @@
 </head>
 <body>
     <div class="app-wrapper">
-
-      
-
-        <!-- Home Screen View -->
-        <div class="app-view home-screen-view active" id="home-view">
+        <!-- MODIFIED Home Screen View (Fallback if no URL params & email known) -->
+        <div class="app-view home-screen-view" id="home-view"> <!-- Initial active removed, DOMContentLoaded will set it -->
             <header class="app-header">
                 <div class="logo">Bluebook</div>
                 <div class="user-info">
-                    <div class="user-avatar">SG</div>
-                    <span>Sabir Ghias</span>
+                    <div class="user-avatar" id="home-avatar">SG</div> <!-- Added ID -->
+                    <span id="home-user-name">Guest</span> <!-- Changed default, give it an ID -->
                 </div>
             </header>
             <main class="main-home-content custom-scrollbar">
-                <h1>Welcome, Sabir!</h1>
-                <p class="subtitle">Good luck on test day!</p>
-                <h2>Practice and Prepare</h2>
-                <div class="home-practice-cards">
-                    <div class="home-practice-card">
-                        <!-- MODIFIED for Phase 6: Button for Full Practice Test -->
-                        <h3>Full Practice Test</h3>
-                        <p>Simulate a full Bluebook test with timed sections.</p>
-                        <button class="start-btn" id="start-full-practice-test-btn">Start Full Test</button>
-                    </div>
-                    <div class="home-practice-card">
-                        <!-- ADDED for Phase 6: Button for Single Practice Quiz -->
-                        <h3>Single Practice Quiz</h3>
-                        <p>Focus on a specific set of questions with no time limit (timer counts up).</p>
-                        <button class="start-btn" id="start-single-practice-quiz-btn">Start Single Quiz</button>
-                    </div>
-                    <!-- You can remove or keep this third card as you see fit -->
-                    <div class="home-practice-card">
-                        <h3>Example Card (Disabled)</h3>
-                        <p>Another type of practice or resource placeholder.</p>
-                        <button class="start-btn disabled" disabled>Coming Soon</button>
-                    </div>
-                </div>
+                <h1>Bluebook Quiz Player</h1>
+                <p class="subtitle">
+                    Please access tests and quizzes through the main SAT Hub portal or specific links provided by your instructor.
+                </p>
+                <p class="subtitle" style="font-size: 0.9rem; margin-top: 1rem;">
+                    If you were trying to start a specific test or quiz and landed here unexpectedly, please check the link you used or ensure you have entered your email if prompted.
+                </p>
             </main>
-        </div> 
+        </div>
 
-        <!-- Test Interface View (Content dynamically loaded by script.js) -->
+        <!-- ADDED Email Input View -->
+        <div class="app-view" id="email-input-view"> <!-- Initial active removed -->
+            <div class="card-like-container"> <!-- Wrapper for card styling -->
+                <h2>Enter Your Email</h2>
+                <p>Please enter your email to start or continue your session.</p>
+                <input type="email" id="student-email-field" placeholder="your.email@example.com">
+                <button id="submit-email-btn" class="modal-button yellow">Continue</button>
+            </div>
+        </div>
+
+
+        <!-- Test Interface View (Keep as is) -->
         <div class="app-view test-interface-view" id="test-interface-view">
-            <header class="app-header">
+            <!-- ... your full test interface HTML ... -->
+             <header class="app-header">
                 <div class="header-left">
                     <div class="directions-btn" id="directions-btn">
-                        <span class="section-title-header" id="section-title-header">Section Title Here</span>
+                        <span class="section-title-header" id="section-title-header">Section 1: Reading & Writing</span>
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                     </div>
                 </div>
@@ -556,91 +590,51 @@
             </footer>
         </div>
 
-        <!-- Module Over View -->
+        <!-- Module Over View (Keep as is) -->
         <div class="app-view fullscreen-transition-view" id="module-over-view">
+            <!-- ... content ... -->
             <h1>This Module Is Over</h1>
             <p class="message">All your work has been saved.<br>You'll move on automatically in just a moment.</p>
             <div class="spinner"></div>
         </div>
 
-        <div class="app-view fullscreen-transition-view" id="finished-view" style="z-index: 1;">
-            <canvas id="confetti-canvas"></canvas>
-            <div style="position: relative; z-index: 2;">
-                <h1>You're All Finished!</h1>
-                <div class="finished-screen-content-box">
-                    <div class="finished-img-placeholder">😄</div>
-                    <p class="reminder">Return to the homepage to start the preview again.<br><strong>Reminder:</strong> there are no scores or feedback in this preview.</p>
-                    <p class="test-day-msg">When you see this page on test day, you'll know your scores have been submitted.</p>
-                    <button class="return-home-btn" id="return-to-home-btn">Return to Home</button>
-                </div>
+        <!-- Manual Break View (Ensure this exists - this is the placeholder from the Gist I previously provided) -->
+        <div class="app-view fullscreen-transition-view" id="manual-break-view" style="background-color: #003366; color: white;">
+            <div style="text-align: center;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 1rem;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                <h1 style="font-size: 2.25rem; color: white; margin-bottom: 0.75rem;">You are on a 10-minute break.</h1>
+                <p style="font-size: 1.125rem; color: #e0e7ff; margin-bottom: 2rem;">Your test will automatically continue when the break ends.</p>
+                <div id="manual-break-timer" style="font-size: 3rem; font-weight: bold; margin-bottom: 2.5rem;">10:00</div>
+                <button id="continue-after-break-btn" class="modal-button yellow" style="padding: 0.75rem 3rem; font-size: 1.125rem; border: 2px solid transparent;"> 
+                    Continue to Next Section
+                </button>
+                <p style="font-size: 0.875rem; color: #bac8f0; margin-top: 1.5rem;">
+                    Closing the app or your laptop will end your test. <br>You can use the "More" menu if you need to exit or take an unscheduled break.
+                </p>
             </div>
         </div>
+
+
+        <!-- Finished Test View (Keep as is) -->
+        <div class="app-view fullscreen-transition-view" id="finished-view" style="z-index: 1;">
+            <!-- ... content ... -->
+        </div>
         
-        <!-- Review Page View -->
+        <!-- Review Page View (Keep as is) -->
         <div class="app-view review-page-view" id="review-page-view">
-            <header class="app-header">
-                <div class="header-left"> <div class="directions-btn" id="review-directions-btn"> <span class="section-title-header" id="review-section-title-header">Section Review</span> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg> </div> </div>
-                <div class="header-center"> <div class="timer-display-container" id="review-timer-display-container"> <span class="timer-text" id="review-timer-text">0:00</span> <svg id="review-timer-clock-icon" class="timer-icon hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> <button id="review-timer-toggle-btn" class="timer-toggle">[Hide]</button> </div> </div>
-                <div class="header-right"> </div>
-            </header>
-            <div class="test-preview-banner">THIS IS A TEST PREVIEW</div>
-            <main class="main-review-content custom-scrollbar">
-                <div class="review-box">
-                    <h1>Check Your Work</h1>
-                    <p class="subtitle">On test day, you won’t be able to move on to the next module until time expires.<br>For these practice questions, you can click Next when you’re ready to move on.</p>
-                    <div class="review-section-header">
-                        <h2 id="review-page-section-name">Section 1: Reading and Writing Questions</h2>
-                        <div class="review-legend">
-                            <div class="legend-item"><span class="legend-icon unanswered" style="border: 1.5px dashed var(--bluebook-border-color);"></span> Unanswered</div>
-                            <div class="legend-item"><span class="legend-icon for-review"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 1em; height: 1em; fill: var(--bluebook-red-flag);"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15" stroke="var(--bluebook-red-flag)" stroke-width="2"/></svg></span> For Review</div>
-                        </div>
-                    </div>
-                    <div class="review-q-grid qnav-grid" id="review-page-qnav-grid">
-                    </div>
-                </div>
-            </main>
-            <footer class="app-footer">
-                <div class="footer-left" id="review-user-name-footer">Sabir Ghias</div>
-                <div class="footer-center"></div>
-                <div class="footer-right"> <button class="nav-button primary" id="review-back-btn-footer">Back</button> <button class="nav-button primary" id="review-next-btn-footer">Next</button> </div>
-            </footer>
+            <!-- ... content ... -->
         </div>
 
-
-<!-- ADDED for Phase 6: Manual Break Instruction View -->
-        <div class="app-view fullscreen-transition-view active" id="manual-break-view" 
-            <!-- style="display: none;" --> > 
-            <main style="text-align: center; padding: 2rem; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; background-color: white;">
-                <h1>10-Minute Break</h1>
-                <p class="message" style="font-size: 1.25rem; margin-bottom: 1.5rem;">
-                    Please take a 10-minute break. <br>
-                    You may leave your seat. Remember to manage your time.
-                </p>
-                <p class="message" style="margin-bottom: 2.5rem;">
-                    Click "Continue to Next Section" when you are ready to begin the Math section.
-                </p>
-                <button id="continue-after-break-btn" class="modal-button yellow" style="padding: 0.75rem 3rem; font-size: 1.125rem;border: 2px solid blue;"
-                    onclick="console.log('INLINE CLICK on manual break button'); alert('MANUAL BREAK BUTTON INLINE CLICKED');">
-                    Continue to Next Section (VISIBLE TEST)
-                </button>
-            </main>
-        </div>
-
-
-      
-
+        <!-- Modals Container (Keep as is) -->
         <div id="modals-container">
-            <div class="modal-overlay" id="directions-modal"> <div class="modal-content"> <h2 id="directions-modal-title"></h2> <p id="directions-modal-text"></p> <button class="modal-button yellow" id="directions-modal-close-btn">Close</button> </div> </div>
-            <div class="qnav-popup" id="qnav-popup"> <div class="qnav-header"> <h3 id="qnav-title"></h3> <button class="qnav-close-btn" id="qnav-close-btn">×</button> </div> <div class="qnav-legend"> <div class="legend-item"><span class="legend-icon current"></span> Current</div> <div class="legend-item"><span class="legend-icon unanswered"></span> Unanswered</div> <div class="legend-item"><span class="legend-icon for-review"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg></span> For Review</div> </div> <div class="qnav-grid" id="qnav-grid-main"></div> <button class="qnav-review-page-btn" id="qnav-goto-review-btn">Go to Review Page</button> </div>
-            <div class="modal-overlay" id="unscheduled-break-confirm-modal"> <div class="modal-content"> <h2>You'll Lose Testing Time During This Break</h2> <label class="confirm-checkbox-label"> <input type="checkbox" id="understand-lose-time-checkbox"> I need to take a break, and I understand that I'll lose testing time. </label> <p>If you're testing with a laptop, do not close it.</p> <div> <button class="modal-button secondary" id="unscheduled-break-cancel-btn">Cancel</button> <button class="modal-button yellow" id="unscheduled-break-confirm-btn" disabled>Take Unscheduled Break</button> </div> </div> </div>
-            <div class="modal-overlay" id="exit-exam-confirm-modal"> <div class="modal-content" style="max-width: 35rem;"> <h2>Are You Sure You Want To Exit the Preview?</h2> <p>Test previews are not timed or scored, and your progress isn’t saved. If you exit and come back, you’ll start over.</p> <div> <button class="modal-button secondary" id="exit-exam-cancel-btn">Continue Test Preview</button> <button class="modal-button yellow" id="exit-exam-confirm-btn">Exit</button> </div> </div> </div>
+            <!-- ... all your modals ... -->
         </div>
 
-        <div class="calculator-overlay" id="calculator-overlay-main"> <div class="calculator-header" id="calculator-header-draggable"> <strong>Calculator</strong> <button class="calculator-close-btn" id="calculator-overlay-close-btn">×</button> </div> <div class="calculator-body"> Desmos Calculator Placeholder </div> </div>
-        <div class="reference-sheet-panel" id="reference-sheet-panel-main"> <div class="reference-header"> <h3>Reference</h3> <button class="reference-close-btn" id="reference-sheet-close-btn">×</button> </div> <div class="reference-body"> <img src="https://i.postimg.cc/V6R7xL8k/sat-math-formula-sheet-sample.png" alt="Math Reference Sheet"> </div> </div>
+        <!-- Calculator and Reference Sheet (Keep as is) -->
+        <div class="calculator-overlay" id="calculator-overlay-main"> <!-- ... --> </div>
+        <div class="reference-sheet-panel" id="reference-sheet-panel-main"> <!-- ... --> </div>
     </div>
 
     <script src="script.js"></script> 
-    <!-- Make sure this script.js is the one I am providing in my next message -->
 </body>
 </html>
