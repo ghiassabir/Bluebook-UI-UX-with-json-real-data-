@@ -84,6 +84,11 @@ async function loadQuizData(quizName) {
             throw new Error(`Data for ${actualJsonFileToLoad}.json is not an array. Check JSON structure.`);
         }
         currentQuizQuestions = data; 
+         // --- ADD DEBUG LOG HERE ---
+        if (data.length > 0) {
+            console.log("DEBUG loadQuizData: First question object from fetched JSON:", JSON.stringify(data[0], null, 2));
+        }
+        // --- END DEBUG LOG ---
         console.log(`DEBUG loadQuizData: Loaded ${currentQuizQuestions.length}q for ${quizName} (from ${actualJsonFileToLoad}.json).`);
         return true;
     } catch (error) {
