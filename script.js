@@ -63,13 +63,14 @@ const moduleMetadata = {
 const GITHUB_JSON_BASE_URL = 'https://raw.githubusercontent.com/ghiassabir/Bluebook-UI-UX-with-json-real-data-/main/data/json/'; 
 
 async function loadQuizData(quizName) {
-    let actualJsonFileToLoad = quizName;
+    
     // This logic might need to be more robust based on your actual JSON file naming for series
-    if (quizName && quizName.includes("-M2") && !moduleMetadata[quizName]?.actualFile) { // Basic check
-        let baseName = quizName.substring(0, quizName.lastIndexOf("-M2"));
-        if (quizName.includes("-RW-M2")) actualJsonFileToLoad = baseName + "-RW-M1";
-        else if (quizName.includes("-MT-M2")) actualJsonFileToLoad = baseName + "-MT-M1";
-    }
+   // if (quizName && quizName.includes("-M2") && !moduleMetadata[quizName]?.actualFile) { // Basic check
+   //     let baseName = quizName.substring(0, quizName.lastIndexOf("-M2"));
+   //     if (quizName.includes("-RW-M2")) actualJsonFileToLoad = baseName + "-RW-M1";
+   //     else if (quizName.includes("-MT-M2")) actualJsonFileToLoad = baseName + "-MT-M1";
+   // }
+    let actualJsonFileToLoad = quizName;
     
     const url = `${GITHUB_JSON_BASE_URL}${actualJsonFileToLoad}.json`;
     console.log(`DEBUG loadQuizData: Fetching from: ${url} (for requested quizName: ${quizName})`);
