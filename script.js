@@ -315,7 +315,10 @@ function startModuleTimer(durationSeconds) {
             // Fire-and-forget for UI responsiveness
             submitCurrentModuleData(completedModuleIndexForTimer, (completedModuleIndexForTimer === currentTestFlow.length - 1 && currentInteractionMode === 'full_test')); 
 
-            alert("Time for this module is up! You will be taken to the review page.");
+            //alert("Time for this module is up! You will be taken to the review page.");
+            recordTimeOnCurrentQuestion(); 
+        submitCurrentModuleData(completedModuleIndexForTimer, (completedModuleIndexForTimer === currentTestFlow.length - 1 && currentInteractionMode === 'full_test')); 
+
             
             if (currentView !== 'review-page-view') {
                 showView('review-page-view');
@@ -937,6 +940,107 @@ if(sprInputFieldMain) {
         questionStartTime = Date.now(); 
     });
 }
+
+// --- script.js ---
+
+// CHANGED: Renamed and modified function to submit data for a specific module
+async function submitCurrentModuleData(moduleIndexToSubmit, isFinalSubmission = false) {
+    console.log(`DEBUG submitCurrentModuleData: Attempting to submit data for module index: ${moduleIndexToSubmit}. Is final: ${isFinalSubmission}`);
+    
+    if (moduleIndexToSubmit === currentModuleIndex) {
+        recordTimeOnCurrentQuestion(); 
+    }
+
+    const submissions = [];
+    const timestamp = new Date().toISOString();
+    // Ensure quizNameForSubmission is correctly derived for the module being submitted
+    const quizNameForSubmission = (currentTestFlow && currentTestFlow[moduleIndexToSubmit]) ? currentTestFlow[moduleIndexToSubmit] : "UNKNOWN_MODULE_NAME";
+
+
+    if (!quizNameForSubmission || quizNameForSubmission === "UNKNOWN_MODULE_NAME") {
+        console.error(`DEBUG submitCurrentModuleData: Could not determine quizName for module index ${moduleIndexToSubmit}. Aborting submission for this module.`);
+        return false; 
+    }
+
+    console.log(`DEBUG submitCurrentModuleData: Submitting for quizName: ${quizNameForSubmission}`);
+
+    for (const key in userAnswers) {
+        if (userAnswers.hasOwnProperty(key)) {
+            const keyModuleIndex = parseInt(key.split('-')[0]);
+            
+            if (keyModuleIndex === moduleIndexToSubmit) {
+                const answerState = userAnswers[key];
+                
+                if (!answerState.q_id || answerState.q_id.endsWith('-tmp') || typeof answerState.correct_ans === 'undefined' || answerState.correct_ans === null || typeof answerState.question_type_from_json === 'undefined') {
+                    console.warn(`DEBUG submitCurrentModuleData: Data incomplete for answer key ${key} in module ${quizNameForSubmission}. Skipping this answer. Q_ID: ${answerState.q_id}, CorrectAns: ${answerState.correct_ans}, Type: ${answerState.question_type_from_json}`);
+                    continue; 
+                }
+
+                let studentAnswerForSubmission = "";
+                let isCorrect = false;
+
+                if (answerState.question_type_from_json === 'student_produced_response') {
+                    studentAnswerForSubmission = answerState.spr_answer || "NO_ANSWER";
+                    if (answerState.correct_ans && studentAnswerForSubmission !== "NO_ANSWER") {
+                        const correctSprAnswers = String(answerState.correct_ans).split('|').map(s => s.trim().toLowerCase());
+                        if (correctSprAnswers.includes(studentAnswerForSubmission.trim().toLowerCase())) {
+                            isCorrect = true;
+                        }
+                    }
+                } else { 
+                    studentAnswerForSubmission = answerState.selected || "NO_ANSWER"; 
+                    if (answerState.correct_ans && studentAnswerForSubmission !== "NO_ANSWER") {
+                        isCorrect = (String(studentAnswerForSubmission).trim().toLowerCase() === String(answerState.correct_ans).trim().toLowerCase());
+                    }
+                }
+                
+                submissions.push({
+                    timestamp: timestamp,
+                    student_gmail_id: studentEmailForSubmission, 
+                    quiz_name: quizNameForSubmission, 
+                    question_id: answerState.q_id, 
+                    student_answer: studentAnswerForSubmission,
+                    is_correct: isCorrect, 
+                    time_spent_seconds: parseFloat(answerState.timeSpent || 0).toFixed(2),
+                    selection_changes: answerState.selectionChanges || 0,
+                    source: globalQuizSource || '' 
+                });
+            }
+        }
+    }
+
+    if (submissions.length === 0) {
+        console.log(`DEBUG submitCurrentModuleData: No answers recorded for module ${quizNameForSubmission}. Nothing to submit for this module.`);
+        return true; 
+    }
+
+    console.log(`DEBUG submitCurrentModuleData: Submitting for module ${quizNameForSubmission}:`, submissions);
+
+    if (APPS_SCRIPT_WEB_APP_URL === 'YOUR_CORRECT_BLUEBOOK_APPS_SCRIPT_URL_HERE' || !APPS_SCRIPT_WEB_APP_URL.startsWith('https://script.google.com/')) {
+        console.warn("APPS_SCRIPT_WEB_APP_URL not set or invalid. Submission will not proceed for module " + quizNameForSubmission);
+        alert("Submission URL not configured. Data for module " + quizNameForSubmission + " logged to console.");
+        return false; 
+    }
+
+    try {
+        fetch(APPS_SCRIPT_WEB_APP_URL, { // Removed await here for fire-and-forget
+            method: 'POST', mode: 'no-cors', cache: 'no-cache',
+            headers: {'Content-Type': 'text/plain'},
+            redirect: 'follow', body: JSON.stringify(submissions) 
+        })
+        .then(() => {
+            console.log(`DEBUG submitCurrentModuleData: Submission attempt finished for module ${quizNameForSubmission} (no-cors mode).`);
+        })
+        .catch((error) => {
+            console.error(`DEBUG submitCurrentModuleData: Error submitting data for module ${quizNameForSubmission}:`, error);
+        });
+        return true; 
+    } catch (error) { 
+        console.error('DEBUG submitCurrentModuleData: Synchronous error setting up fetch for module ' + quizNameForSubmission + ':', error);
+        return false;
+    }
+}
+
 
 // --- Navigation ---
 function updateNavigation() {
