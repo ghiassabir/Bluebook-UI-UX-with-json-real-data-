@@ -519,7 +519,7 @@ function showView(viewId) {
         startConfetti();
         if (moduleTimerInterval) clearInterval(moduleTimerInterval); 
         if (practiceQuizTimerInterval) clearInterval(practiceQuizTimerInterval);
-        submitQuizData(); 
+        //submitQuizData(); 
     } else if (viewId === 'home-view') {
         stopConfetti();
         currentTestFlow = []; currentQuizQuestions = [];
