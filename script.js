@@ -8,6 +8,58 @@ function toggleModal(modalElement, show) {
     modalElement.classList.toggle('visible', show);
 }
 
+// --- script.js (Session Persistence - Part 1 of X) ---
+// ADDED: Function to save the current session state
+//function saveSessionState() {
+//    if (typeof localStorage === 'undefined') {
+//        console.warn("localStorage is not available. Session persistence disabled.");
+ //       return;
+  //  }
+
+// MOVED HERE: Function to save the current session state
+function saveSessionState() {
+    if (typeof localStorage === 'undefined') {
+        console.warn("localStorage is not available. Session persistence disabled.");
+        return;
+    }
+    const sessionState = {
+        studentEmailForSubmission: studentEmailForSubmission,
+        currentInteractionMode: currentInteractionMode,
+        currentTestFlow: currentTestFlow,
+        currentModuleIndex: currentModuleIndex,
+        currentQuestionNumber: currentQuestionNumber,
+        userAnswers: userAnswers,
+        currentModuleTimeLeft: currentModuleTimeLeft,
+        practiceQuizTimeElapsed: practiceQuizTimeElapsed,
+        isTimerHidden: isTimerHidden,
+        globalOriginPageId: globalOriginPageId,
+        globalQuizSource: globalQuizSource,
+    };
+    try {
+        const serializedState = JSON.stringify(sessionState);
+        localStorage.setItem(SESSION_STORAGE_KEY, serializedState);
+        console.log("DEBUG saveSessionState: Session state saved.", sessionState);
+    } catch (error) {
+        console.error("Error saving session state to localStorage:", error);
+    }
+}
+
+
+// ADDED: Function to clear the saved session state
+function clearSessionState() {
+    if (typeof localStorage === 'undefined') {
+        console.warn("localStorage is not available. Cannot clear session state.");
+        return;
+    }
+    try {
+        localStorage.removeItem(SESSION_STORAGE_KEY);
+        console.log("DEBUG clearSessionState: Session state cleared from localStorage.");
+    } catch (error) {
+        console.error("Error clearing session state from localStorage:", error);
+    }
+}
+
+
 // --- GLOBAL CONFIGURATION & STATE ---
 let currentQuizQuestions = []; 
 let currentTestFlow = [];      
@@ -259,28 +311,6 @@ function getAnswerState(moduleIdx = currentModuleIndex, qNum = currentQuestionNu
         }
     }
     return userAnswers[key];
-}
-
-// --- script.js (Session Persistence - Part 1 of X) ---
-// ADDED: Function to save the current session state
-function saveSessionState() {
-    if (typeof localStorage === 'undefined') {
-        console.warn("localStorage is not available. Session persistence disabled.");
-        return;
-    }
-
-// ADDED: Function to clear the saved session state
-function clearSessionState() {
-    if (typeof localStorage === 'undefined') {
-        console.warn("localStorage is not available. Cannot clear session state.");
-        return;
-    }
-    try {
-        localStorage.removeItem(SESSION_STORAGE_KEY);
-        console.log("DEBUG clearSessionState: Session state cleared from localStorage.");
-    } catch (error) {
-        console.error("Error clearing session state from localStorage:", error);
-    }
 }
 
     
