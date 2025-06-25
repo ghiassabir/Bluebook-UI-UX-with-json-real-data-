@@ -311,13 +311,13 @@ function startModuleTimer(durationSeconds) {
             recordTimeOnCurrentQuestion(); 
 
             // CHANGED: Submit data for the module whose time just ran out
-            console.log(`DEBUG startModuleTimer: Time up for module ${completedQuizNameForTimer} (index ${completedModuleIndexForTimer}). Submitting its data.`);
+           // console.log(`DEBUG startModuleTimer: Time up for module ${completedQuizNameForTimer} (index ${completedModuleIndexForTimer}). Submitting its data.`);
             // Fire-and-forget for UI responsiveness
-            submitCurrentModuleData(completedModuleIndexForTimer, (completedModuleIndexForTimer === currentTestFlow.length - 1 && currentInteractionMode === 'full_test')); 
+           // submitCurrentModuleData(completedModuleIndexForTimer, (completedModuleIndexForTimer === currentTestFlow.length - 1 && currentInteractionMode === 'full_test')); 
 
-            //alert("Time for this module is up! You will be taken to the review page.");
-            recordTimeOnCurrentQuestion(); 
-        submitCurrentModuleData(completedModuleIndexForTimer, (completedModuleIndexForTimer === currentTestFlow.length - 1 && currentInteractionMode === 'full_test')); 
+            alert("Time for this module is up! You will be taken to the review page.");
+            //recordTimeOnCurrentQuestion(); 
+        //submitCurrentModuleData(completedModuleIndexForTimer, (completedModuleIndexForTimer === currentTestFlow.length - 1 && currentInteractionMode === 'full_test')); 
 
             
             if (currentView !== 'review-page-view') {
@@ -1166,7 +1166,10 @@ function nextButtonClickHandler() {
             currentModuleTimeUp = false; 
             const nextQuizName = currentTestFlow[currentModuleIndex];
             const nextModuleInfo = moduleMetadata[nextQuizName];
-            
+
+            // CHANGED: Simplify to directly use nextQuizName, assuming your JSON files are named correctly.
+            // If you truly need to load M1 data for M2, ensure the replace logic is perfect.
+            // For now, let's assume direct mapping.
             let jsonToLoadForNextModule = nextQuizName;
             // Adjust for M2 placeholders
             //if (nextQuizName.endsWith("RW-M2") && (!moduleMetadata[nextQuizName] || !moduleMetadata[nextQuizName].actualFileIfDifferent)) jsonToLoadForNextModule = nextQuizName.replace("RW-M2", "RW-M1");
@@ -1174,9 +1177,12 @@ function nextButtonClickHandler() {
             //else if (nextQuizName.includes("-RW-M2") && !moduleMetadata[nextQuizName]?.actualFile) jsonToLoadForNextModule = nextQuizName.replace("-RW-M2", "-RW-M1");
             //else if (nextQuizName.includes("-MT-M2") && !moduleMetadata[nextQuizName]?.actualFile) jsonToLoadForNextModule = nextQuizName.replace("-MT-M2", "-MT-M1");
 
-            console.log(`DEBUG reviewNextBtn: Preparing to load module: ${nextQuizName} (using JSON: ${jsonToLoadForNextModule})`);
-            const success = await loadQuizData(jsonToLoadForNextModule);
+            //console.log(`DEBUG reviewNextBtn: Preparing to load module: ${nextQuizName} (using JSON: ${jsonToLoadForNextModule})`);
+            //const success = await loadQuizData(jsonToLoadForNextModule);
 
+            console.log(`DEBUG reviewNextBtnHandler: Preparing to load module: ${nextQuizName} (resolved JSON file to load: ${jsonToLoadForNextModule})`);
+            const success = await loadQuizData(jsonToLoadForNextModule); // Use the resolved filename
+            
             if (success && currentQuizQuestions.length > 0) {
                 if (currentInteractionMode === 'full_test' && nextModuleInfo && typeof nextModuleInfo.durationSeconds === 'number') {
                     startModuleTimer(nextModuleInfo.durationSeconds);
@@ -1546,8 +1552,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const firstQuizName = currentTestFlow[currentModuleIndex];
                     const moduleInfo = moduleMetadata[firstQuizName];
                     let jsonToLoad = firstQuizName; 
-                    if (firstQuizName.endsWith("RW-M2") && (!moduleMetadata[firstQuizName] || !moduleMetadata[firstQuizName].actualFileIfDifferent)) jsonToLoad = firstQuizName.replace("RW-M2", "RW-M1");
-                    else if (firstQuizName.endsWith("MT-M2") && (!moduleMetadata[firstQuizName] || !moduleMetadata[firstQuizName].actualFileIfDifferent)) jsonToLoad = firstQuizName.replace("MT-M2", "MT-M1");
+                   // if (firstQuizName.endsWith("RW-M2") && (!moduleMetadata[firstQuizName] || !moduleMetadata[firstQuizName].actualFileIfDifferent)) jsonToLoad = firstQuizName.replace("RW-M2", "RW-M1");
+                   // else if (firstQuizName.endsWith("MT-M2") && (!moduleMetadata[firstQuizName] || !moduleMetadata[firstQuizName].actualFileIfDifferent)) jsonToLoad = firstQuizName.replace("MT-M2", "MT-M1");
 
                     const success = await loadQuizData(jsonToLoad);
                     if (success && currentQuizQuestions.length > 0) {
