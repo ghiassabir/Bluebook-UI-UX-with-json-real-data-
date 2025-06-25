@@ -269,6 +269,21 @@ function saveSessionState() {
         return;
     }
 
+// ADDED: Function to clear the saved session state
+function clearSessionState() {
+    if (typeof localStorage === 'undefined') {
+        console.warn("localStorage is not available. Cannot clear session state.");
+        return;
+    }
+    try {
+        localStorage.removeItem(SESSION_STORAGE_KEY);
+        console.log("DEBUG clearSessionState: Session state cleared from localStorage.");
+    } catch (error) {
+        console.error("Error clearing session state from localStorage:", error);
+    }
+}
+
+    
     // Gather all relevant state
     const sessionState = {
         studentEmailForSubmission: studentEmailForSubmission,
@@ -1292,7 +1307,17 @@ if(backBtnFooter) {
 }
 
 // --- Event Listeners for other UI elements ---
-if(returnToHomeBtn) returnToHomeBtn.addEventListener('click', () => showView('home-view')); 
+if(returnToHomeBtn) { 
+    returnToHomeBtn.addEventListener('click', () => {
+    console.log("DEBUG returnToHomeBtn: Clicked. Clearing session and returning to home.");
+        // Ensure submission for the final module has completed if this is the primary exit path.
+        // Our current flow calls submitCurrentModuleData before showing finished-view for the last module.
+        clearSessionState(); // CHANGED: Added call to clear session    
+        showView('home-view');
+    });
+}  
+
+
 if(calculatorBtnHeader) calculatorBtnHeader.addEventListener('click', () => toggleModal(calculatorOverlay, true));
 if(calculatorCloseBtn) calculatorCloseBtn.addEventListener('click', () => toggleModal(calculatorOverlay, false));
 if(referenceBtnHeader) referenceBtnHeader.addEventListener('click', () => toggleModal(referenceSheetPanel, true));
@@ -1431,12 +1456,19 @@ if(moreExitExamBtn) {
     moreExitExamBtn.addEventListener('click', () => { toggleModal(exitExamConfirmModal, true); if(moreMenuDropdown) moreMenuDropdown.classList.remove('visible'); });
 }
 if(exitExamCancelBtn) exitExamCancelBtn.addEventListener('click', () => toggleModal(exitExamConfirmModal, false));
+
 if(exitExamConfirmBtn) {
     exitExamConfirmBtn.addEventListener('click', () => { 
         recordTimeOnCurrentQuestion(); // Record time before exiting
-        saveSessionState();
         if (moduleTimerInterval) clearInterval(moduleTimerInterval);
         if (practiceQuizTimerInterval) clearInterval(practiceQuizTimerInterval);
+        
+        console.log("DEBUG exitExamConfirmBtn: User confirmed exit. Clearing session.");
+        clearSessionState(); // CHANGED: Added call to clear session
+        
+        //saveSessionState();
+        //if (moduleTimerInterval) clearInterval(moduleTimerInterval);
+        //if (practiceQuizTimerInterval) clearInterval(practiceQuizTimerInterval);
         toggleModal(exitExamConfirmModal, false); 
         showView('home-view'); 
     });
@@ -1693,15 +1725,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                     }
                 } else {
                     console.log("DEBUG DOMContentLoaded: User chose NOT to resume. Clearing saved session.");
-                    localStorage.removeItem(SESSION_STORAGE_KEY); // Clear session as user opted out
+                   // localStorage.removeItem(SESSION_STORAGE_KEY); // Clear session as user opted out
+                    clearSessionState(); // CHANGED: Use new function
                 }
             } else {
                 console.warn("DEBUG DOMContentLoaded: Saved session data is invalid or incomplete. Clearing it.");
-                localStorage.removeItem(SESSION_STORAGE_KEY);
+                //localStorage.removeItem(SESSION_STORAGE_KEY);
+                clearSessionState(); // CHANGED: Use new function
             }
         } catch (parseError) {
             console.error("DEBUG DOMContentLoaded: Error parsing saved session JSON. Clearing it.", parseError);
-            localStorage.removeItem(SESSION_STORAGE_KEY);
+            //localStorage.removeItem(SESSION_STORAGE_KEY);
+            clearSessionState(); // CHANGED: Use new function
         }
     } else {
         console.log("DEBUG DOMContentLoaded: No saved session found.");
