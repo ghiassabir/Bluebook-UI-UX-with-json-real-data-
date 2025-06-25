@@ -44,14 +44,14 @@ const fullTestDefinitions = {
     "CBT-T8": { flow: ["CBT-T8-RW-M1", "CBT-T8-RW-M2", "CBT-T8-MT-M1", "CBT-T8-MT-M2"], name: "Digital SAT Practice Test 8" },
     "CBT-T9": { flow: ["CBT-T9-RW-M1", "CBT-T9-RW-M2", "CBT-T9-MT-M1", "CBT-T9-MT-M2"], name: "Digital SAT Practice Test 9" },
     "CBT-T10": { flow: ["CBT-T10-RW-M1", "CBT-T10-RW-M2", "CBT-T10-MT-M1", "CBT-T10-MT-M2"], name: "Digital SAT Practice Test 10"}
-       
+
 };
 
 const moduleMetadata = {
-    "DT-T0-RW-M1": { name: "Reading & Writing - Module 1", type: "RW", durationSeconds: 1920, directions: "R&W M1 Directions...", spr_directions: null, spr_examples_table: null },
-    "DT-T0-RW-M2": { name: "Reading & Writing - Module 2", type: "RW", durationSeconds: 1920, directions: "R&W M2 Directions...", spr_directions: null, spr_examples_table: null },
-    "DT-T0-MT-M1": { name: "Math - Module 1", type: "Math", durationSeconds: 2100, directions: "Math M1 Directions...", passageText: null, spr_directions: `<h3>Student-produced response directions</h3><ul><li>If you find <strong>more than one correct answer</strong>, enter only one answer.</li><li>You can enter up to 5 characters for a <strong>positive</strong> answer and up to 6 characters (including the negative sign) for a <strong>negative</strong> answer.</li><li>If your answer is a <strong>fraction</strong> that doesn’t fit in the provided space, enter the decimal equivalent.</li><li>If your answer is a <strong>decimal</strong> that doesn’t fit in the provided space, enter it by truncating or rounding at the fourth digit.</li><li>If your answer is a <strong>mixed number</strong> (such as 3 <span style="font-size: 0.7em; vertical-align: super;">1</span>/<span style="font-size: 0.7em; vertical-align: sub;">2</span>), enter it as an improper fraction (7/2) or its decimal equivalent (3.5).</li><li>Don’t enter <strong>symbols</strong> such as a percent sign, comma, or dollar sign.</li></ul>`, spr_examples_table: `<table class="spr-examples-table"><thead><tr><th>Answer</th><th>Acceptable ways to enter answer</th><th>Unacceptable: will NOT receive credit</th></tr></thead><tbody><tr><td>3.5</td><td>3.5<br/>7/2</td><td>3 1/2</td></tr><tr><td>2/3</td><td>2/3<br/>.666<br/>.667</td><td>0.66<br/>0.67</td></tr><tr><td>-15</td><td>-15</td><td></td></tr></tbody></table>` },
-    "DT-T0-MT-M2": { name: "Math - Module 2", type: "Math", durationSeconds: 2100, directions: "Math M2 Directions...", passageText: null, spr_directions: `<h3>Student-produced response directions</h3><ul><li>If you find <strong>more than one correct answer</strong>, enter only one answer.</li><li>You can enter up to 5 characters for a <strong>positive</strong> answer and up to 6 characters (including the negative sign) for a <strong>negative</strong> answer.</li><li>If your answer is a <strong>fraction</strong> that doesn’t fit in the provided space, enter the decimal equivalent.</li><li>If your answer is a <strong>decimal</strong> that doesn’t fit in the provided space, enter it by truncating or rounding at the fourth digit.</li><li>If your answer is a <strong>mixed number</strong> (such as 3 <span style="font-size: 0.7em; vertical-align: super;">1</span>/<span style="font-size: 0.7em; vertical-align: sub;">2</span>), enter it as an improper fraction (7/2) or its decimal equivalent (3.5).</li><li>Don’t enter <strong>symbols</strong> such as a percent sign, comma, or dollar sign.</li></ul>`, spr_examples_table: `<table class="spr-examples-table"><thead><tr><th>Answer</th><th>Acceptable ways to enter answer</th><th>Unacceptable: will NOT receive credit</th></tr></thead><tbody><tr><td>3.5</td><td>3.5<br/>7/2</td><td>3 1/2</td></tr><tr><td>2/3</td><td>2/3<br/>.666<br/>.667</td><td>0.66<br/>0.67</td></tr><tr><td>-15</td><td>-15</td><td></td></tr></tbody></table>` },
+    "DT-T0-RW-M1": { name: "Reading & Writing - Module 1", type: "RW", durationSeconds: 10, directions: "R&W M1 Directions...", spr_directions: null, spr_examples_table: null },
+    "DT-T0-RW-M2": { name: "Reading & Writing - Module 2", type: "RW", durationSeconds: 10, directions: "R&W M2 Directions...", spr_directions: null, spr_examples_table: null },
+    "DT-T0-MT-M1": { name: "Math - Module 1", type: "Math", durationSeconds: 10, directions: "Math M1 Directions...", passageText: null, spr_directions: `<h3>Student-produced response directions</h3><ul><li>If you find <strong>more than one correct answer</strong>, enter only one answer.</li><li>You can enter up to 5 characters for a <strong>positive</strong> answer and up to 6 characters (including the negative sign) for a <strong>negative</strong> answer.</li><li>If your answer is a <strong>fraction</strong> that doesn’t fit in the provided space, enter the decimal equivalent.</li><li>If your answer is a <strong>decimal</strong> that doesn’t fit in the provided space, enter it by truncating or rounding at the fourth digit.</li><li>If your answer is a <strong>mixed number</strong> (such as 3 <span style="font-size: 0.7em; vertical-align: super;">1</span>/<span style="font-size: 0.7em; vertical-align: sub;">2</span>), enter it as an improper fraction (7/2) or its decimal equivalent (3.5).</li><li>Don’t enter <strong>symbols</strong> such as a percent sign, comma, or dollar sign.</li></ul>`, spr_examples_table: `<table class="spr-examples-table"><thead><tr><th>Answer</th><th>Acceptable ways to enter answer</th><th>Unacceptable: will NOT receive credit</th></tr></thead><tbody><tr><td>3.5</td><td>3.5<br/>7/2</td><td>3 1/2</td></tr><tr><td>2/3</td><td>2/3<br/>.666<br/>.667</td><td>0.66<br/>0.67</td></tr><tr><td>-15</td><td>-15</td><td></td></tr></tbody></table>` },
+    "DT-T0-MT-M2": { name: "Math - Module 2", type: "Math", durationSeconds: 10, directions: "Math M2 Directions...", passageText: null, spr_directions: `<h3>Student-produced response directions</h3><ul><li>If you find <strong>more than one correct answer</strong>, enter only one answer.</li><li>You can enter up to 5 characters for a <strong>positive</strong> answer and up to 6 characters (including the negative sign) for a <strong>negative</strong> answer.</li><li>If your answer is a <strong>fraction</strong> that doesn’t fit in the provided space, enter the decimal equivalent.</li><li>If your answer is a <strong>decimal</strong> that doesn’t fit in the provided space, enter it by truncating or rounding at the fourth digit.</li><li>If your answer is a <strong>mixed number</strong> (such as 3 <span style="font-size: 0.7em; vertical-align: super;">1</span>/<span style="font-size: 0.7em; vertical-align: sub;">2</span>), enter it as an improper fraction (7/2) or its decimal equivalent (3.5).</li><li>Don’t enter <strong>symbols</strong> such as a percent sign, comma, or dollar sign.</li></ul>`, spr_examples_table: `<table class="spr-examples-table"><thead><tr><th>Answer</th><th>Acceptable ways to enter answer</th><th>Unacceptable: will NOT receive credit</th></tr></thead><tbody><tr><td>3.5</td><td>3.5<br/>7/2</td><td>3 1/2</td></tr><tr><td>2/3</td><td>2/3<br/>.666<br/>.667</td><td>0.66<br/>0.67</td></tr><tr><td>-15</td><td>-15</td><td></td></tr></tbody></table>` },
     "CBT-T4-RW-M1": { name: "CBT Test 4: R&W Module 1", type: "RW", durationSeconds: 1920, directions: "Directions for CBT-T4 R&W M1..." },
     "CBT-T4-RW-M2": { name: "CBT Test 4: R&W Module 2", type: "RW", durationSeconds: 1920, directions: "Directions for CBT-T4 R&W M2..." },
     "CBT-T4-MT-M1": { name: "CBT Test 4: Math Module 1", type: "Math", durationSeconds: 2100, directions: "Directions for CBT-T4 Math M1...", spr_directions: `<h3>SPR Directions...</h3>`, spr_examples_table: `<table class="spr-examples-table">...</table>` },
@@ -85,6 +85,11 @@ async function loadQuizData(quizName) {
             throw new Error(`Data for ${actualJsonFileToLoad}.json is not an array. Check JSON structure.`);
         }
         currentQuizQuestions = data; 
+         // --- ADD DEBUG LOG HERE ---
+        if (data.length > 0) {
+            console.log("DEBUG loadQuizData: First question object from fetched JSON:", JSON.stringify(data[0], null, 2));
+        }
+        // --- END DEBUG LOG ---
         console.log(`DEBUG loadQuizData: Loaded ${currentQuizQuestions.length}q for ${quizName} (from ${actualJsonFileToLoad}.json).`);
         return true;
     } catch (error) {
@@ -606,7 +611,13 @@ function loadQuestion() {
     mainContentAreaDynamic.classList.remove('single-pane');
     answerOptionsMainEl.style.display = 'none'; 
     sprInputContainerMain.style.display = 'none'; 
+    // ADDED: Get new fields from JSON for passage and stem
+const passageTextFromJson = currentQuestionDetails.passage_content;
+const stemTextFromJson = currentQuestionDetails.question_stem;
+console.log("DEBUG loadQuestion: passageTextFromJson:", passageTextFromJson ? passageTextFromJson.substring(0,30)+"..." : "null/empty");
+console.log("DEBUG loadQuestion: stemTextFromJson:", stemTextFromJson ? stemTextFromJson.substring(0,30)+"..." : "null/empty");
 
+    /*
     if (currentQuestionDetails.question_type === 'student_produced_response') {
         mainContentAreaDynamic.classList.remove('single-pane');
         sprInstructionsPane.style.display = 'flex';
@@ -635,7 +646,107 @@ function loadQuestion() {
         answerOptionsMainEl.style.display = 'flex'; 
         sprInputContainerMain.style.display = 'none';
     }
+    */
 
+    // --- START OF NEW REPLACEMENT LOGIC FOR PANE/CONTENT ---
+if (currentQuestionDetails.question_type === 'student_produced_response') {
+    // SPR Question: Instructions Left (from metadata), Question Stem Right
+    mainContentAreaDynamic.classList.remove('single-pane');
+    sprInstructionsPane.style.display = 'flex';
+    passagePane.style.display = 'none'; 
+    paneDivider.style.display = 'block';
+    if(sprInstructionsContent) {
+        sprInstructionsContent.innerHTML = (currentModuleInfo.spr_directions || 'SPR Directions Missing') + (currentModuleInfo.spr_examples_table || '');
+    }
+    if(questionTextMainEl) { // Right pane question area
+        questionTextMainEl.innerHTML = stemTextFromJson ? `<p>${stemTextFromJson}</p>` : '<p>Question stem missing.</p>';
+    }
+    sprInputContainerMain.style.display = 'block';
+    if(sprInputFieldMain) sprInputFieldMain.value = answerState.spr_answer || '';
+    if(sprAnswerPreviewMain) sprAnswerPreviewMain.textContent = `Answer Preview: ${answerState.spr_answer || ''}`;
+    answerOptionsMainEl.style.display = 'none'; // No MC options for SPR
+
+} else if (currentQuestionDetails.question_type && currentQuestionDetails.question_type.includes('multiple_choice')) {
+    // This handles both R&W MCQs and Math MCQs
+    if (passageTextFromJson && passageTextFromJson.trim() !== "") {
+        // Distinct passage content exists (Typical for R&W with passage)
+        mainContentAreaDynamic.classList.remove('single-pane'); // Ensure two-pane
+        passagePane.style.display = 'flex'; 
+        paneDivider.style.display = 'block'; 
+        if(passageContentEl) passageContentEl.innerHTML = passageTextFromJson;
+        if(questionTextMainEl) questionTextMainEl.innerHTML = stemTextFromJson ? `<p>${stemTextFromJson}</p>` : '<p>Question stem missing.</p>';
+    } else {
+        // No distinct passage_content, or it's empty. Treat as single-pane.
+        // (Covers Math MCQs where passage_content is null, and R&W stem-only questions)
+        mainContentAreaDynamic.classList.add('single-pane');
+        passagePane.style.display = 'none';
+        sprInstructionsPane.style.display = 'none'; // Ensure SPR pane is also hidden
+        paneDivider.style.display = 'none';
+        if(questionTextMainEl) questionTextMainEl.innerHTML = stemTextFromJson ? `<p>${stemTextFromJson}</p>` : '<p>Question content missing.</p>';
+    }
+    answerOptionsMainEl.style.display = 'flex'; // Show MCQ options
+    sprInputContainerMain.style.display = 'none'; // Hide SPR input
+
+    // MCQ Option rendering logic (this part of your script from line ~631 onwards should be mostly fine)
+    // Ensure it's within this else if block for MCQs
+    if (answerOptionsMainEl) answerOptionsMainEl.innerHTML = ''; 
+    const options = {};
+    // ... (your existing code to populate `options` object from option_a, option_b, etc.)
+    if (currentQuestionDetails.option_a !== undefined && currentQuestionDetails.option_a !== null) options['A'] = currentQuestionDetails.option_a;
+    if (currentQuestionDetails.option_b !== undefined && currentQuestionDetails.option_b !== null) options['B'] = currentQuestionDetails.option_b;
+    if (currentQuestionDetails.option_c !== undefined && currentQuestionDetails.option_c !== null) options['C'] = currentQuestionDetails.option_c;
+    if (currentQuestionDetails.option_d !== undefined && currentQuestionDetails.option_d !== null) options['D'] = currentQuestionDetails.option_d;
+    if (currentQuestionDetails.option_e !== undefined && currentQuestionDetails.option_e !== null && String(currentQuestionDetails.option_e).trim() !== "") options['E'] = currentQuestionDetails.option_e;
+
+    for (const [key, value] of Object.entries(options)) {
+        // ... (your existing code to create and append option elements)
+        // Ensure `const isSelected = (answerState.selected === value);` is used
+        const isSelected = (answerState.selected === value);
+        const isCrossedOut = answerState.crossedOut.includes(key);
+        
+        const containerDiv = document.createElement('div');
+        containerDiv.className = 'answer-option-container';
+        containerDiv.dataset.optionKey = key;
+        const optionDiv = document.createElement('div');
+        optionDiv.className = 'answer-option';
+        if (isSelected && !isCrossedOut) optionDiv.classList.add('selected');
+        if (isCrossedOut) optionDiv.classList.add('crossed-out');
+        const answerLetterDiv = document.createElement('div');
+        answerLetterDiv.className = 'answer-letter';
+        if (isSelected && !isCrossedOut) answerLetterDiv.classList.add('selected');
+        answerLetterDiv.textContent = key;
+        const answerTextSpan = document.createElement('span');
+        answerTextSpan.className = 'answer-text';
+        if (isCrossedOut) answerTextSpan.classList.add('text-dimmed-for-crossout');
+        answerTextSpan.innerHTML = value; 
+        optionDiv.appendChild(answerLetterDiv);
+        optionDiv.appendChild(answerTextSpan);
+        containerDiv.appendChild(optionDiv);
+        if (isCrossOutToolActive && !isCrossedOut) {
+            const crossOutBtnIndividual = document.createElement('button');
+            crossOutBtnIndividual.className = 'individual-cross-out-btn';
+            crossOutBtnIndividual.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
+            crossOutBtnIndividual.title = `Cross out option ${key}`;
+            crossOutBtnIndividual.dataset.action = 'cross-out-individual';
+            containerDiv.appendChild(crossOutBtnIndividual);
+        } else if (isCrossedOut) {
+            const undoBtn = document.createElement('button');
+            undoBtn.className = 'undo-cross-out-btn';
+            undoBtn.textContent = 'Undo';
+            undoBtn.title = `Undo cross out for option ${key}`;
+            undoBtn.dataset.action = 'undo-cross-out';
+            containerDiv.appendChild(undoBtn);
+        }
+        if (answerOptionsMainEl) answerOptionsMainEl.appendChild(containerDiv);
+    }
+} else {
+    // Fallback for any other unexpected question types
+    console.warn("loadQuestion: Unhandled question type or configuration:", currentQuestionDetails.question_type);
+    if(questionTextMainEl) questionTextMainEl.innerHTML = `<p>Error: Unknown question type.</p>`;
+    mainContentAreaDynamic.classList.add('single-pane'); // Default to single pane
+}
+// --- END OF NEW REPLACEMENT LOGIC FOR PANE/CONTENT ---
+    
     if (currentQuestionDetails.question_type && currentQuestionDetails.question_type.includes('multiple_choice')) {
         if (answerOptionsMainEl) answerOptionsMainEl.innerHTML = ''; 
         const options = {};
