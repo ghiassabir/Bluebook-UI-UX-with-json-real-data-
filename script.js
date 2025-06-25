@@ -18,6 +18,8 @@ let userAnswers = {};
 let isTimerHidden = false;
 let isCrossOutToolActive = false;
 let isHighlightingActive = false;
+// Near line 20 (after other global variables)
+const SESSION_STORAGE_KEY = 'bluebookQuizSession'; // ADDED for session persistence
 let questionStartTime = 0;
 let moduleTimerInterval;
 let currentModuleTimeLeft = 0;
@@ -259,6 +261,43 @@ function getAnswerState(moduleIdx = currentModuleIndex, qNum = currentQuestionNu
     return userAnswers[key];
 }
 
+// --- script.js (Session Persistence - Part 1 of X) ---
+// ADDED: Function to save the current session state
+function saveSessionState() {
+    if (typeof localStorage === 'undefined') {
+        console.warn("localStorage is not available. Session persistence disabled.");
+        return;
+    }
+
+    // Gather all relevant state
+    const sessionState = {
+        studentEmailForSubmission: studentEmailForSubmission,
+        currentInteractionMode: currentInteractionMode,
+        currentTestFlow: currentTestFlow,
+        currentModuleIndex: currentModuleIndex,
+        currentQuestionNumber: currentQuestionNumber,
+        userAnswers: userAnswers, // This includes selections, SPR, timeSpent, marked, crossedOut, q_id etc.
+        currentModuleTimeLeft: currentModuleTimeLeft,       // For full_test countdown
+        practiceQuizTimeElapsed: practiceQuizTimeElapsed,   // For single_quiz count-up
+        isTimerHidden: isTimerHidden,                       // To restore timer visibility state
+        // Note: isCrossOutToolActive and isHighlightingActive are usually reset when loading a question,
+        // so saving them might not be critical unless you want to restore that exact tool state.
+        // For now, let's keep it simple.
+        globalOriginPageId: globalOriginPageId,
+        globalQuizSource: globalQuizSource,
+        // We don't save currentQuizQuestions as that's loaded from JSON on resume.
+    };
+
+    try {
+        const serializedState = JSON.stringify(sessionState);
+        localStorage.setItem(SESSION_STORAGE_KEY, serializedState);
+        console.log("DEBUG saveSessionState: Session state saved.", sessionState);
+    } catch (error) {
+        console.error("Error saving session state to localStorage:", error);
+        // Potentially alert user if localStorage is full or other issues occur, though rare.
+    }
+}
+
 function recordTimeOnCurrentQuestion() { 
     if (questionStartTime > 0 && currentQuizQuestions && currentQuizQuestions.length > 0 && currentQuestionNumber > 0 && currentQuestionNumber <= currentQuizQuestions.length) {
         if (currentQuizQuestions[currentQuestionNumber - 1]) { 
@@ -398,6 +437,7 @@ function populateQNavGrid() {
         btn.dataset.question = i; 
         btn.addEventListener('click', () => {
             recordTimeOnCurrentQuestion();
+            saveSessionState(); // CHANGED: Added call to save state
             currentQuestionNumber = parseInt(btn.dataset.question); 
             isCrossOutToolActive = false; 
             isHighlightingActive = false; if(highlightsNotesBtn) highlightsNotesBtn.classList.remove('active');
@@ -500,6 +540,13 @@ function showView(viewId) {
 
     if (viewId !== 'test-interface-view' && viewId !== 'review-page-view' && 
         viewId !== 'module-over-view' && viewId !== 'manual-break-view') {
+
+         // CHANGED: Save state BEFORE clearing timers if we were in a test context
+            if (currentView === 'test-interface-view' || currentView === 'review-page-view') {
+                saveSessionState(); 
+            }
+            // END CHANGED
+        
         if (moduleTimerInterval) {
             clearInterval(moduleTimerInterval);
             console.log("Module countdown timer stopped: Navigating away from test context.");
@@ -901,7 +948,8 @@ function handleAnswerSelect(optionKey) {
         answerState.crossedOut = answerState.crossedOut.filter(opt => opt !== optionKey);
     }
     
-    loadQuestion(); 
+    loadQuestion();
+    saveSessionState();
 }
 
 function handleAnswerCrossOut(optionKey) { 
@@ -910,14 +958,16 @@ function handleAnswerCrossOut(optionKey) {
      if (!answerState.crossedOut.includes(optionKey)) {
          answerState.crossedOut.push(optionKey);
      } 
-     loadQuestion(); 
+     loadQuestion();
+    saveSessionState(); // CHANGED: Added call to save state
 }
 
 function handleAnswerUndoCrossOut(optionKey) { 
      const answerState = getAnswerState();
      if (!answerState) return;
      answerState.crossedOut = answerState.crossedOut.filter(opt => opt !== optionKey);
-     loadQuestion(); 
+     loadQuestion();
+    saveSessionState(); // CHANGED: Added call to save state
 }
 
 if(crossOutToolBtnMain) {
@@ -939,6 +989,7 @@ if(sprInputFieldMain) {
     sprInputFieldMain.addEventListener('blur', () => { 
         recordTimeOnCurrentQuestion();
         questionStartTime = Date.now(); 
+        saveSessionState(); // CHANGED: Added call to save state
     });
 }
 
@@ -1110,6 +1161,8 @@ function nextButtonClickHandler() {
     if (currentView !== 'test-interface-view') return; 
     console.log("DEBUG: nextButtonClickHandler CALLED");
     recordTimeOnCurrentQuestion(); 
+    saveSessionState(); // CHANGED: Added call to save state BEFORE changing currentQuestionNumber
+    
     const totalQuestionsInModule = currentQuizQuestions ? currentQuizQuestions.length : 0;
     if (currentQuestionNumber < totalQuestionsInModule) {
         currentQuestionNumber++;
@@ -1156,7 +1209,8 @@ function nextButtonClickHandler() {
      console.log(`DEBUG reviewNextBtnHandler: Submitting data for completed module: ${currentTestFlow[moduleIndexJustCompleted]} (index ${moduleIndexJustCompleted})`);
         // The second param indicates if it's the final module of the whole test.
         await submitCurrentModuleData(moduleIndexJustCompleted, (moduleIndexJustCompleted === currentTestFlow.length - 1)); 
-                
+
+    saveSessionState(); // CHANGED: Save state before module transition or finishing    
     currentModuleIndex++;
     console.log("DEBUG reviewNextBtn: Advanced currentModuleIndex to:", currentModuleIndex);
 
@@ -1214,6 +1268,8 @@ function backButtonClickHandler() {
     if (currentView !== 'test-interface-view') return;
     console.log("DEBUG: backButtonClickHandler CALLED");
     recordTimeOnCurrentQuestion();
+    saveSessionState(); // CHANGED: Added call to save state BEFORE changing currentQuestionNumber
+    
     if (currentQuestionNumber > 1) {
         currentQuestionNumber--;
         isCrossOutToolActive = false; 
@@ -1329,6 +1385,7 @@ if(markReviewCheckboxMain) {
         }
         if (qNavPopup && qNavPopup.classList.contains('visible')) populateQNavGrid();
         if (reviewPageViewEl && reviewPageViewEl.classList.contains('active')) renderReviewPage(); // Update review page grid if active
+       saveSessionState(); // CHANGED: Added call to save state
     });
 }
 
@@ -1377,6 +1434,7 @@ if(exitExamCancelBtn) exitExamCancelBtn.addEventListener('click', () => toggleMo
 if(exitExamConfirmBtn) {
     exitExamConfirmBtn.addEventListener('click', () => { 
         recordTimeOnCurrentQuestion(); // Record time before exiting
+        saveSessionState();
         if (moduleTimerInterval) clearInterval(moduleTimerInterval);
         if (practiceQuizTimerInterval) clearInterval(practiceQuizTimerInterval);
         toggleModal(exitExamConfirmModal, false); 
