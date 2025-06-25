@@ -44,6 +44,7 @@ const fullTestDefinitions = {
     "CBT-T8": { flow: ["CBT-T8-RW-M1", "CBT-T8-RW-M2", "CBT-T8-MT-M1", "CBT-T8-MT-M2"], name: "Digital SAT Practice Test 8" },
     "CBT-T9": { flow: ["CBT-T9-RW-M1", "CBT-T9-RW-M2", "CBT-T9-MT-M1", "CBT-T9-MT-M2"], name: "Digital SAT Practice Test 9" },
     "CBT-T10": { flow: ["CBT-T10-RW-M1", "CBT-T10-RW-M2", "CBT-T10-MT-M1", "CBT-T10-MT-M2"], name: "Digital SAT Practice Test 10"}
+
 };
 
 const moduleMetadata = {

@@ -248,7 +248,7 @@
     "feedback_b": "This is incorrect. The text argues the exact opposite: that ignorance, not truth, leads to bliss and happiness.",
     "feedback_c": "This is the correct answer. The main idea is that preoccupation with the future destroys the present, so one should live in the now, which is to 'focus on the moment.'",
     "feedback_d": "This is incorrect. This is a well-known ethical rule (the Golden Rule) that is not discussed in the text. The passage is about epistemology and happiness, not interpersonal ethics.",
-    "passage_content": "The text is from Anatole France's 1912 novel The Gods Will Have Blood. Those who make a trade out of foretelling the future rarely grow rich... For a man's life would become intolerable, if he knew what was going to happen to him. He would be made aware of future evils, and would suffer their agonies in advance, while he would get no joy of present blessings since he would know how they would end. Ignorance is the necessary condition of human happiness... In ignorance, we find our bliss, in illusions, our happiness.",
+    "passage_content": "<p><em>The text is from Anatole France's 1912 novel The Gods Will Have Blood.</em></p> <p>Those who make a trade out of foretelling the future rarely grow rich... For a man's life would become intolerable, if he knew what was going to happen to him. He would be made aware of future evils, and would suffer their agonies in advance, while he would get no joy of present blessings since he would know how they would end. Ignorance is the necessary condition of human happiness... In ignorance, we find our bliss, in illusions, our happiness.",
     "question_stem": "The main idea conveyed in the above monologue can best be summarized as"
   },
   {
@@ -755,4 +755,8 @@
     "passage_content": "If the United States were to shift to a majority vote system... Instead, candidates focus their energies on “swing states,”... Floridians and Ohioans currently receive far more candidate visits and attention than New Yorkers or Texans. ______ This would ensure that all U.S. citizens have an equal voice not just in theory but in reality.",
     "question_stem": "Which sentence, if inserted in the underlined portion, would best strengthen the argument of the paragraph by transitioning between the previous and the following sentences?"
   }
+
 ]
+
+]
+
