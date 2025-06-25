@@ -63,13 +63,14 @@ const moduleMetadata = {
 const GITHUB_JSON_BASE_URL = 'https://raw.githubusercontent.com/ghiassabir/Bluebook-UI-UX-with-json-real-data-/main/data/json/'; 
 
 async function loadQuizData(quizName) {
-    let actualJsonFileToLoad = quizName;
+    
     // This logic might need to be more robust based on your actual JSON file naming for series
-    if (quizName && quizName.includes("-M2") && !moduleMetadata[quizName]?.actualFile) { // Basic check
-        let baseName = quizName.substring(0, quizName.lastIndexOf("-M2"));
-        if (quizName.includes("-RW-M2")) actualJsonFileToLoad = baseName + "-RW-M1";
-        else if (quizName.includes("-MT-M2")) actualJsonFileToLoad = baseName + "-MT-M1";
-    }
+   // if (quizName && quizName.includes("-M2") && !moduleMetadata[quizName]?.actualFile) { // Basic check
+   //     let baseName = quizName.substring(0, quizName.lastIndexOf("-M2"));
+   //     if (quizName.includes("-RW-M2")) actualJsonFileToLoad = baseName + "-RW-M1";
+   //     else if (quizName.includes("-MT-M2")) actualJsonFileToLoad = baseName + "-MT-M1";
+   // }
+    let actualJsonFileToLoad = quizName;
     
     const url = `${GITHUB_JSON_BASE_URL}${actualJsonFileToLoad}.json`;
     console.log(`DEBUG loadQuizData: Fetching from: ${url} (for requested quizName: ${quizName})`);
@@ -302,10 +303,23 @@ function startModuleTimer(durationSeconds) {
             currentModuleTimeLeft = 0; 
             currentModuleTimeUp = true; 
             updateModuleTimerDisplay(currentModuleTimeLeft); 
-            console.log(`Module time is up for ${currentTestFlow[currentModuleIndex]}!`);
-            alert("Time for this module is up! You will be taken to the review page.");
+            const completedModuleIndexForTimer = currentModuleIndex; // Capture before any async changes
+            const completedQuizNameForTimer = currentTestFlow[completedModuleIndexForTimer];
+            console.log(`Module time is up for ${completedQuizNameForTimer}!`);
+            //console.log(`Module time is up for ${currentTestFlow[currentModuleIndex]}!`);
+            //alert("Time for this module is up! You will be taken to the review page.");
             
             recordTimeOnCurrentQuestion(); 
+
+            // CHANGED: Submit data for the module whose time just ran out
+           // console.log(`DEBUG startModuleTimer: Time up for module ${completedQuizNameForTimer} (index ${completedModuleIndexForTimer}). Submitting its data.`);
+            // Fire-and-forget for UI responsiveness
+           // submitCurrentModuleData(completedModuleIndexForTimer, (completedModuleIndexForTimer === currentTestFlow.length - 1 && currentInteractionMode === 'full_test')); 
+
+            alert("Time for this module is up! You will be taken to the review page.");
+            //recordTimeOnCurrentQuestion(); 
+        //submitCurrentModuleData(completedModuleIndexForTimer, (completedModuleIndexForTimer === currentTestFlow.length - 1 && currentInteractionMode === 'full_test')); 
+
             
             if (currentView !== 'review-page-view') {
                 showView('review-page-view');
@@ -509,7 +523,7 @@ function showView(viewId) {
         startConfetti();
         if (moduleTimerInterval) clearInterval(moduleTimerInterval); 
         if (practiceQuizTimerInterval) clearInterval(practiceQuizTimerInterval);
-        submitQuizData(); 
+        //submitQuizData(); 
     } else if (viewId === 'home-view') {
         stopConfetti();
         currentTestFlow = []; currentQuizQuestions = [];
@@ -928,6 +942,107 @@ if(sprInputFieldMain) {
     });
 }
 
+// --- script.js ---
+
+// CHANGED: Renamed and modified function to submit data for a specific module
+async function submitCurrentModuleData(moduleIndexToSubmit, isFinalSubmission = false) {
+    console.log(`DEBUG submitCurrentModuleData: Attempting to submit data for module index: ${moduleIndexToSubmit}. Is final: ${isFinalSubmission}`);
+    
+    if (moduleIndexToSubmit === currentModuleIndex) {
+        recordTimeOnCurrentQuestion(); 
+    }
+
+    const submissions = [];
+    const timestamp = new Date().toISOString();
+    // Ensure quizNameForSubmission is correctly derived for the module being submitted
+    const quizNameForSubmission = (currentTestFlow && currentTestFlow[moduleIndexToSubmit]) ? currentTestFlow[moduleIndexToSubmit] : "UNKNOWN_MODULE_NAME";
+
+
+    if (!quizNameForSubmission || quizNameForSubmission === "UNKNOWN_MODULE_NAME") {
+        console.error(`DEBUG submitCurrentModuleData: Could not determine quizName for module index ${moduleIndexToSubmit}. Aborting submission for this module.`);
+        return false; 
+    }
+
+    console.log(`DEBUG submitCurrentModuleData: Submitting for quizName: ${quizNameForSubmission}`);
+
+    for (const key in userAnswers) {
+        if (userAnswers.hasOwnProperty(key)) {
+            const keyModuleIndex = parseInt(key.split('-')[0]);
+            
+            if (keyModuleIndex === moduleIndexToSubmit) {
+                const answerState = userAnswers[key];
+                
+                if (!answerState.q_id || answerState.q_id.endsWith('-tmp') || typeof answerState.correct_ans === 'undefined' || answerState.correct_ans === null || typeof answerState.question_type_from_json === 'undefined') {
+                    console.warn(`DEBUG submitCurrentModuleData: Data incomplete for answer key ${key} in module ${quizNameForSubmission}. Skipping this answer. Q_ID: ${answerState.q_id}, CorrectAns: ${answerState.correct_ans}, Type: ${answerState.question_type_from_json}`);
+                    continue; 
+                }
+
+                let studentAnswerForSubmission = "";
+                let isCorrect = false;
+
+                if (answerState.question_type_from_json === 'student_produced_response') {
+                    studentAnswerForSubmission = answerState.spr_answer || "NO_ANSWER";
+                    if (answerState.correct_ans && studentAnswerForSubmission !== "NO_ANSWER") {
+                        const correctSprAnswers = String(answerState.correct_ans).split('|').map(s => s.trim().toLowerCase());
+                        if (correctSprAnswers.includes(studentAnswerForSubmission.trim().toLowerCase())) {
+                            isCorrect = true;
+                        }
+                    }
+                } else { 
+                    studentAnswerForSubmission = answerState.selected || "NO_ANSWER"; 
+                    if (answerState.correct_ans && studentAnswerForSubmission !== "NO_ANSWER") {
+                        isCorrect = (String(studentAnswerForSubmission).trim().toLowerCase() === String(answerState.correct_ans).trim().toLowerCase());
+                    }
+                }
+                
+                submissions.push({
+                    timestamp: timestamp,
+                    student_gmail_id: studentEmailForSubmission, 
+                    quiz_name: quizNameForSubmission, 
+                    question_id: answerState.q_id, 
+                    student_answer: studentAnswerForSubmission,
+                    is_correct: isCorrect, 
+                    time_spent_seconds: parseFloat(answerState.timeSpent || 0).toFixed(2),
+                    selection_changes: answerState.selectionChanges || 0,
+                    source: globalQuizSource || '' 
+                });
+            }
+        }
+    }
+
+    if (submissions.length === 0) {
+        console.log(`DEBUG submitCurrentModuleData: No answers recorded for module ${quizNameForSubmission}. Nothing to submit for this module.`);
+        return true; 
+    }
+
+    console.log(`DEBUG submitCurrentModuleData: Submitting for module ${quizNameForSubmission}:`, submissions);
+
+    if (APPS_SCRIPT_WEB_APP_URL === 'YOUR_CORRECT_BLUEBOOK_APPS_SCRIPT_URL_HERE' || !APPS_SCRIPT_WEB_APP_URL.startsWith('https://script.google.com/')) {
+        console.warn("APPS_SCRIPT_WEB_APP_URL not set or invalid. Submission will not proceed for module " + quizNameForSubmission);
+        alert("Submission URL not configured. Data for module " + quizNameForSubmission + " logged to console.");
+        return false; 
+    }
+
+    try {
+        fetch(APPS_SCRIPT_WEB_APP_URL, { // Removed await here for fire-and-forget
+            method: 'POST', mode: 'no-cors', cache: 'no-cache',
+            headers: {'Content-Type': 'text/plain'},
+            redirect: 'follow', body: JSON.stringify(submissions) 
+        })
+        .then(() => {
+            console.log(`DEBUG submitCurrentModuleData: Submission attempt finished for module ${quizNameForSubmission} (no-cors mode).`);
+        })
+        .catch((error) => {
+            console.error(`DEBUG submitCurrentModuleData: Error submitting data for module ${quizNameForSubmission}:`, error);
+        });
+        return true; 
+    } catch (error) { 
+        console.error('DEBUG submitCurrentModuleData: Synchronous error setting up fetch for module ' + quizNameForSubmission + ':', error);
+        return false;
+    }
+}
+
+
 // --- Navigation ---
 function updateNavigation() {
     console.log("DEBUG: updateNavigation CALLED. View:", currentView, "Q#:", currentQuestionNumber, "ModTimeUp:", currentModuleTimeUp, "Mode:", currentInteractionMode);
@@ -1006,19 +1121,42 @@ function nextButtonClickHandler() {
     }
 }
 
-async function reviewNextButtonClickHandler() { 
-    if (currentView !== 'review-page-view') return;
-    console.log("DEBUG: reviewNextButtonClickHandler CALLED. Mode:", currentInteractionMode, "CMI:", currentModuleIndex, "FlowLength:", currentTestFlow.length);
-    recordTimeOnCurrentQuestion(); 
+//async function reviewNextButtonClickHandler() { 
+  //  if (currentView !== 'review-page-view') return;
+    //console.log("DEBUG: reviewNextButtonClickHandler CALLED. Mode:", currentInteractionMode, "CMI:", currentModuleIndex, "FlowLength:", currentTestFlow.length);
+    //recordTimeOnCurrentQuestion(); 
 
+    async function reviewNextButtonClickHandler() { 
+        if (currentView !== 'review-page-view') return;
+        console.log("DEBUG: reviewNextButtonClickHandler CALLED. Mode:", currentInteractionMode, "CMI:", currentModuleIndex, "FlowLength:", currentTestFlow.length);
+        
+        // Data for the module just reviewed needs to be submitted.
+        // currentModuleIndex at this point is the index of the module whose review page we are on.
+        const moduleIndexJustCompleted = currentModuleIndex; 
+        
+        // Record time for any final interaction if the last question was viewed on review page (though typically time is for test-interface)
+        // recordTimeOnCurrentQuestion(); // This might double-record if called also by module timer up.
+                                      // submitCurrentModuleData already calls it if needed.
     if (currentInteractionMode === 'single_quiz') {
-        console.log("Single practice quiz finished from review page. Transitioning to finished view.");
-        if (practiceQuizTimerInterval) clearInterval(practiceQuizTimerInterval);
-        showView('finished-view'); 
-        return; 
-    }
+            console.log("DEBUG reviewNextBtnHandler: Single quiz finished. Submitting module data.");
+            await submitCurrentModuleData(moduleIndexJustCompleted, true); // true for isFinalSubmission
+            if (practiceQuizTimerInterval) clearInterval(practiceQuizTimerInterval);
+            showView('finished-view'); 
+            return; 
+        }
+        
+    //if (currentInteractionMode === 'single_quiz') {
+      //  console.log("Single practice quiz finished from review page. Transitioning to finished view.");
+      //  if (practiceQuizTimerInterval) clearInterval(practiceQuizTimerInterval);
+      //  showView('finished-view'); 
+      //  return; 
+   // }
 
     // Logic for full_test mode (bypassing manual break screen for now)
+     console.log(`DEBUG reviewNextBtnHandler: Submitting data for completed module: ${currentTestFlow[moduleIndexJustCompleted]} (index ${moduleIndexJustCompleted})`);
+        // The second param indicates if it's the final module of the whole test.
+        await submitCurrentModuleData(moduleIndexJustCompleted, (moduleIndexJustCompleted === currentTestFlow.length - 1)); 
+                
     currentModuleIndex++;
     console.log("DEBUG reviewNextBtn: Advanced currentModuleIndex to:", currentModuleIndex);
 
@@ -1029,15 +1167,23 @@ async function reviewNextButtonClickHandler() {
             currentModuleTimeUp = false; 
             const nextQuizName = currentTestFlow[currentModuleIndex];
             const nextModuleInfo = moduleMetadata[nextQuizName];
-            
+
+            // CHANGED: Simplify to directly use nextQuizName, assuming your JSON files are named correctly.
+            // If you truly need to load M1 data for M2, ensure the replace logic is perfect.
+            // For now, let's assume direct mapping.
             let jsonToLoadForNextModule = nextQuizName;
             // Adjust for M2 placeholders
-            if (nextQuizName.endsWith("RW-M2") && (!moduleMetadata[nextQuizName] || !moduleMetadata[nextQuizName].actualFileIfDifferent)) jsonToLoadForNextModule = nextQuizName.replace("RW-M2", "RW-M1");
-            else if (nextQuizName.endsWith("MT-M2") && (!moduleMetadata[nextQuizName] || !moduleMetadata[nextQuizName].actualFileIfDifferent)) jsonToLoadForNextModule = nextQuizName.replace("MT-M2", "MT-M1");
+            //if (nextQuizName.endsWith("RW-M2") && (!moduleMetadata[nextQuizName] || !moduleMetadata[nextQuizName].actualFileIfDifferent)) jsonToLoadForNextModule = nextQuizName.replace("RW-M2", "RW-M1");
+            //else if (nextQuizName.endsWith("MT-M2") && (!moduleMetadata[nextQuizName] || !moduleMetadata[nextQuizName].actualFileIfDifferent)) jsonToLoadForNextModule = nextQuizName.replace("MT-M2", "MT-M1");
+            //else if (nextQuizName.includes("-RW-M2") && !moduleMetadata[nextQuizName]?.actualFile) jsonToLoadForNextModule = nextQuizName.replace("-RW-M2", "-RW-M1");
+            //else if (nextQuizName.includes("-MT-M2") && !moduleMetadata[nextQuizName]?.actualFile) jsonToLoadForNextModule = nextQuizName.replace("-MT-M2", "-MT-M1");
 
-            console.log(`DEBUG reviewNextBtn: Preparing to load module: ${nextQuizName} (using JSON: ${jsonToLoadForNextModule})`);
-            const success = await loadQuizData(jsonToLoadForNextModule);
+            //console.log(`DEBUG reviewNextBtn: Preparing to load module: ${nextQuizName} (using JSON: ${jsonToLoadForNextModule})`);
+            //const success = await loadQuizData(jsonToLoadForNextModule);
 
+            console.log(`DEBUG reviewNextBtnHandler: Preparing to load module: ${nextQuizName} (resolved JSON file to load: ${jsonToLoadForNextModule})`);
+            const success = await loadQuizData(jsonToLoadForNextModule); // Use the resolved filename
+            
             if (success && currentQuizQuestions.length > 0) {
                 if (currentInteractionMode === 'full_test' && nextModuleInfo && typeof nextModuleInfo.durationSeconds === 'number') {
                     startModuleTimer(nextModuleInfo.durationSeconds);
@@ -1268,8 +1414,8 @@ if (submitEmailBtn) {
                         const firstQuizName = currentTestFlow[currentModuleIndex];
                         const moduleInfo = moduleMetadata[firstQuizName];
                         let jsonToLoad = firstQuizName; 
-                        if (firstQuizName.endsWith("RW-M2") && !moduleMetadata[firstQuizName]?.actualFile) jsonToLoad = firstQuizName.replace("RW-M2", "RW-M1");
-                        else if (firstQuizName.endsWith("MT-M2") && !moduleMetadata[firstQuizName]?.actualFile) jsonToLoad = firstQuizName.replace("MT-M2", "MT-M1");
+                      //  if (firstQuizName.endsWith("RW-M2") && !moduleMetadata[firstQuizName]?.actualFile) jsonToLoad = firstQuizName.replace("RW-M2", "RW-M1");
+                      //  else if (firstQuizName.endsWith("MT-M2") && !moduleMetadata[firstQuizName]?.actualFile) jsonToLoad = firstQuizName.replace("MT-M2", "MT-M1");
 
                         const success = await loadQuizData(jsonToLoad);
                         if (success && currentQuizQuestions.length > 0) {
@@ -1407,8 +1553,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const firstQuizName = currentTestFlow[currentModuleIndex];
                     const moduleInfo = moduleMetadata[firstQuizName];
                     let jsonToLoad = firstQuizName; 
-                    if (firstQuizName.endsWith("RW-M2") && (!moduleMetadata[firstQuizName] || !moduleMetadata[firstQuizName].actualFileIfDifferent)) jsonToLoad = firstQuizName.replace("RW-M2", "RW-M1");
-                    else if (firstQuizName.endsWith("MT-M2") && (!moduleMetadata[firstQuizName] || !moduleMetadata[firstQuizName].actualFileIfDifferent)) jsonToLoad = firstQuizName.replace("MT-M2", "MT-M1");
+                   // if (firstQuizName.endsWith("RW-M2") && (!moduleMetadata[firstQuizName] || !moduleMetadata[firstQuizName].actualFileIfDifferent)) jsonToLoad = firstQuizName.replace("RW-M2", "RW-M1");
+                   // else if (firstQuizName.endsWith("MT-M2") && (!moduleMetadata[firstQuizName] || !moduleMetadata[firstQuizName].actualFileIfDifferent)) jsonToLoad = firstQuizName.replace("MT-M2", "MT-M1");
 
                     const success = await loadQuizData(jsonToLoad);
                     if (success && currentQuizQuestions.length > 0) {
