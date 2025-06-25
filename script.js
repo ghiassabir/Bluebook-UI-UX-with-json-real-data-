@@ -302,10 +302,20 @@ function startModuleTimer(durationSeconds) {
             currentModuleTimeLeft = 0; 
             currentModuleTimeUp = true; 
             updateModuleTimerDisplay(currentModuleTimeLeft); 
-            console.log(`Module time is up for ${currentTestFlow[currentModuleIndex]}!`);
-            alert("Time for this module is up! You will be taken to the review page.");
+            const completedModuleIndexForTimer = currentModuleIndex; // Capture before any async changes
+            const completedQuizNameForTimer = currentTestFlow[completedModuleIndexForTimer];
+            console.log(`Module time is up for ${completedQuizNameForTimer}!`);
+            //console.log(`Module time is up for ${currentTestFlow[currentModuleIndex]}!`);
+            //alert("Time for this module is up! You will be taken to the review page.");
             
             recordTimeOnCurrentQuestion(); 
+
+            // CHANGED: Submit data for the module whose time just ran out
+            console.log(`DEBUG startModuleTimer: Time up for module ${completedQuizNameForTimer} (index ${completedModuleIndexForTimer}). Submitting its data.`);
+            // Fire-and-forget for UI responsiveness
+            submitCurrentModuleData(completedModuleIndexForTimer, (completedModuleIndexForTimer === currentTestFlow.length - 1 && currentInteractionMode === 'full_test')); 
+
+            alert("Time for this module is up! You will be taken to the review page.");
             
             if (currentView !== 'review-page-view') {
                 showView('review-page-view');
@@ -1006,19 +1016,42 @@ function nextButtonClickHandler() {
     }
 }
 
-async function reviewNextButtonClickHandler() { 
-    if (currentView !== 'review-page-view') return;
-    console.log("DEBUG: reviewNextButtonClickHandler CALLED. Mode:", currentInteractionMode, "CMI:", currentModuleIndex, "FlowLength:", currentTestFlow.length);
-    recordTimeOnCurrentQuestion(); 
+//async function reviewNextButtonClickHandler() { 
+  //  if (currentView !== 'review-page-view') return;
+    //console.log("DEBUG: reviewNextButtonClickHandler CALLED. Mode:", currentInteractionMode, "CMI:", currentModuleIndex, "FlowLength:", currentTestFlow.length);
+    //recordTimeOnCurrentQuestion(); 
 
+    async function reviewNextButtonClickHandler() { 
+        if (currentView !== 'review-page-view') return;
+        console.log("DEBUG: reviewNextButtonClickHandler CALLED. Mode:", currentInteractionMode, "CMI:", currentModuleIndex, "FlowLength:", currentTestFlow.length);
+        
+        // Data for the module just reviewed needs to be submitted.
+        // currentModuleIndex at this point is the index of the module whose review page we are on.
+        const moduleIndexJustCompleted = currentModuleIndex; 
+        
+        // Record time for any final interaction if the last question was viewed on review page (though typically time is for test-interface)
+        // recordTimeOnCurrentQuestion(); // This might double-record if called also by module timer up.
+                                      // submitCurrentModuleData already calls it if needed.
     if (currentInteractionMode === 'single_quiz') {
-        console.log("Single practice quiz finished from review page. Transitioning to finished view.");
-        if (practiceQuizTimerInterval) clearInterval(practiceQuizTimerInterval);
-        showView('finished-view'); 
-        return; 
-    }
+            console.log("DEBUG reviewNextBtnHandler: Single quiz finished. Submitting module data.");
+            await submitCurrentModuleData(moduleIndexJustCompleted, true); // true for isFinalSubmission
+            if (practiceQuizTimerInterval) clearInterval(practiceQuizTimerInterval);
+            showView('finished-view'); 
+            return; 
+        }
+        
+    //if (currentInteractionMode === 'single_quiz') {
+      //  console.log("Single practice quiz finished from review page. Transitioning to finished view.");
+      //  if (practiceQuizTimerInterval) clearInterval(practiceQuizTimerInterval);
+      //  showView('finished-view'); 
+      //  return; 
+   // }
 
     // Logic for full_test mode (bypassing manual break screen for now)
+     console.log(`DEBUG reviewNextBtnHandler: Submitting data for completed module: ${currentTestFlow[moduleIndexJustCompleted]} (index ${moduleIndexJustCompleted})`);
+        // The second param indicates if it's the final module of the whole test.
+        await submitCurrentModuleData(moduleIndexJustCompleted, (moduleIndexJustCompleted === currentTestFlow.length - 1)); 
+                
     currentModuleIndex++;
     console.log("DEBUG reviewNextBtn: Advanced currentModuleIndex to:", currentModuleIndex);
 
@@ -1034,6 +1067,8 @@ async function reviewNextButtonClickHandler() {
             // Adjust for M2 placeholders
             if (nextQuizName.endsWith("RW-M2") && (!moduleMetadata[nextQuizName] || !moduleMetadata[nextQuizName].actualFileIfDifferent)) jsonToLoadForNextModule = nextQuizName.replace("RW-M2", "RW-M1");
             else if (nextQuizName.endsWith("MT-M2") && (!moduleMetadata[nextQuizName] || !moduleMetadata[nextQuizName].actualFileIfDifferent)) jsonToLoadForNextModule = nextQuizName.replace("MT-M2", "MT-M1");
+            else if (nextQuizName.includes("-RW-M2") && !moduleMetadata[nextQuizName]?.actualFile) jsonToLoadForNextModule = nextQuizName.replace("-RW-M2", "-RW-M1");
+            else if (nextQuizName.includes("-MT-M2") && !moduleMetadata[nextQuizName]?.actualFile) jsonToLoadForNextModule = nextQuizName.replace("-MT-M2", "-MT-M1");
 
             console.log(`DEBUG reviewNextBtn: Preparing to load module: ${nextQuizName} (using JSON: ${jsonToLoadForNextModule})`);
             const success = await loadQuizData(jsonToLoadForNextModule);
