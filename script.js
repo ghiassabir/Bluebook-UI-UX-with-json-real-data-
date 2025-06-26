@@ -62,6 +62,9 @@ const moduleMetadata = {
 
 const GITHUB_JSON_BASE_URL = 'https://raw.githubusercontent.com/ghiassabir/Bluebook-UI-UX-with-json-real-data-/main/data/json/'; 
 
+// CHANGED: Moved SESSION_STORAGE_KEY to global scope
+const SESSION_STORAGE_KEY = 'bluebookQuizSession'; 
+
 async function loadQuizData(quizName) {
     
     // This logic might need to be more robust based on your actual JSON file naming for series
