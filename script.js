@@ -48,10 +48,10 @@ const fullTestDefinitions = {
 };
 
 const moduleMetadata = {
-    "DT-T0-RW-M1": { name: "Reading & Writing - Module 1", type: "RW", durationSeconds: 10, directions: "R&W M1 Directions...", spr_directions: null, spr_examples_table: null },
-    "DT-T0-RW-M2": { name: "Reading & Writing - Module 2", type: "RW", durationSeconds: 10, directions: "R&W M2 Directions...", spr_directions: null, spr_examples_table: null },
-    "DT-T0-MT-M1": { name: "Math - Module 1", type: "Math", durationSeconds: 10, directions: "Math M1 Directions...", passageText: null, spr_directions: `<h3>Student-produced response directions</h3><ul><li>If you find <strong>more than one correct answer</strong>, enter only one answer.</li><li>You can enter up to 5 characters for a <strong>positive</strong> answer and up to 6 characters (including the negative sign) for a <strong>negative</strong> answer.</li><li>If your answer is a <strong>fraction</strong> that doesn’t fit in the provided space, enter the decimal equivalent.</li><li>If your answer is a <strong>decimal</strong> that doesn’t fit in the provided space, enter it by truncating or rounding at the fourth digit.</li><li>If your answer is a <strong>mixed number</strong> (such as 3 <span style="font-size: 0.7em; vertical-align: super;">1</span>/<span style="font-size: 0.7em; vertical-align: sub;">2</span>), enter it as an improper fraction (7/2) or its decimal equivalent (3.5).</li><li>Don’t enter <strong>symbols</strong> such as a percent sign, comma, or dollar sign.</li></ul>`, spr_examples_table: `<table class="spr-examples-table"><thead><tr><th>Answer</th><th>Acceptable ways to enter answer</th><th>Unacceptable: will NOT receive credit</th></tr></thead><tbody><tr><td>3.5</td><td>3.5<br/>7/2</td><td>3 1/2</td></tr><tr><td>2/3</td><td>2/3<br/>.666<br/>.667</td><td>0.66<br/>0.67</td></tr><tr><td>-15</td><td>-15</td><td></td></tr></tbody></table>` },
-    "DT-T0-MT-M2": { name: "Math - Module 2", type: "Math", durationSeconds: 10, directions: "Math M2 Directions...", passageText: null, spr_directions: `<h3>Student-produced response directions</h3><ul><li>If you find <strong>more than one correct answer</strong>, enter only one answer.</li><li>You can enter up to 5 characters for a <strong>positive</strong> answer and up to 6 characters (including the negative sign) for a <strong>negative</strong> answer.</li><li>If your answer is a <strong>fraction</strong> that doesn’t fit in the provided space, enter the decimal equivalent.</li><li>If your answer is a <strong>decimal</strong> that doesn’t fit in the provided space, enter it by truncating or rounding at the fourth digit.</li><li>If your answer is a <strong>mixed number</strong> (such as 3 <span style="font-size: 0.7em; vertical-align: super;">1</span>/<span style="font-size: 0.7em; vertical-align: sub;">2</span>), enter it as an improper fraction (7/2) or its decimal equivalent (3.5).</li><li>Don’t enter <strong>symbols</strong> such as a percent sign, comma, or dollar sign.</li></ul>`, spr_examples_table: `<table class="spr-examples-table"><thead><tr><th>Answer</th><th>Acceptable ways to enter answer</th><th>Unacceptable: will NOT receive credit</th></tr></thead><tbody><tr><td>3.5</td><td>3.5<br/>7/2</td><td>3 1/2</td></tr><tr><td>2/3</td><td>2/3<br/>.666<br/>.667</td><td>0.66<br/>0.67</td></tr><tr><td>-15</td><td>-15</td><td></td></tr></tbody></table>` },
+    "DT-T0-RW-M1": { name: "Reading & Writing - Module 1", type: "RW", directions: "R&W M1 Directions...", spr_directions: null, spr_examples_table: null },
+    "DT-T0-RW-M2": { name: "Reading & Writing - Module 2", type: "RW", directions: "R&W M2 Directions...", spr_directions: null, spr_examples_table: null },
+    "DT-T0-MT-M1": { name: "Math - Module 1", type: "Math", directions: "Math M1 Directions...", passageText: null, spr_directions: `<h3>Student-produced response directions</h3><ul><li>If you find <strong>more than one correct answer</strong>, enter only one answer.</li><li>You can enter up to 5 characters for a <strong>positive</strong> answer and up to 6 characters (including the negative sign) for a <strong>negative</strong> answer.</li><li>If your answer is a <strong>fraction</strong> that doesn’t fit in the provided space, enter the decimal equivalent.</li><li>If your answer is a <strong>decimal</strong> that doesn’t fit in the provided space, enter it by truncating or rounding at the fourth digit.</li><li>If your answer is a <strong>mixed number</strong> (such as 3 <span style="font-size: 0.7em; vertical-align: super;">1</span>/<span style="font-size: 0.7em; vertical-align: sub;">2</span>), enter it as an improper fraction (7/2) or its decimal equivalent (3.5).</li><li>Don’t enter <strong>symbols</strong> such as a percent sign, comma, or dollar sign.</li></ul>`, spr_examples_table: `<table class="spr-examples-table"><thead><tr><th>Answer</th><th>Acceptable ways to enter answer</th><th>Unacceptable: will NOT receive credit</th></tr></thead><tbody><tr><td>3.5</td><td>3.5<br/>7/2</td><td>3 1/2</td></tr><tr><td>2/3</td><td>2/3<br/>.666<br/>.667</td><td>0.66<br/>0.67</td></tr><tr><td>-15</td><td>-15</td><td></td></tr></tbody></table>` },
+    "DT-T0-MT-M2": { name: "Math - Module 2", type: "Math", directions: "Math M2 Directions...", passageText: null, spr_directions: `<h3>Student-produced response directions</h3><ul><li>If you find <strong>more than one correct answer</strong>, enter only one answer.</li><li>You can enter up to 5 characters for a <strong>positive</strong> answer and up to 6 characters (including the negative sign) for a <strong>negative</strong> answer.</li><li>If your answer is a <strong>fraction</strong> that doesn’t fit in the provided space, enter the decimal equivalent.</li><li>If your answer is a <strong>decimal</strong> that doesn’t fit in the provided space, enter it by truncating or rounding at the fourth digit.</li><li>If your answer is a <strong>mixed number</strong> (such as 3 <span style="font-size: 0.7em; vertical-align: super;">1</span>/<span style="font-size: 0.7em; vertical-align: sub;">2</span>), enter it as an improper fraction (7/2) or its decimal equivalent (3.5).</li><li>Don’t enter <strong>symbols</strong> such as a percent sign, comma, or dollar sign.</li></ul>`, spr_examples_table: `<table class="spr-examples-table"><thead><tr><th>Answer</th><th>Acceptable ways to enter answer</th><th>Unacceptable: will NOT receive credit</th></tr></thead><tbody><tr><td>3.5</td><td>3.5<br/>7/2</td><td>3 1/2</td></tr><tr><td>2/3</td><td>2/3<br/>.666<br/>.667</td><td>0.66<br/>0.67</td></tr><tr><td>-15</td><td>-15</td><td></td></tr></tbody></table>` },
     "CBT-T4-RW-M1": { name: "CBT Test 4: R&W Module 1", type: "RW", durationSeconds: 1920, directions: "Directions for CBT-T4 R&W M1..." },
     "CBT-T4-RW-M2": { name: "CBT Test 4: R&W Module 2", type: "RW", durationSeconds: 1920, directions: "Directions for CBT-T4 R&W M2..." },
     "CBT-T4-MT-M1": { name: "CBT Test 4: Math Module 1", type: "Math", durationSeconds: 2100, directions: "Directions for CBT-T4 Math M1...", spr_directions: `<h3>SPR Directions...</h3>`, spr_examples_table: `<table class="spr-examples-table">...</table>` },
@@ -1064,6 +1064,9 @@ function updateNavigation() {
     if (reviewNextBtnFooter) reviewNextBtnFooter.style.display = 'none';
     if (reviewBackBtnFooter) reviewBackBtnFooter.style.display = 'none';
 
+    const currentMod = getCurrentModule();
+    const isDtT0Module = currentMod && currentMod.name && currentMod.name.includes("(Diagnostic)"); // Check if it's a DT-T0 module
+    
     if (currentView === 'test-interface-view') {
         nextBtnFooter.style.display = 'inline-block';
         backBtnFooter.style.display = 'inline-block';
@@ -1076,7 +1079,10 @@ function updateNavigation() {
         } else { 
             nextBtnFooter.textContent = "Review Section";
             if (currentInteractionMode === 'full_test') {
-                const currentMod = getCurrentModule();
+                // CHANGED: For DT-T0, "Review Section" button is not disabled by timer
+            if (isDtT0Module) {
+                nextBtnFooter.disabled = false; // Always enabled if it's last question
+            } else {
                 nextBtnFooter.disabled = !currentModuleTimeUp && (currentMod && typeof currentMod.durationSeconds === 'number' && currentMod.durationSeconds > 0);
             } else { 
                 nextBtnFooter.disabled = false; 
@@ -1099,6 +1105,10 @@ function updateNavigation() {
                 }
                 const currentMod = getCurrentModule();
                 // For full_test, next module/finish test is only enabled if time is up for the current module.
+                 // CHANGED: For DT-T0, "Next Module/Finish Test" not disabled by timer
+                if (isDtT0Module) {
+                    reviewNextBtnFooter.disabled = false;
+                } else {
                 reviewNextBtnFooter.disabled = !currentModuleTimeUp && (currentMod && typeof currentMod.durationSeconds === 'number' && currentMod.durationSeconds > 0);
             }
         }
@@ -1185,13 +1195,37 @@ function nextButtonClickHandler() {
             const success = await loadQuizData(jsonToLoadForNextModule); // Use the resolved filename
             
             if (success && currentQuizQuestions.length > 0) {
-                if (currentInteractionMode === 'full_test' && nextModuleInfo && typeof nextModuleInfo.durationSeconds === 'number') {
-                    startModuleTimer(nextModuleInfo.durationSeconds);
-                } else { 
-                    console.warn(`Timer Mode/Config issue for module ${nextQuizName}. No countdown timer started.`);
-                    updateModuleTimerDisplay(0); 
-                    updatePracticeQuizTimerDisplay(0); 
-                }
+               // if (currentInteractionMode === 'full_test' && nextModuleInfo && typeof nextModuleInfo.durationSeconds === 'number') {
+                //    startModuleTimer(nextModuleInfo.durationSeconds);
+              //  } else { 
+                   // console.warn(`Timer Mode/Config issue for module ${nextQuizName}. No countdown timer started.`);
+                 //   updateModuleTimerDisplay(0); 
+               //     updatePracticeQuizTimerDisplay(0); 
+             //   }
+
+            // CHANGED: Conditional timer start for next module, including DT-T0
+            const currentTestId = urlParams.get('test_id'); // Or get from a global variable if set at start
+
+            if (currentInteractionMode === 'full_test' && currentTestId === "DT-T0") {
+                console.log(`DEBUG reviewNextButton: Starting DT-T0 module ${nextQuizName} with upward counting timer.`);
+                startPracticeQuizTimer();
+                currentModuleTimeUp = true; // Allow immediate progression
+            } else if (currentInteractionMode === 'full_test' && nextModuleInfo && typeof nextModuleInfo.durationSeconds === 'number' && nextModuleInfo.durationSeconds > 0) {
+                console.log(`DEBUG reviewNextButton: Starting timed module ${nextQuizName} with duration ${nextModuleInfo.durationSeconds}.`);
+                startModuleTimer(nextModuleInfo.durationSeconds);
+            } else if (currentInteractionMode === 'single_quiz') {
+                // This case shouldn't be hit if single_quiz goes to finished-view from review
+                // but if it could, it would restart its upward timer here.
+                // For single_quiz, reviewNextButtonClickHandler leads to finished-view, so timer is stopped.
+                console.log("DEBUG reviewNextButton: Single quiz mode, should not be starting another module timer here normally.");
+            } else { // Fallback for other full_test modules without duration
+                console.warn(`Timer Mode/Config issue for next module ${nextQuizName}. Defaulting state.`);
+                updateModuleTimerDisplay(0); 
+                updatePracticeQuizTimerDisplay(0);
+                currentModuleTimeUp = true; // Allow immediate progression
+            }
+            // END CHANGED
+                
                 populateQNavGrid(); 
                 showView('test-interface-view');
             } else {
@@ -1419,9 +1453,29 @@ if (submitEmailBtn) {
 
                         const success = await loadQuizData(jsonToLoad);
                         if (success && currentQuizQuestions.length > 0) {
-                            if (moduleInfo && typeof moduleInfo.durationSeconds === 'number') {
-                                startModuleTimer(moduleInfo.durationSeconds);
-                            } else { updateModuleTimerDisplay(0); }
+                           // if (moduleInfo && typeof moduleInfo.durationSeconds === 'number') {
+                           //     startModuleTimer(moduleInfo.durationSeconds);
+                          //  } else { updateModuleTimerDisplay(0); }
+                            
+                            // CHANGED: Conditional timer start for DT-T0
+                        if (currentInteractionMode === 'full_test' && testIdFromUrl === "DT-T0") {
+                            console.log(`DEBUG submitEmailBtn: Starting DT-T0 module ${firstQuizName} with upward counting timer.`);
+                            startPracticeQuizTimer(); // Use upward timer for DT-T0 modules
+                            currentModuleTimeUp = true; // Effectively makes it behave like untimed for navigation
+                        } else if (currentInteractionMode === 'full_test' && moduleInfo && typeof moduleInfo.durationSeconds === 'number' && moduleInfo.durationSeconds > 0) {
+                            console.log(`DEBUG submitEmailBtn: Starting timed module ${firstQuizName} with duration ${moduleInfo.durationSeconds}.`);
+                            startModuleTimer(moduleInfo.durationSeconds);
+                        } else if (currentInteractionMode === 'single_quiz') {
+                            // This block was already here and is correct for single_quiz
+                            startPracticeQuizTimer();
+                        } else { // Fallback or non-timed full_test module (if any other than DT-T0)
+                            console.warn(`Timer Mode/Config issue for module ${firstQuizName}. No specific timer started. Defaulting to 00:00 or upward if logic permits.`);
+                            updateModuleTimerDisplay(0); 
+                            updatePracticeQuizTimerDisplay(0);
+                            currentModuleTimeUp = true; // Allow immediate progression if no countdown
+                        }
+                        // END CHANGED
+                            
                             populateQNavGrid(); showView('test-interface-view');
                         } else { alert(`Could not load initial module for test: ${testIdFromUrl}.`); showView('home-view'); }
                     } else { alert(`Test ID '${testIdFromUrl}' has no defined flow.`); showView('home-view');}
@@ -1536,6 +1590,126 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log(`DEBUG DOMContentLoaded: URL 'originPageId' parameter found: ${globalOriginPageId}`);
     }
 
+    const savedSessionJSON = localStorage.getItem(SESSION_STORAGE_KEY);
+    let sessionResumed = false;
+
+    if (savedSessionJSON) {
+        console.log("DEBUG DOMContentLoaded: Found saved session data.");
+        try {
+            const savedSession = JSON.parse(savedSessionJSON);
+
+            if (savedSession && typeof savedSession.currentModuleIndex === 'number' && savedSession.currentTestFlow && savedSession.currentTestFlow.length > 0) {
+                
+                // --- START OF INSERTED/CORRECTED resumeConfirmation LOGIC ---
+                const resumeConfirmation = confirm("An unfinished session was found. Would you like to resume it?");
+                
+                if (resumeConfirmation) {
+                    console.log("DEBUG DOMContentLoaded: User chose to RESUME session.");
+                    sessionResumed = true; // Set flag that we are attempting to resume
+
+                    // Restore studentEmail if it was part of the session and consistent
+                    if (savedSession.studentEmailForSubmission) {
+                        if (studentEmailForSubmission && studentEmailForSubmission !== savedSession.studentEmailForSubmission) {
+                            console.warn(`Mismatch localStorage email (${studentEmailForSubmission}) vs session email (${savedSession.studentEmailForSubmission}). Using session email.`);
+                        }
+                        studentEmailForSubmission = savedSession.studentEmailForSubmission;
+                        localStorage.setItem('bluebookStudentEmail', studentEmailForSubmission); // Ensure localStorage is also up-to-date
+                        const homeUserNameEl = document.getElementById('home-user-name');
+                        if(homeUserNameEl && studentEmailForSubmission) homeUserNameEl.textContent = studentEmailForSubmission.split('@')[0];
+                        console.log(`DEBUG DOMContentLoaded Resume: studentEmailForSubmission set to ${studentEmailForSubmission}`);
+                    } else if (!studentEmailForSubmission) {
+                         console.warn("DEBUG DOMContentLoaded Resume: Session has no email, and localStorage had no email. This might lead to email prompt later if not handled by URL params.");
+                    }
+
+
+                    // Restore state variables
+                    currentInteractionMode = savedSession.currentInteractionMode || 'full_test';
+                    currentTestFlow = savedSession.currentTestFlow;
+                    currentModuleIndex = savedSession.currentModuleIndex;
+                    currentQuestionNumber = savedSession.currentQuestionNumber;
+                    userAnswers = savedSession.userAnswers || {};
+                    currentModuleTimeLeft = savedSession.currentModuleTimeLeft || 0;
+                    practiceQuizTimeElapsed = savedSession.practiceQuizTimeElapsed || 0;
+                    isTimerHidden = savedSession.isTimerHidden || false;
+                    globalOriginPageId = savedSession.globalOriginPageId || globalOriginPageId; 
+                    globalQuizSource = savedSession.globalQuizSource || globalQuizSource;     
+                    
+                    if (timerTextEl && timerClockIconEl && timerToggleBtn) { /* ... restore timer visibility ... */ }
+                    // ... (copy timer visibility restoration from your working script if it was there)
+
+                    console.log("DEBUG DOMContentLoaded: Session state restored for resume:", { /* ... log details ... */ });
+
+                    const quizNameToLoadForResume = currentTestFlow[currentModuleIndex];
+                    if (quizNameToLoadForResume) {
+                        let jsonToLoadForResume = quizNameToLoadForResume; // Placeholder for M2 mapping if needed
+                        // Add your M2 mapping logic here if it was present in the working version
+                        // e.g., if (quizNameToLoadForResume.endsWith("RW-M2") && ...) jsonToLoadForResume = ...;
+
+                        const success = await loadQuizData(jsonToLoadForResume);
+                        if (success && currentQuizQuestions.length > 0) {
+                            console.log(`DEBUG DOMContentLoaded: Data for resumed module ${quizNameToLoadForResume} loaded.`);
+                            
+                            const currentModInfoForResume = getCurrentModule(); // Get module info for resumed module
+                            const isResumedDtT0Module = currentModInfoForResume && currentModInfoForResume.name && currentModInfoForResume.name.includes("(Diagnostic)");
+
+                            if (currentInteractionMode === 'full_test') {
+                                if (isResumedDtT0Module) {
+                                    console.log(`DEBUG DOMContentLoaded Resume: Resuming DT-T0 module ${currentTestFlow[currentModuleIndex]} with upward timer.`);
+                                    startPracticeQuizTimer();
+                                    practiceQuizTimeElapsed = savedSession.practiceQuizTimeElapsed || 0;
+                                    updatePracticeQuizTimerDisplay(practiceQuizTimeElapsed);
+                                    currentModuleTimeUp = true; 
+                                } else if (currentModInfoForResume && typeof currentModInfoForResume.durationSeconds === 'number' && currentModInfoForResume.durationSeconds > 0) {
+                                    console.log(`DEBUG DOMContentLoaded Resume: Resuming timed module ${currentTestFlow[currentModuleIndex]} with ${currentModuleTimeLeft}s left.`);
+                                    startModuleTimer(currentModuleTimeLeft); 
+                                } else { // Fallback if duration is missing for a non-DT-T0 full_test module
+                                    console.warn(`DEBUG DOMContentLoaded Resume: Full_test module ${currentTestFlow[currentModuleIndex]} missing duration. Using upward timer or no timer.`);
+                                    startPracticeQuizTimer(); // Or handle as error / default to untimed
+                                    practiceQuizTimeElapsed = savedSession.practiceQuizTimeElapsed || 0;
+                                    updatePracticeQuizTimerDisplay(practiceQuizTimeElapsed);
+                                    currentModuleTimeUp = true;
+                                }
+                            } else if (currentInteractionMode === 'single_quiz') {
+                                startPracticeQuizTimer(); 
+                                practiceQuizTimeElapsed = savedSession.practiceQuizTimeElapsed || 0;
+                                updatePracticeQuizTimerDisplay(practiceQuizTimeElapsed);
+                            }
+                            populateQNavGrid();
+                            showView('test-interface-view');
+                            // sessionResumed = true; // Already set
+                        } else {
+                            console.error(`DEBUG DOMContentLoaded: Failed to load data for resumed module ${quizNameToLoadForResume}. Clearing session.`);
+                            alert("Could not resume session: error loading quiz data. Starting fresh.");
+                            clearSessionState(); 
+                            sessionResumed = false; // Indicate resume failed
+                        }
+                    } else {
+                        console.error("DEBUG DOMContentLoaded: Invalid quizNameInFlow for resume. Clearing session.");
+                        alert("Could not resume session: invalid session data. Starting fresh.");
+                        clearSessionState();
+                        sessionResumed = false; // Indicate resume failed
+                    }
+                } else { // User chose NOT to resume
+                    console.log("DEBUG DOMContentLoaded: User chose NOT to resume. Clearing saved session.");
+                    clearSessionState(); 
+                    sessionResumed = false; // Explicitly set, though default is false
+                }
+                // --- END OF INSERTED/CORRECTED resumeConfirmation LOGIC ---
+            } else {
+                console.warn("DEBUG DOMContentLoaded: Saved session data is invalid or incomplete. Clearing it.");
+                clearSessionState();
+            }
+        } catch (parseError) {
+            console.error("DEBUG DOMContentLoaded: Error parsing saved session JSON. Clearing it.", parseError);
+            clearSessionState();
+        }
+    } else {
+        console.log("DEBUG DOMContentLoaded: No saved session found.");
+    }
+
+    if (!sessionResumed) { 
+        console.log("DEBUG DOMContentLoaded: No session resumed. Proceeding with standard launch checks (email/URL).");
+    
     if (!emailIsValid) {
         console.log(`DEBUG DOMContentLoaded: No valid email. Showing email input. URL params: quiz_name=${quizNameFromUrl}, test_id=${testIdFromUrl}`);
         showView('email-input-view');
@@ -1556,10 +1730,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                    // if (firstQuizName.endsWith("RW-M2") && (!moduleMetadata[firstQuizName] || !moduleMetadata[firstQuizName].actualFileIfDifferent)) jsonToLoad = firstQuizName.replace("RW-M2", "RW-M1");
                    // else if (firstQuizName.endsWith("MT-M2") && (!moduleMetadata[firstQuizName] || !moduleMetadata[firstQuizName].actualFileIfDifferent)) jsonToLoad = firstQuizName.replace("MT-M2", "MT-M1");
 
+                    const isDtT0Module = firstQuizName.startsWith("DT-T0-");
+                    
                     const success = await loadQuizData(jsonToLoad);
                     if (success && currentQuizQuestions.length > 0) {
-                        if (moduleInfo && typeof moduleInfo.durationSeconds === 'number') { startModuleTimer(moduleInfo.durationSeconds); } 
-                        else { updateModuleTimerDisplay(0); }
+                       if (isDtT0Module) {
+                                startPracticeQuizTimer(); currentModuleTimeUp = true;
+                       } else if (moduleInfo && typeof moduleInfo.durationSeconds === 'number') { startModuleTimer(moduleInfo.durationSeconds); } 
+                        else { updateModuleTimerDisplay(0); currentModuleTimeUp = true; }
                         populateQNavGrid(); showView('test-interface-view');
                     } else { alert(`Could not load initial module for test: ${testIdFromUrl}.`); showView('home-view'); }
                 } else { alert(`Test ID '${testIdFromUrl}' has no defined flow.`); showView('home-view');}
@@ -1570,7 +1748,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             currentTestFlow = [quizNameFromUrl];
             currentModuleIndex = 0; currentQuestionNumber = 1; userAnswers = {};
             isTimerHidden = false; isCrossOutToolActive = false; isHighlightingActive = false;
-            currentModuleTimeUp = false; 
+            currentModuleTimeUp = false; questionStartTime = 0;
+            currentModuleTimeLeft = 0; practiceQuizTimeElapsed = 0;
+            
             const success = await loadQuizData(quizNameFromUrl);
             if (success && currentQuizQuestions.length > 0) {
                 startPracticeQuizTimer(); populateQNavGrid(); showView('test-interface-view'); 
