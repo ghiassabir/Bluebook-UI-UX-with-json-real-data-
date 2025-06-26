@@ -1087,8 +1087,7 @@ function updateNavigation() {
                 nextBtnFooter.disabled = !currentModuleTimeUp && (currentMod && typeof currentMod.durationSeconds === 'number' && currentMod.durationSeconds > 0);
             } else { 
                 nextBtnFooter.disabled = false; 
-            }
-    } else if (currentView === 'review-page-view') {
+            } else if (currentView === 'review-page-view') {
         if (reviewBackBtnFooter) reviewBackBtnFooter.style.display = 'inline-block';
         if (reviewNextBtnFooter) reviewNextBtnFooter.style.display = 'inline-block';
         if (reviewBackBtnFooter) reviewBackBtnFooter.disabled = false;
