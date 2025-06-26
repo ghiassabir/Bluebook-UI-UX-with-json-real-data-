@@ -1848,4 +1848,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             showView('home-view'); 
         }
     }
-});
+    }
+    });
+
+
+
