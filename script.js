@@ -1085,13 +1085,16 @@ function updateNavigation() {
                 nextBtnFooter.disabled = false; // Always enabled if it's last question
             } else {
                 nextBtnFooter.disabled = !currentModuleTimeUp && (currentMod && typeof currentMod.durationSeconds === 'number' && currentMod.durationSeconds > 0);
-            } else { 
+            } 
+            }
+        }    
+            else { 
                 nextBtnFooter.disabled = false; 
+            }
             } else if (currentView === 'review-page-view') {
         if (reviewBackBtnFooter) reviewBackBtnFooter.style.display = 'inline-block';
         if (reviewNextBtnFooter) reviewNextBtnFooter.style.display = 'inline-block';
         if (reviewBackBtnFooter) reviewBackBtnFooter.disabled = false;
-
         if (reviewNextBtnFooter) {
             if (currentInteractionMode === 'single_quiz') {
                 reviewNextBtnFooter.textContent = "Finish Quiz";
@@ -1111,8 +1114,8 @@ function updateNavigation() {
                 reviewNextBtnFooter.disabled = !currentModuleTimeUp && (currentMod && typeof currentMod.durationSeconds === 'number' && currentMod.durationSeconds > 0);
             }
         }
-    } 
-    // console.log("DEBUG: updateNavigation COMPLETED. NextBtn disabled:", nextBtnFooter.disabled, "ReviewNextBtn disabled:", reviewNextBtnFooter ? reviewNextBtnFooter.disabled : "N/A");
+      // console.log("DEBUG: updateNavigation COMPLETED. NextBtn disabled:", nextBtnFooter.disabled, "ReviewNextBtn disabled:", reviewNextBtnFooter ? reviewNextBtnFooter.disabled : "N/A");
+}
 }
 
 function nextButtonClickHandler() {
