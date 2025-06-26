@@ -1076,7 +1076,8 @@ function updateNavigation() {
         } else if (currentQuestionNumber < totalQuestionsInModule) {
             nextBtnFooter.textContent = "Next";
             nextBtnFooter.disabled = false;
-        } else { 
+        } else {
+            
             nextBtnFooter.textContent = "Review Section";
             if (currentInteractionMode === 'full_test') {
                 // CHANGED: For DT-T0, "Review Section" button is not disabled by timer
@@ -1086,7 +1087,7 @@ function updateNavigation() {
                 nextBtnFooter.disabled = !currentModuleTimeUp && (currentMod && typeof currentMod.durationSeconds === 'number' && currentMod.durationSeconds > 0);
             } else { 
                 nextBtnFooter.disabled = false; 
-            }
+            }   
         }
     } else if (currentView === 'review-page-view') {
         if (reviewBackBtnFooter) reviewBackBtnFooter.style.display = 'inline-block';
