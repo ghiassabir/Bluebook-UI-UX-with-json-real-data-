@@ -8,58 +8,6 @@ function toggleModal(modalElement, show) {
     modalElement.classList.toggle('visible', show);
 }
 
-// --- script.js (Session Persistence - Part 1 of X) ---
-// ADDED: Function to save the current session state
-//function saveSessionState() {
-//    if (typeof localStorage === 'undefined') {
-//        console.warn("localStorage is not available. Session persistence disabled.");
- //       return;
-  //  }
-
-// MOVED HERE: Function to save the current session state
-function saveSessionState() {
-    if (typeof localStorage === 'undefined') {
-        console.warn("localStorage is not available. Session persistence disabled.");
-        return;
-    }
-    const sessionState = {
-        studentEmailForSubmission: studentEmailForSubmission,
-        currentInteractionMode: currentInteractionMode,
-        currentTestFlow: currentTestFlow,
-        currentModuleIndex: currentModuleIndex,
-        currentQuestionNumber: currentQuestionNumber,
-        userAnswers: userAnswers,
-        currentModuleTimeLeft: currentModuleTimeLeft,
-        practiceQuizTimeElapsed: practiceQuizTimeElapsed,
-        isTimerHidden: isTimerHidden,
-        globalOriginPageId: globalOriginPageId,
-        globalQuizSource: globalQuizSource,
-    };
-    try {
-        const serializedState = JSON.stringify(sessionState);
-        localStorage.setItem(SESSION_STORAGE_KEY, serializedState);
-        console.log("DEBUG saveSessionState: Session state saved.", sessionState);
-    } catch (error) {
-        console.error("Error saving session state to localStorage:", error);
-    }
-}
-
-
-// ADDED: Function to clear the saved session state
-function clearSessionState() {
-    if (typeof localStorage === 'undefined') {
-        console.warn("localStorage is not available. Cannot clear session state.");
-        return;
-    }
-    try {
-        localStorage.removeItem(SESSION_STORAGE_KEY);
-        console.log("DEBUG clearSessionState: Session state cleared from localStorage.");
-    } catch (error) {
-        console.error("Error clearing session state from localStorage:", error);
-    }
-}
-
-
 // --- GLOBAL CONFIGURATION & STATE ---
 let currentQuizQuestions = []; 
 let currentTestFlow = [];      
@@ -70,8 +18,6 @@ let userAnswers = {};
 let isTimerHidden = false;
 let isCrossOutToolActive = false;
 let isHighlightingActive = false;
-// Near line 20 (after other global variables)
-const SESSION_STORAGE_KEY = 'bluebookQuizSession'; // ADDED for session persistence
 let questionStartTime = 0;
 let moduleTimerInterval;
 let currentModuleTimeLeft = 0;
@@ -316,35 +262,6 @@ function getAnswerState(moduleIdx = currentModuleIndex, qNum = currentQuestionNu
     return userAnswers[key];
 }
 
-    
-    // Gather all relevant state
-    const sessionState = {
-        studentEmailForSubmission: studentEmailForSubmission,
-        currentInteractionMode: currentInteractionMode,
-        currentTestFlow: currentTestFlow,
-        currentModuleIndex: currentModuleIndex,
-        currentQuestionNumber: currentQuestionNumber,
-        userAnswers: userAnswers, // This includes selections, SPR, timeSpent, marked, crossedOut, q_id etc.
-        currentModuleTimeLeft: currentModuleTimeLeft,       // For full_test countdown
-        practiceQuizTimeElapsed: practiceQuizTimeElapsed,   // For single_quiz count-up
-        isTimerHidden: isTimerHidden,                       // To restore timer visibility state
-        // Note: isCrossOutToolActive and isHighlightingActive are usually reset when loading a question,
-        // so saving them might not be critical unless you want to restore that exact tool state.
-        // For now, let's keep it simple.
-        globalOriginPageId: globalOriginPageId,
-        globalQuizSource: globalQuizSource,
-        // We don't save currentQuizQuestions as that's loaded from JSON on resume.
-    };
-
-    try {
-        const serializedState = JSON.stringify(sessionState);
-        localStorage.setItem(SESSION_STORAGE_KEY, serializedState);
-        console.log("DEBUG saveSessionState: Session state saved.", sessionState);
-    } catch (error) {
-        console.error("Error saving session state to localStorage:", error);
-        // Potentially alert user if localStorage is full or other issues occur, though rare.
-    }
-
 function recordTimeOnCurrentQuestion() { 
     if (questionStartTime > 0 && currentQuizQuestions && currentQuizQuestions.length > 0 && currentQuestionNumber > 0 && currentQuestionNumber <= currentQuizQuestions.length) {
         if (currentQuizQuestions[currentQuestionNumber - 1]) { 
@@ -484,7 +401,6 @@ function populateQNavGrid() {
         btn.dataset.question = i; 
         btn.addEventListener('click', () => {
             recordTimeOnCurrentQuestion();
-            saveSessionState(); // CHANGED: Added call to save state
             currentQuestionNumber = parseInt(btn.dataset.question); 
             isCrossOutToolActive = false; 
             isHighlightingActive = false; if(highlightsNotesBtn) highlightsNotesBtn.classList.remove('active');
@@ -587,13 +503,6 @@ function showView(viewId) {
 
     if (viewId !== 'test-interface-view' && viewId !== 'review-page-view' && 
         viewId !== 'module-over-view' && viewId !== 'manual-break-view') {
-
-         // CHANGED: Save state BEFORE clearing timers if we were in a test context
-            if (currentView === 'test-interface-view' || currentView === 'review-page-view') {
-                saveSessionState(); 
-            }
-            // END CHANGED
-        
         if (moduleTimerInterval) {
             clearInterval(moduleTimerInterval);
             console.log("Module countdown timer stopped: Navigating away from test context.");
@@ -995,8 +904,7 @@ function handleAnswerSelect(optionKey) {
         answerState.crossedOut = answerState.crossedOut.filter(opt => opt !== optionKey);
     }
     
-    loadQuestion();
-    saveSessionState();
+    loadQuestion(); 
 }
 
 function handleAnswerCrossOut(optionKey) { 
@@ -1005,16 +913,14 @@ function handleAnswerCrossOut(optionKey) {
      if (!answerState.crossedOut.includes(optionKey)) {
          answerState.crossedOut.push(optionKey);
      } 
-     loadQuestion();
-    saveSessionState(); // CHANGED: Added call to save state
+     loadQuestion(); 
 }
 
 function handleAnswerUndoCrossOut(optionKey) { 
      const answerState = getAnswerState();
      if (!answerState) return;
      answerState.crossedOut = answerState.crossedOut.filter(opt => opt !== optionKey);
-     loadQuestion();
-    saveSessionState(); // CHANGED: Added call to save state
+     loadQuestion(); 
 }
 
 if(crossOutToolBtnMain) {
@@ -1036,7 +942,6 @@ if(sprInputFieldMain) {
     sprInputFieldMain.addEventListener('blur', () => { 
         recordTimeOnCurrentQuestion();
         questionStartTime = Date.now(); 
-        saveSessionState(); // CHANGED: Added call to save state
     });
 }
 
@@ -1306,8 +1211,6 @@ function nextButtonClickHandler() {
     if (currentView !== 'test-interface-view') return; 
     console.log("DEBUG: nextButtonClickHandler CALLED");
     recordTimeOnCurrentQuestion(); 
-    saveSessionState(); // CHANGED: Added call to save state BEFORE changing currentQuestionNumber
-    
     const totalQuestionsInModule = currentQuizQuestions ? currentQuizQuestions.length : 0;
     if (currentQuestionNumber < totalQuestionsInModule) {
         currentQuestionNumber++;
@@ -1354,8 +1257,7 @@ function nextButtonClickHandler() {
      console.log(`DEBUG reviewNextBtnHandler: Submitting data for completed module: ${currentTestFlow[moduleIndexJustCompleted]} (index ${moduleIndexJustCompleted})`);
         // The second param indicates if it's the final module of the whole test.
         await submitCurrentModuleData(moduleIndexJustCompleted, (moduleIndexJustCompleted === currentTestFlow.length - 1)); 
-
-    saveSessionState(); // CHANGED: Save state before module transition or finishing    
+                
     currentModuleIndex++;
     console.log("DEBUG reviewNextBtn: Advanced currentModuleIndex to:", currentModuleIndex);
 
@@ -1532,8 +1434,6 @@ function backButtonClickHandler() {
     if (currentView !== 'test-interface-view') return;
     console.log("DEBUG: backButtonClickHandler CALLED");
     recordTimeOnCurrentQuestion();
-    saveSessionState(); // CHANGED: Added call to save state BEFORE changing currentQuestionNumber
-    
     if (currentQuestionNumber > 1) {
         currentQuestionNumber--;
         isCrossOutToolActive = false; 
@@ -1556,17 +1456,7 @@ if(backBtnFooter) {
 }
 
 // --- Event Listeners for other UI elements ---
-if(returnToHomeBtn) { 
-    returnToHomeBtn.addEventListener('click', () => {
-    console.log("DEBUG returnToHomeBtn: Clicked. Clearing session and returning to home.");
-        // Ensure submission for the final module has completed if this is the primary exit path.
-        // Our current flow calls submitCurrentModuleData before showing finished-view for the last module.
-        clearSessionState(); // CHANGED: Added call to clear session    
-        showView('home-view');
-    });
-}  
-
-
+if(returnToHomeBtn) returnToHomeBtn.addEventListener('click', () => showView('home-view')); 
 if(calculatorBtnHeader) calculatorBtnHeader.addEventListener('click', () => toggleModal(calculatorOverlay, true));
 if(calculatorCloseBtn) calculatorCloseBtn.addEventListener('click', () => toggleModal(calculatorOverlay, false));
 if(referenceBtnHeader) referenceBtnHeader.addEventListener('click', () => toggleModal(referenceSheetPanel, true));
@@ -1659,7 +1549,6 @@ if(markReviewCheckboxMain) {
         }
         if (qNavPopup && qNavPopup.classList.contains('visible')) populateQNavGrid();
         if (reviewPageViewEl && reviewPageViewEl.classList.contains('active')) renderReviewPage(); // Update review page grid if active
-       saveSessionState(); // CHANGED: Added call to save state
     });
 }
 
@@ -1705,19 +1594,11 @@ if(moreExitExamBtn) {
     moreExitExamBtn.addEventListener('click', () => { toggleModal(exitExamConfirmModal, true); if(moreMenuDropdown) moreMenuDropdown.classList.remove('visible'); });
 }
 if(exitExamCancelBtn) exitExamCancelBtn.addEventListener('click', () => toggleModal(exitExamConfirmModal, false));
-
 if(exitExamConfirmBtn) {
     exitExamConfirmBtn.addEventListener('click', () => { 
         recordTimeOnCurrentQuestion(); // Record time before exiting
         if (moduleTimerInterval) clearInterval(moduleTimerInterval);
         if (practiceQuizTimerInterval) clearInterval(practiceQuizTimerInterval);
-        
-        console.log("DEBUG exitExamConfirmBtn: User confirmed exit. Clearing session.");
-        clearSessionState(); // CHANGED: Added call to clear session
-        
-        //saveSessionState();
-        //if (moduleTimerInterval) clearInterval(moduleTimerInterval);
-        //if (practiceQuizTimerInterval) clearInterval(practiceQuizTimerInterval);
         toggleModal(exitExamConfirmModal, false); 
         showView('home-view'); 
     });
@@ -1879,9 +1760,7 @@ async function submitQuizData() {
 
 // --- DOMContentLoaded ---
 document.addEventListener('DOMContentLoaded', async () => {
-   // console.log("DEBUG DOMContentLoaded: Initializing application.");
-    console.log("DEBUG DOMContentLoaded: Initializing application (Phase B - Restore).");
-    
+    console.log("DEBUG DOMContentLoaded: Initializing application.");
     const emailIsValid = initializeStudentIdentifier(); 
     const urlParams = new URLSearchParams(window.location.search);
     const quizNameFromUrl = urlParams.get('quiz_name');
@@ -1897,45 +1776,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log(`DEBUG DOMContentLoaded: URL 'originPageId' parameter found: ${globalOriginPageId}`);
     }
 
-
-    // --- CHANGED: Session Restoration Logic START ---
     const savedSessionJSON = localStorage.getItem(SESSION_STORAGE_KEY);
     let sessionResumed = false;
 
     if (savedSessionJSON) {
-
-        console.log("DEBUG DOMContentLoaded: Found saved session data:", savedSessionJSON);
-        try {
-            const savedSession = JSON.parse(savedSessionJSON);
-
-            // Basic validation of saved session
-            if (savedSession && typeof savedSession.currentModuleIndex === 'number' && savedSession.currentTestFlow && savedSession.currentTestFlow.length > 0) {
-                
-                // Ensure studentEmail consistency if email input was skipped due to localStorage
-                if (emailIsValid && studentEmailForSubmission && savedSession.studentEmailForSubmission && studentEmailForSubmission !== savedSession.studentEmailForSubmission) {
-                    // This case should ideally not happen if initializeStudentIdentifier always sets studentEmailForSubmission
-                    // But as a safety:
-                    console.warn(`Mismatch between localStorage email (${studentEmailForSubmission}) and session email (${savedSession.studentEmailForSubmission}). Preferring session email for resume.`);
-                    studentEmailForSubmission = savedSession.studentEmailForSubmission; 
-                    // Update the display if needed (e.g., on a user profile element if you add one)
-                    const homeUserNameEl = document.getElementById('home-user-name');
-                    if(homeUserNameEl) homeUserNameEl.textContent = studentEmailForSubmission.split('@')[0];
-                } else if (!studentEmailForSubmission && savedSession.studentEmailForSubmission) {
-                    // If email prompt was supposed to show but we found a session with an email.
-                    studentEmailForSubmission = savedSession.studentEmailForSubmission;
-                    localStorage.setItem('bluebookStudentEmail', studentEmailForSubmission); // Save it back
-                     const homeUserNameEl = document.getElementById('home-user-name');
-                    if(homeUserNameEl) homeUserNameEl.textContent = studentEmailForSubmission.split('@')[0];
-                    console.log(`DEBUG DOMContentLoaded: Restored studentEmailForSubmission from saved session: ${studentEmailForSubmission}`);
-                }
-
-
-                const resumeConfirmation = confirm("An unfinished session was found. Would you like to resume it?");
-                if (resumeConfirmation) {
-                    console.log("DEBUG DOMContentLoaded: User chose to RESUME session.");
-                    // Restore state variables
-                    currentInteractionMode = savedSession.currentInteractionMode || 'full_test'; // Default to full_test if missing
-
         console.log("DEBUG DOMContentLoaded: Found saved session data.");
         try {
             const savedSession = JSON.parse(savedSessionJSON);
@@ -1966,7 +1810,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                     // Restore state variables
                     currentInteractionMode = savedSession.currentInteractionMode || 'full_test';
-
                     currentTestFlow = savedSession.currentTestFlow;
                     currentModuleIndex = savedSession.currentModuleIndex;
                     currentQuestionNumber = savedSession.currentQuestionNumber;
@@ -1974,44 +1817,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     currentModuleTimeLeft = savedSession.currentModuleTimeLeft || 0;
                     practiceQuizTimeElapsed = savedSession.practiceQuizTimeElapsed || 0;
                     isTimerHidden = savedSession.isTimerHidden || false;
-
-                    globalOriginPageId = savedSession.globalOriginPageId || globalOriginPageId; // Prefer URL if present, else session
-                    globalQuizSource = savedSession.globalQuizSource || globalQuizSource;     // Prefer URL if present, else session
-                    
-                    // Restore timer visibility
-                    if (timerTextEl && timerClockIconEl && timerToggleBtn) {
-                        timerTextEl.classList.toggle('hidden', isTimerHidden);
-                        timerClockIconEl.classList.toggle('hidden', !isTimerHidden);
-                        timerToggleBtn.textContent = isTimerHidden ? '[Show]' : '[Hide]';
-                    }
-                     if (reviewTimerText && reviewTimerClockIcon && reviewTimerToggleBtn) {
-                        reviewTimerText.classList.toggle('hidden', isTimerHidden);
-                        reviewTimerClockIcon.classList.toggle('hidden', !isTimerHidden);
-                        reviewTimerToggleBtn.textContent = isTimerHidden ? '[Show]' : '[Hide]';
-                    }
-
-
-                    console.log("DEBUG DOMContentLoaded: Session state restored:", {
-                        mode: currentInteractionMode,
-                        flow: currentTestFlow,
-                        moduleIdx: currentModuleIndex,
-                        qNum: currentQuestionNumber,
-                        moduleTimeLeft: currentModuleTimeLeft,
-                        practiceTimeElapsed: practiceQuizTimeElapsed
-                    });
-
-                    // Load quiz data for the current module of the resumed session
-                    const quizNameToLoadForResume = currentTestFlow[currentModuleIndex];
-                    if (quizNameToLoadForResume) {
-                        const success = await loadQuizData(quizNameToLoadForResume);
-                        if (success && currentQuizQuestions.length > 0) {
-                            console.log(`DEBUG DOMContentLoaded: Data for resumed module ${quizNameToLoadForResume} loaded.`);
-                            if (currentInteractionMode === 'full_test') {
-                                startModuleTimer(currentModuleTimeLeft); // Resume countdown
-                            } else if (currentInteractionMode === 'single_quiz') {
-                                startPracticeQuizTimer(); // Restart count-up timer
-                                // Manually set the elapsed time and update display
-
                     globalOriginPageId = savedSession.globalOriginPageId || globalOriginPageId; 
                     globalQuizSource = savedSession.globalQuizSource || globalQuizSource;     
                     
@@ -2052,48 +1857,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                                 }
                             } else if (currentInteractionMode === 'single_quiz') {
                                 startPracticeQuizTimer(); 
-
                                 practiceQuizTimeElapsed = savedSession.practiceQuizTimeElapsed || 0;
                                 updatePracticeQuizTimerDisplay(practiceQuizTimeElapsed);
                             }
                             populateQNavGrid();
                             showView('test-interface-view');
-
-                            sessionResumed = true;
-                        } else {
-                            console.error(`DEBUG DOMContentLoaded: Failed to load data for resumed module ${quizNameToLoadForResume}. Clearing session.`);
-                            alert("Could not resume session: error loading quiz data. Starting fresh.");
-                            localStorage.removeItem(SESSION_STORAGE_KEY); // Clear invalid session
-
                             // sessionResumed = true; // Already set
                         } else {
                             console.error(`DEBUG DOMContentLoaded: Failed to load data for resumed module ${quizNameToLoadForResume}. Clearing session.`);
                             alert("Could not resume session: error loading quiz data. Starting fresh.");
                             clearSessionState(); 
                             sessionResumed = false; // Indicate resume failed
-
                         }
                     } else {
                         console.error("DEBUG DOMContentLoaded: Invalid quizNameInFlow for resume. Clearing session.");
                         alert("Could not resume session: invalid session data. Starting fresh.");
-
-                        localStorage.removeItem(SESSION_STORAGE_KEY);
-                    }
-                } else {
-                    console.log("DEBUG DOMContentLoaded: User chose NOT to resume. Clearing saved session.");
-                   // localStorage.removeItem(SESSION_STORAGE_KEY); // Clear session as user opted out
-                    clearSessionState(); // CHANGED: Use new function
-                }
-            } else {
-                console.warn("DEBUG DOMContentLoaded: Saved session data is invalid or incomplete. Clearing it.");
-                //localStorage.removeItem(SESSION_STORAGE_KEY);
-                clearSessionState(); // CHANGED: Use new function
-            }
-        } catch (parseError) {
-            console.error("DEBUG DOMContentLoaded: Error parsing saved session JSON. Clearing it.", parseError);
-            //localStorage.removeItem(SESSION_STORAGE_KEY);
-            clearSessionState(); // CHANGED: Use new function
-
                         clearSessionState();
                         sessionResumed = false; // Indicate resume failed
                     }
@@ -2110,22 +1888,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (parseError) {
             console.error("DEBUG DOMContentLoaded: Error parsing saved session JSON. Clearing it.", parseError);
             clearSessionState();
-
         }
     } else {
         console.log("DEBUG DOMContentLoaded: No saved session found.");
     }
 
-
-    
-    // --- CHANGED: Session Restoration Logic END ---
-
-    if (!sessionResumed) { // If session was not resumed, proceed with normal launch (URL params or email prompt)
-        console.log("DEBUG DOMContentLoaded: No session resumed. Proceeding with standard launch checks.");
-
     if (!sessionResumed) { 
         console.log("DEBUG DOMContentLoaded: No session resumed. Proceeding with standard launch checks (email/URL).");
-
     
     if (!emailIsValid) {
         console.log(`DEBUG DOMContentLoaded: No valid email. Showing email input. URL params: quiz_name=${quizNameFromUrl}, test_id=${testIdFromUrl}`);
@@ -2134,17 +1903,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log(`DEBUG DOMContentLoaded: Email is valid (${studentEmailForSubmission}). Checking direct launch params.`);
         if (testIdFromUrl) { 
             console.log(`DEBUG DOMContentLoaded: Launching full test from URL: ${testIdFromUrl}`);
-            
             if (fullTestDefinitions[testIdFromUrl]) {
                 currentInteractionMode = 'full_test';
                 currentTestFlow = fullTestDefinitions[testIdFromUrl].flow;
-
-                // Reset all states for a new test
-                    currentModuleIndex = 0; currentQuestionNumber = 1; userAnswers = {};
-                    isTimerHidden = false; isCrossOutToolActive = false; isHighlightingActive = false;
-                    currentModuleTimeUp = false; questionStartTime = 0;
-                    currentModuleTimeLeft = 0; practiceQuizTimeElapsed = 0;
-                
+                currentModuleIndex = 0; currentQuestionNumber = 1; userAnswers = {};
+                isTimerHidden = false; isCrossOutToolActive = false; isHighlightingActive = false;
+                currentModuleTimeUp = false; 
                 if (currentTestFlow && currentTestFlow.length > 0) {
                     const firstQuizName = currentTestFlow[currentModuleIndex];
                     const moduleInfo = moduleMetadata[firstQuizName];
@@ -2166,23 +1930,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             } else { alert(`Unknown Test ID: ${testIdFromUrl}.`); showView('home-view'); }
         } else if (quizNameFromUrl) {
             console.log(`DEBUG DOMContentLoaded: Launching single quiz from URL: ${quizNameFromUrl}`);
-           
             currentInteractionMode = 'single_quiz'; 
             currentTestFlow = [quizNameFromUrl];
-
-            
-            // Reset all states for a new quiz
-                currentModuleIndex = 0; currentQuestionNumber = 1; userAnswers = {};
-                isTimerHidden = false; isCrossOutToolActive = false; isHighlightingActive = false;
-                currentModuleTimeUp = false; questionStartTime = 0;
-                currentModuleTimeLeft = 0; practiceQuizTimeElapsed = 0; 
-
-
             currentModuleIndex = 0; currentQuestionNumber = 1; userAnswers = {};
             isTimerHidden = false; isCrossOutToolActive = false; isHighlightingActive = false;
             currentModuleTimeUp = false; questionStartTime = 0;
             currentModuleTimeLeft = 0; practiceQuizTimeElapsed = 0;
-
             
             const success = await loadQuizData(quizNameFromUrl);
             if (success && currentQuizQuestions.length > 0) {
@@ -2193,9 +1946,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             showView('home-view'); 
         }
     }
-
-  }      
-});
-
     }
     });
+
+
