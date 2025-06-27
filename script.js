@@ -1042,7 +1042,7 @@ async function submitCurrentModuleData(moduleIndexToSubmit, isFinalSubmission = 
     }
 }
 
-
+/*
 // --- Navigation ---
 function updateNavigation() {
     console.log("DEBUG: updateNavigation CALLED. View:", currentView, "Q#:", currentQuestionNumber, "ModTimeUp:", currentModuleTimeUp, "Mode:", currentInteractionMode);
@@ -1117,6 +1117,92 @@ function updateNavigation() {
       // console.log("DEBUG: updateNavigation COMPLETED. NextBtn disabled:", nextBtnFooter.disabled, "ReviewNextBtn disabled:", reviewNextBtnFooter ? reviewNextBtnFooter.disabled : "N/A");
 }
 }
+*/
+
+// --- Navigation ---
+function updateNavigation() {
+    console.log("DEBUG: updateNavigation CALLED. View:", currentView, "Q#:", currentQuestionNumber, "ModTimeUp:", currentModuleTimeUp, "Mode:", currentInteractionMode);
+    
+    if (!backBtnFooter || !nextBtnFooter || !currentQFooterEl || !totalQFooterEl) {
+        console.error("Navigation elements missing for updateNavigation.");
+        return;
+    }
+
+    const moduleIsLoaded = currentQuizQuestions && currentQuizQuestions.length > 0;
+    const totalQuestionsInModule = moduleIsLoaded ? currentQuizQuestions.length : 0;
+
+    currentQFooterEl.textContent = moduleIsLoaded ? currentQuestionNumber : '0';
+    totalQFooterEl.textContent = totalQuestionsInModule;
+    backBtnFooter.disabled = (currentQuestionNumber === 1);
+
+    // Default visibility - hide all primary nav buttons first
+    nextBtnFooter.style.display = 'none';
+    backBtnFooter.style.display = 'none';
+    if (reviewNextBtnFooter) reviewNextBtnFooter.style.display = 'none';
+    if (reviewBackBtnFooter) reviewBackBtnFooter.style.display = 'none';
+
+    // Get module info once, as it might be used in multiple conditions
+    const currentMod = getCurrentModule();
+    const isDtT0Module = currentMod && currentMod.name && currentMod.name.includes("(Diagnostic)");
+
+    if (currentView === 'test-interface-view') {
+        nextBtnFooter.style.display = 'inline-block';
+        backBtnFooter.style.display = 'inline-block';
+
+        if (!moduleIsLoaded) {
+            nextBtnFooter.textContent = "Next";
+            nextBtnFooter.disabled = true;
+        } else if (currentQuestionNumber < totalQuestionsInModule) {
+            nextBtnFooter.textContent = "Next";
+            nextBtnFooter.disabled = false;
+        } else { // This is the last question of the current module
+            nextBtnFooter.textContent = "Review Section";
+            if (currentInteractionMode === 'full_test') {
+                if (isDtT0Module) {
+                    // For DT-T0 diagnostic modules, allow proceeding to review immediately
+                    nextBtnFooter.disabled = false; 
+                } else {
+                    // For other timed full_test modules, disable if time is not up
+                    nextBtnFooter.disabled = !currentModuleTimeUp && (currentMod && typeof currentMod.durationSeconds === 'number' && currentMod.durationSeconds > 0);
+                }
+            } else { // This is for 'single_quiz' mode on the last question
+                nextBtnFooter.disabled = false; 
+            }
+        } 
+    } else if (currentView === 'review-page-view') {
+        if (reviewBackBtnFooter) reviewBackBtnFooter.style.display = 'inline-block';
+        if (reviewNextBtnFooter) reviewNextBtnFooter.style.display = 'inline-block';
+        
+        if (reviewBackBtnFooter) reviewBackBtnFooter.disabled = false; // Can always go back to test interface from review
+
+        if (reviewNextBtnFooter) {
+            if (currentInteractionMode === 'single_quiz') {
+                reviewNextBtnFooter.textContent = "Finish Quiz";
+                reviewNextBtnFooter.disabled = false; // Always enabled for single quiz to finish
+            } else { // currentInteractionMode === 'full_test'
+                if (currentModuleIndex < currentTestFlow.length - 1) {
+                    reviewNextBtnFooter.textContent = "Next Module";
+                } else {
+                    reviewNextBtnFooter.textContent = "Finish Test";
+                }
+                
+                if (isDtT0Module) {
+                    // For DT-T0 diagnostic modules, allow proceeding immediately
+                    reviewNextBtnFooter.disabled = false;
+                } else {
+                    // For other timed full_test modules, disable if time is not up
+                    reviewNextBtnFooter.disabled = !currentModuleTimeUp && (currentMod && typeof currentMod.durationSeconds === 'number' && currentMod.durationSeconds > 0);
+                }
+            }
+        }
+    } else if (currentView === 'home-view' || currentView === 'finished-view' || currentView === 'module-over-view' || currentView === 'email-input-view' || currentView === 'manual-break-view') {
+        // No primary footer navigation buttons (Next/Back) are typically active or needed in these views.
+        // Specific buttons within these views (e.g., "Return to Home", "Continue After Break") are handled by their own listeners.
+    }
+    
+    // console.log(`DEBUG: updateNavigation COMPLETED. NextBtn.text: "${nextBtnFooter.textContent}", NextBtn.disabled: ${nextBtnFooter.disabled}, ReviewNextBtn.text: "${reviewNextBtnFooter ? reviewNextBtnFooter.textContent : 'N/A'}", ReviewNextBtn.disabled: ${reviewNextBtnFooter ? reviewNextBtnFooter.disabled : "N/A"}`);
+}
+
 
 function nextButtonClickHandler() {
     if (currentView !== 'test-interface-view') return; 
@@ -1762,4 +1848,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             showView('home-view'); 
         }
     }
-});
+    }
+    });
+
+
