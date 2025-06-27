@@ -52,7 +52,7 @@
     "feedback_b": "This is incorrect. 'Satisfy' means to meet a demand or need. While a controlled flame might satisfy a chef, the word does not describe the act of controlling the flame itself.",
     "feedback_c": "This is incorrect. 'Craft' means to make something skillfully. While cooking is a craft, this word does not fit grammatically or logically to describe what one does to a flame.",
     "feedback_d": "This is the correct answer. 'Manipulate' means to skillfully control or handle, which accurately describes what a chef does to precisely adjust a cooking flame.",
-    "passage_content": "The stove and the oven remain to this day our most-used cooking technologies, and innovations in the field of heating elements have frequently ameliorated the mechanism without much change to the principal design. The commercialization of natural gas in late 19thcentury England eventually gave cooks the ability to precisely _________ their cooking flame, as well as the convenience of instantaneous ignition. To this day, gas ranges are preferred by many professional chefs.", 
+    "passage_content": "The stove and the oven remain to this day our most-used cooking technologies, and innovations in the field of heating elements have frequently ameliorated the mechanism without much change to the principal design. The commercialization of natural gas in late 19thcentury England eventually gave cooks the ability to precisely _________ their cooking flame, as well as the convenience of instantaneous ignition. To this day, gas ranges are preferred by many professional chefs.",
     "question_stem": "Which choice completes the text with the most logical and precise word or phrase?"
   },
   {
@@ -80,7 +80,7 @@
     "feedback_b": "This is incorrect. 'Provoke' means to stimulate a reaction, which does not fit the context of breathing.",
     "feedback_c": "This is incorrect. 'Infer' means to deduce from evidence, a mental action unrelated to breathing.",
     "feedback_d": "This is incorrect. 'Sketch' means to draw a picture, which is a different meaning of the word 'draw' and does not fit the context of 'breaths'.",
-    "passage_content": "The following text is from Nathaniel Hawthorne's 1852 novel The Blithedale Romance. “Nothing,” answered I; “nothing, that I know of, unless to make pretty verses, and play a part, with Zenobia and the rest of the amateurs, in our pastoral. It seems but an unsubstantial sort of business, as viewed through a mist of fever. But, dear Hollingsworth, your own vocation is evidently to be a priest, and to spend your days and nights in helping your fellow-creatures to draw peaceful dying breaths.”"",
+    "passage_content": "The following text is from Nathaniel Hawthorne's 1852 novel The Blithedale Romance. “Nothing,” answered I; “nothing, that I know of, unless to make pretty verses, and play a part, with Zenobia and the rest of the amateurs, in our pastoral. It seems but an unsubstantial sort of business, as viewed through a mist of fever. But, dear Hollingsworth, your own vocation is evidently to be a priest, and to spend your days and nights in helping your fellow-creatures to draw peaceful dying breaths.”",
     "question_stem": "As used in the text, what does the word \"draw\" most nearly mean?"
   },
   {
@@ -136,8 +136,7 @@
     "feedback_b": "This is incorrect. While it mentions screenings, its main function is not to detail them but to use their existence to make a larger point about the two countries being separate.",
     "feedback_c": "This is incorrect. The passage emphasizes the 'remarkable amiability' of relations, directly contradicting the idea of 'continual border hostility'.",
     "feedback_d": "This is the correct answer. The sentence serves as a clarification, countering the idea of a completely open border to show that the countries are indeed separate and independent.",
-    "passage_content": "Spanning more than 1,500 miles, the border between Canada and the United States has been called the longest undefended international boundary in the world. This is true to some extent, in that neither the United States nor Canada maintains a military presence at the border._____But as anyone who has crossed from one side of Niagara Falls to the other knows, civilian law enforcement is present and accounted for at checkpoints on both sides of the boundary, where entrants are monitored and customs laws
-administered_____. Partly because of our cultural similarities and partly because of the remarkable amiability of our diplomatic relations over the past 150 years, it can sometimes seem almost as though the distinction between Canada and the United States is more of policy than of practice.",
+    "passage_content": "Spanning more than 1,500 miles, the border between Canada and the United States has been called the longest undefended international boundary in the world. This is true to some extent, in that neither the United States nor Canada maintains a military presence at the border._____But as anyone who has crossed from one side of Niagara Falls to the other knows, civilian law enforcement is present and accounted for at checkpoints on both sides of the boundary, where entrants are monitored and customs laws\nadministered_____. Partly because of our cultural similarities and partly because of the remarkable amiability of our diplomatic relations over the past 150 years, it can sometimes seem almost as though the distinction between Canada and the United States is more of policy than of practice.",
     "question_stem": "Which choice best states the function of the underlined sentence in the text as a whole?"
   },
   {
@@ -193,8 +192,7 @@ administered_____. Partly because of our cultural similarities and partly becaus
     "feedback_b": "This is incorrect. The texts are decisive, stating clear rules and responsibilities, not analyzing options indecisively.",
     "feedback_c": "This is the correct answer. The language is objective, serious, and states binding rules, which is best described as formal and authoritative.",
     "feedback_d": "This is incorrect. The tone is legal and objective, not sad (melancholy) or unplanned (spontaneous).",
-    "passage_content": "Text 1 and Text 2 are adapted from different sections of the 1949 Geneva Conventions... Text 1....
-In addition to the provisions which shall be implemented in peacetime, the present Convention shall apply to all cases of declared war or of any other armed conflict which may arise between two or more of the High Contracting Parties, even if the state of war is not recognized by one of them.....Text 2.....Prisoners of war are in the hands of the enemy Power, but not of the individuals or military units who have captured them. Irrespective of the individual responsibilities that may exist, the Detaining Power is responsible for the treatment given them.",
+    "passage_content": "Text 1 and Text 2 are adapted from different sections of the 1949 Geneva Conventions... Text 1....\nIn addition to the provisions which shall be implemented in peacetime, the present Convention shall apply to all cases of declared war or of any other armed conflict which may arise between two or more of the High Contracting Parties, even if the state of war is not recognized by one of them.....Text 2.....Prisoners of war are in the hands of the enemy Power, but not of the individuals or military units who have captured them. Irrespective of the individual responsibilities that may exist, the Detaining Power is responsible for the treatment given them.",
     "question_stem": "The tones of both Text 1 and Text 2 can best be described as"
   },
   {
@@ -222,9 +220,7 @@ In addition to the provisions which shall be implemented in peacetime, the prese
     "feedback_b": "This is incorrect. This is the opposite of Text 2's main point, which argues against uniform removal.",
     "feedback_c": "This is incorrect. The author of Text 2 argues for a nuanced, case-by-case approach, not a single consistent one.",
     "feedback_d": "This is incorrect. The texts provide no basis for this conclusion. Melaleuca came from across an ocean and was harmful.",
-    "passage_content": "Text 1....Melaleuca trees were brought to the Florida Everglades from Australia; developers thought these trees would help dry up vast swampy areas, enabling residential and commercial construction. Unfortunately, the trees spread widely and covered up large swaths of the Everglades, displacing native plants. Florida has had to spend a great deal of money to remove
-these invasive trees.....Text 2.....Though common protocol would dictate that an invasive species like honeysuckle be removed from areas where it becomes dominant, these new findings demonstrate that such action would likely strike a significant blow to native bird populations. What’s more, areas that today are abundant in honeysuckle typically host 30 to 40 percent more birds than these same
-regions did thirty years ago, indicating a long-term change for the better.", 
+    "passage_content": "Text 1....Melaleuca trees were brought to the Florida Everglades from Australia; developers thought these trees would help dry up vast swampy areas, enabling residential and commercial construction. Unfortunately, the trees spread widely and covered up large swaths of the Everglades, displacing native plants. Florida has had to spend a great deal of money to remove\nthese invasive trees.....Text 2.....Though common protocol would dictate that an invasive species like honeysuckle be removed from areas where it becomes dominant, these new findings demonstrate that such action would likely strike a significant blow to native bird populations. What’s more, areas that today are abundant in honeysuckle typically host 30 to 40 percent more birds than these same\nregions did thirty years ago, indicating a long-term change for the better.",
     "question_stem": "The author of Text 2 would most likely agree with which statement about Text 1?"
   },
   {
@@ -308,7 +304,7 @@ regions did thirty years ago, indicating a long-term change for the better.",
     "feedback_b": "This is a potential secondary effect, but the scientist's statement focuses on the direct biological consequence of human presence, not the economic one.",
     "feedback_c": "This is the correct answer. It directly connects the increase in tourism shown on the graph (human contact) with the principle outlined in the scientist's statement (human activity introduces nonnative organisms).",
     "feedback_d": "This is incorrect. The scientist's statement discusses plants being 'introduced,' which often happens by accident (e.g., seeds on shoes), not through 'intentional cultivation'.",
-    "passage_content": "A scientist makes this statement: “Take a walk through the woods almost anywhere in the temperate U.S. and you’ll probably come across clusters of honeysuckle, dandelions, bobbing water lilies and dense patches of ivy. Despite their pervasiveness, none of these plants developed here naturally, but were introduced by human activity.”"", 
+    "passage_content": "A scientist makes this statement: “Take a walk through the woods almost anywhere in the temperate U.S. and you’ll probably come across clusters of honeysuckle, dandelions, bobbing water lilies and dense patches of ivy. Despite their pervasiveness, none of these plants developed here naturally, but were introduced by human activity.”",
     "question_stem": "Based on the quotation and the statement, what would the scientist say would be the most likely consequence of tourism with respect to invasive plants in the Galapagos between 1980 and 2010?"
   },
   {
@@ -363,7 +359,7 @@ regions did thirty years ago, indicating a long-term change for the better.",
     "feedback_a": "This is incorrect. The text is about the mechanism of heating, not the nutritional quality of the food.",
     "feedback_b": "This is incorrect. The text is about how microwaves work, not their economic value compared to restaurants.",
     "feedback_c": "This is the correct answer. It logically explains how a microwave heats food, resolving the contrast with appliances that use external heating elements.",
-    "feedback_d": "They are a common fixture in household kitchens across the United States, but remarkably few of us who use them have any real idea of how our microwave ovens work. Contrary to most other food-heating appliances —the toaster, the convection oven, and the stove, for instance— the microwave itself has no internal heating element: flame, coil, or otherwise. Instead, the microwave oven uses the principle of dipole rotation to ________.",
+    "feedback_d": "This is incorrect. The passage content given with the question is incomplete to provide feedback for option D.",
     "question_stem": "Which choice most logically completes the text?"
   },
   {
@@ -391,7 +387,7 @@ regions did thirty years ago, indicating a long-term change for the better.",
     "feedback_b": "This is incorrect. The text explicitly avoids the 'advanced mathematical computations' that a mathematician would be interested in.",
     "feedback_c": "This is the correct answer. The deliberate simplification and avoidance of technical details are clear indicators that the text is for a general audience.",
     "feedback_d": "This is incorrect. A code-breaker would require the very technical details that the author is intentionally omitting.",
-    "passage_content": "Asymmetric encryption relies on multiple advanced mathematical computations like discrete logarithms or the multiplication of 100-digit prime numbers. The specific mathematical details are far too complex for our purposes here, but the important concept is that asymmetric encryption functions by both a public key (shared to the world) and a private key (known only to the owner).", 
+    "passage_content": "Asymmetric encryption relies on multiple advanced mathematical computations like discrete logarithms or the multiplication of 100-digit prime numbers. The specific mathematical details are far too complex for our purposes here, but the important concept is that asymmetric encryption functions by both a public key (shared to the world) and a private key (known only to the owner).",
     "question_stem": "It can be reasonably concluded that the intended audience for the text is"
   },
   {
@@ -419,8 +415,7 @@ regions did thirty years ago, indicating a long-term change for the better.",
     "feedback_b": "This is the correct answer. It accurately captures the two conflicting feelings explicitly stated in the text: her desire to hear the music ('eager') and her fear that the request would be denied ('doubtful').",
     "feedback_c": "This is incorrect. There is no indication of repulsion; in fact, she desires to hear the music.",
     "feedback_d": "This is incorrect. Her interest is clearly on the music, not something else. The text states she 'would like to hear' it.",
-    "passage_content": "The following text is from Kate Chopin’s 1899 novel The Awakening......After Mrs. Pontellier had danced twice with her husband, once with Robert, and once with Monsieur Ratignolle, who was thin and tall and swayed like a reed in the wind when he danced, she went out on the gallery and seated herself on the low windowsill, where she commanded a view of all that went on in the hall and could look out toward the Gulf. There was a soft effulgence in the east. The moon was coming up, and its mystic shimmer
-was casting a million lights across the distant, restless water. “Would you like to hear Mademoiselle Reisz play?” asked Robert, coming out on the porch where she was. Of course Edna would like to hear Mademoiselle Reisz play; but she feared it would be useless to entreat her.",
+    "passage_content": "The following text is from Kate Chopin’s 1899 novel The Awakening......After Mrs. Pontellier had danced twice with her husband, once with Robert, and once with Monsieur Ratignolle, who was thin and tall and swayed like a reed in the wind when he danced, she went out on the gallery and seated herself on the low windowsill, where she commanded a view of all that went on in the hall and could look out toward the Gulf. There was a soft effulgence in the east. The moon was coming up, and its mystic shimmer\nwas casting a million lights across the distant, restless water. “Would you like to hear Mademoiselle Reisz play?” asked Robert, coming out on the porch where she was. Of course Edna would like to hear Mademoiselle Reisz play; but she feared it would be useless to entreat her.",
     "question_stem": "Edna's initial response to the possibility of hearing Mademoiselle Reisz play indicates that Edna is"
   },
   {
@@ -700,13 +695,7 @@ was casting a million lights across the distant, restless water. “Would you li
     "feedback_b": "This is incorrect. This statement describes a similarity, not a difference.",
     "feedback_c": "This is the correct answer. It accurately synthesizes the information from the notes about Julliard (formal) and riverboats (informal) to state a key difference.",
     "feedback_d": "This is incorrect. The notes state Davis was born in 1926 and Armstrong in 1901, so Armstrong was born earlier, not Davis.",
-    "passage_content": "While researching a topic, a student has made the following notes:
-• Miles Davis was a famous jazz musician who was born in 1926 in Illinois and died in 1991 in California.
-• Davis studied for a time at the Julliard School, a music conservatory in New York City.
-• Davis is best known for his trumpet playing. 
-• Louis Armstrong was also a famous jazz musician, who was born in 1901 in Louisiana and died in 1971 in New York.
-• Armstrong learned much of his musical skill, including reading music, by playing on riverboats.
-• Armstrong is well known for both trumpet playing and vocal skill.",
+    "passage_content": "While researching a topic, a student has made the following notes:\n• Miles Davis was a famous jazz musician who was born in 1926 in Illinois and died in 1991 in California.\n• Davis studied for a time at the Julliard School, a music conservatory in New York City.\n• Davis is best known for his trumpet playing.\n• Louis Armstrong was also a famous jazz musician, who was born in 1901 in Louisiana and died in 1971 in New York.\n• Armstrong learned much of his musical skill, including reading music, by playing on riverboats.\n• Armstrong is well known for both trumpet playing and vocal skill.",
     "question_stem": "The student wants to emphasize a difference between the two musicians. Which choice most effectively uses relevant information to accomplish this goal?"
   },
   {
