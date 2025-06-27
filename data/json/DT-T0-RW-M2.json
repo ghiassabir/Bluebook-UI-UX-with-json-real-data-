@@ -359,7 +359,8 @@
     "feedback_a": "This is incorrect. The text is about the mechanism of heating, not the nutritional quality of the food.",
     "feedback_b": "This is incorrect. The text is about how microwaves work, not their economic value compared to restaurants.",
     "feedback_c": "This is the correct answer. It logically explains how a microwave heats food, resolving the contrast with appliances that use external heating elements.",
-    "feedback_d": "This is incorrect. The passage content given with the question is incomplete to provide feedback for option D.",
+    "feedback_d": "This is incorrect. The text mentions 'dipole rotation' as the principle, and the blank is about the *effect* of that principle in heating food, not providing structural support.",
+    "passage_content": "They are a common fixture in household kitchens across the United States, but remarkably few of us who use them have any real idea of how our microwave ovens work. Contrary to most other food-heating appliances —the toaster, the convection oven, and the stove, for instance— the microwave itself has no internal heating element: flame, coil, or otherwise. Instead, the microwave oven uses the principle of dipole rotation to ________.",
     "question_stem": "Which choice most logically completes the text?"
   },
   {
