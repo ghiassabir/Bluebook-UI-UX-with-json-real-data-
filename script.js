@@ -62,6 +62,9 @@ const moduleMetadata = {
 
 const GITHUB_JSON_BASE_URL = 'https://raw.githubusercontent.com/ghiassabir/Bluebook-UI-UX-with-json-real-data-/main/data/json/'; 
 
+// CHANGED: Moved SESSION_STORAGE_KEY to global scope
+const SESSION_STORAGE_KEY = 'bluebookQuizSession'; 
+
 async function loadQuizData(quizName) {
     
     // This logic might need to be more robust based on your actual JSON file naming for series
@@ -1223,7 +1226,7 @@ function nextButtonClickHandler() {
   //  if (currentView !== 'review-page-view') return;
     //console.log("DEBUG: reviewNextButtonClickHandler CALLED. Mode:", currentInteractionMode, "CMI:", currentModuleIndex, "FlowLength:", currentTestFlow.length);
     //recordTimeOnCurrentQuestion(); 
-
+/*
     async function reviewNextButtonClickHandler() { 
         if (currentView !== 'review-page-view') return;
         console.log("DEBUG: reviewNextButtonClickHandler CALLED. Mode:", currentInteractionMode, "CMI:", currentModuleIndex, "FlowLength:", currentTestFlow.length);
@@ -1326,6 +1329,101 @@ function nextButtonClickHandler() {
         console.log("All modules finished (from review page). Transitioning to finished view.");
         if (moduleTimerInterval) clearInterval(moduleTimerInterval); 
         if (practiceQuizTimerInterval) clearInterval(practiceQuizTimerInterval);
+        showView('finished-view'); 
+    }
+}
+*/
+
+// Replace your ENTIRE existing async function reviewNextButtonClickHandler() with this corrected version:
+
+async function reviewNextButtonClickHandler() { 
+    if (currentView !== 'review-page-view') return;
+    console.log(`DEBUG: reviewNextButtonClickHandler CALLED. Mode: ${currentInteractionMode}, CMI: ${currentModuleIndex}, FlowLength: ${currentTestFlow.length}`);
+    
+    const moduleIndexJustCompleted = currentModuleIndex; 
+    
+    if (currentInteractionMode === 'single_quiz') {
+        console.log("DEBUG reviewNextBtnHandler: Single quiz finished. Submitting module data.");
+        await submitCurrentModuleData(moduleIndexJustCompleted, true); // true for isFinalSubmission
+        if (practiceQuizTimerInterval) clearInterval(practiceQuizTimerInterval);
+        showView('finished-view'); 
+        return; 
+    }
+    
+    // Logic for full_test mode
+    console.log(`DEBUG reviewNextBtnHandler: Submitting data for completed module: ${currentTestFlow[moduleIndexJustCompleted]} (index ${moduleIndexJustCompleted})`);
+    await submitCurrentModuleData(moduleIndexJustCompleted, (moduleIndexJustCompleted === currentTestFlow.length - 1)); 
+            
+    currentModuleIndex++;
+    console.log("DEBUG reviewNextBtn: Advanced currentModuleIndex to:", currentModuleIndex);
+
+    if (currentModuleIndex < currentTestFlow.length) {
+        // Check if the next module is R&W M2, which is typically followed by a break in a 4-module test
+        const isEndOfRwSection = (currentTestFlow[moduleIndexJustCompleted].includes("-RW-M2")); // Example check
+        // For DT-T0, which has no break, we'll bypass this for now.
+        // More robust break logic would involve checking a 'breakAfterThisModule' flag in moduleMetadata
+        const currentTestIsDtT0 = currentTestFlow.length > 0 && currentTestFlow[0].startsWith("DT-T0-");
+
+
+        if (currentInteractionMode === 'full_test' && isEndOfRwSection && !currentTestIsDtT0) { // Example for a 4-module test, break after 2nd module if not DT-T0
+            console.log("DEBUG reviewNextBtnHandler: End of R&W section. Showing manual break view.");
+            showView('manual-break-view'); // Show the break screen
+            // The continueAfterBreakBtn will handle loading the next (Math) module
+            return; // Stop further processing here until user continues from break
+        }
+
+        // If not a scheduled break point, or if it's DT-T0, proceed to next module
+        showView('module-over-view'); 
+        setTimeout(async () => {
+            currentQuestionNumber = 1; 
+            currentModuleTimeUp = false; 
+            const nextQuizName = currentTestFlow[currentModuleIndex];
+            const nextModuleInfo = moduleMetadata[nextQuizName];
+
+            let jsonToLoadForNextModule = nextQuizName;
+            // Example placeholder logic if M2 uses M1's JSON (adjust if your M2 JSONs are distinct)
+            // if (nextQuizName.endsWith("-RW-M2") && (!nextModuleInfo || !nextModuleInfo.actualFile)) jsonToLoadForNextModule = nextQuizName.replace("-RW-M2", "-RW-M1");
+            // else if (nextQuizName.endsWith("-MT-M2") && (!nextModuleInfo || !nextModuleInfo.actualFile)) jsonToLoadForNextModule = nextQuizName.replace("-MT-M2", "-MT-M1");
+
+            console.log(`DEBUG reviewNextBtnHandler: Preparing to load module: ${nextQuizName} (resolved JSON file to load: ${jsonToLoadForNextModule})`);
+            const success = await loadQuizData(jsonToLoadForNextModule); 
+            
+            if (success && currentQuizQuestions.length > 0) {
+                // Timer logic for the NEWLY loaded module (nextModuleInfo refers to this new module)
+                if (currentInteractionMode === 'full_test') {
+                    if (nextModuleInfo && (typeof nextModuleInfo.durationSeconds === 'undefined' || nextModuleInfo.durationSeconds === null || nextModuleInfo.durationSeconds <= 0)) {
+                        // This module is part of DT-T0 or explicitly marked as untimed
+                        console.log(`DEBUG reviewNextButton: Starting module ${nextQuizName} (part of DT-T0 or untimed) with upward counting timer.`);
+                        startPracticeQuizTimer();
+                        currentModuleTimeUp = true; // For untimed modules, effectively "time is up" for navigation
+                    } else if (nextModuleInfo && typeof nextModuleInfo.durationSeconds === 'number' && nextModuleInfo.durationSeconds > 0) {
+                        // This is a standard timed module in a full test
+                        console.log(`DEBUG reviewNextButton: Starting timed module ${nextQuizName} with duration ${nextModuleInfo.durationSeconds}.`);
+                        startModuleTimer(nextModuleInfo.durationSeconds);
+                    } else {
+                        // Fallback if metadata is incomplete for a full_test module
+                        console.warn(`Timer Mode/Config issue for full_test module ${nextQuizName}. Defaulting to untimed.`);
+                        updateModuleTimerDisplay(0); 
+                        updatePracticeQuizTimerDisplay(0);
+                        currentModuleTimeUp = true;
+                    }
+                }
+                // No explicit timer start here for 'single_quiz' because this function is only for advancing in 'full_test' 
+                // or finishing a 'single_quiz'. A 'single_quiz' doesn't have a "next module".
+                
+                populateQNavGrid(); 
+                showView('test-interface-view');
+            } else {
+                console.error("Failed to load next module or module has no questions.");
+                alert("Error loading the next module. Returning to home.");
+                showView('home-view'); 
+            }
+        }, 1000); // Delay for module-over-view
+    } else { // All modules in currentTestFlow are completed
+        console.log("All modules finished (from review page). Transitioning to finished view.");
+        if (moduleTimerInterval) clearInterval(moduleTimerInterval); 
+        if (practiceQuizTimerInterval) clearInterval(practiceQuizTimerInterval);
+        // The last module's data was already submitted before currentModuleIndex was incremented.
         showView('finished-view'); 
     }
 }
