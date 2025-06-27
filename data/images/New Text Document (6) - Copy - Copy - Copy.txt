@@ -1,0 +1,162 @@
+<!-- Home Screen View -->
+        <div class="app-view home-screen-view active" id="home-view"> 
+            <header class="app-header">
+                <div class="logo">Bluebook</div>
+                <div class="user-info">
+                    <div class="user-avatar">SG</div>
+                    <span>Sabir Ghias</span>
+                </div>
+            </header>
+            <main class="main-home-content custom-scrollbar">
+                <h1>Welcome, Sabir!</h1>
+                <p class="subtitle">Good luck on test day!</p>
+                <h2>Practice and Prepare</h2>
+                <div class="home-practice-cards">
+                    <div class="home-practice-card">
+                        <!-- MODIFIED for Phase 6: Button for Full Practice Test -->
+                        <h3>Full Practice Test</h3>
+                        <p>Simulate a full Bluebook test with timed sections.</p>
+                        <button class="start-btn" id="start-full-practice-test-btn">Start Full Test</button>
+                    </div>
+                    <div class="home-practice-card">
+                        <!-- ADDED for Phase 6: Button for Single Practice Quiz -->
+                        <h3>Single Practice Quiz</h3>
+                        <p>Focus on a specific set of questions with no time limit (timer counts up).</p>
+                        <button class="start-btn" id="start-single-practice-quiz-btn">Start Single Quiz</button>
+                    </div>
+                    <!-- You can remove or keep this third card as you see fit -->
+                    <div class="home-practice-card">
+                        <h3>Example Card (Disabled)</h3>
+                        <p>Another type of practice or resource placeholder.</p>
+                        <button class="start-btn disabled" disabled>Coming Soon</button>
+                    </div>
+                </div>
+            </main>
+        </div> 
+
+        <!-- Test Interface View (Content dynamically loaded by script.js) -->
+        <div class="app-view test-interface-view" id="test-interface-view">
+            <header class="app-header">
+                <div class="header-left">
+                    <div class="directions-btn" id="directions-btn">
+                        <span class="section-title-header" id="section-title-header">Section Title Here</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    </div>
+                </div>
+                <div class="header-center">
+                    <div class="timer-display-container" id="timer-display-container">
+                        <span class="timer-text" id="timer-text">0:00</span>
+                        <svg id="timer-clock-icon" class="timer-icon hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                        <button id="timer-toggle-btn" class="timer-toggle">[Hide]</button>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <button class="header-icon-btn" id="highlights-notes-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22h6a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v10"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10.4 12.6a2 2 0 1 1 3.2 0l-1.6 3Z"/></svg>
+                        <span>Highlights & Notes</span>
+                    </button>
+                    <button class="header-icon-btn hidden" id="calculator-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="8" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="16" y2="21"></line><line x1="3" y1="8" x2="21" y2="8"></line><line x1="3" y1="16" x2="21" y2="16"></line></svg>
+                        <span>Calculator</span>
+                    </button>
+                     <button class="header-icon-btn hidden" id="reference-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+                        <span>Reference</span>
+                    </button>
+                    <div style="position: relative;">
+                        <button class="header-icon-btn" id="more-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+                            <span>More</span>
+                        </button>
+                        <div class="more-menu-dropdown" id="more-menu-dropdown">
+                            <div class="more-menu-item" id="more-help"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> <span>Help</span> </div>
+                            <div class="more-menu-item" id="more-shortcuts"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 100 20 10 10 0 000-20z"/><path d="M12 10a2 2 0 100-4 2 2 0 000 4zM12 12a2 2 0 100 4 2 2 0 000-4z"/></svg> <span>Shortcuts</span> </div>
+                            <div class="more-menu-item" id="more-assistive-tech"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c2.8 0 5 2.2 5 5s-2.2 5-5 5-5-2.2-5-5S9.2 2 12 2zm0 11c-2.8 0-5 2.2-5 5v2h10v-2c0-2.8-2.2-5-5-5z"/></svg> <span>Assistive Technology</span> </div>
+                            <div class="more-menu-item" id="more-line-reader"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg> <span>Line Reader</span> </div>
+                            <div class="more-menu-divider"></div>
+                            <div class="more-menu-item" id="more-unscheduled-break"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg> <span>Unscheduled Break</span> </div>
+                            <div class="more-menu-divider"></div>
+                            <div class="more-menu-item" id="more-exit-exam"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg> <span>Exit the Exam</span> </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            <div class="test-preview-banner">THIS IS A TEST PREVIEW</div>
+            <main class="main-content-area" id="main-content-area-dynamic">
+                <div class="passage-pane custom-scrollbar" id="passage-pane"> <div class="passage-content" id="passage-content"></div> </div>
+                <div class="spr-instructions-pane custom-scrollbar" id="spr-instructions-pane" style="display: none;"> <div class="spr-instructions-content" id="spr-instructions-content"></div> </div>
+                <div class="pane-divider-draggable" id="pane-divider-draggable"></div>
+                <div class="question-pane custom-scrollbar" id="question-pane">
+                    <div class="question-header">
+                        <div class="question-ident">
+                            <div class="question-number-box" id="question-number-box-main">1</div>
+                            <label class="mark-for-review-label"> <input type="checkbox" id="mark-review-checkbox-main"/> <svg id="flag-icon-main" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg> <span>Mark for Review</span> </label>
+                        </div>
+                        <button class="cross-out-tool-btn" id="cross-out-tool-btn-main"> <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.48 10.99C8.32 10.66 8 10.38 8 10C8 9.45 8.45 9 9 9C9.55 9 10 9.45 10 10C10 10.38 9.68 10.66 9.52 10.99H14.48C14.32 10.66 14 10.38 14 10C14 9.45 14.45 9 15 9C15.55 9 16 9.45 16 10C16 10.38 15.68 10.66 15.52 10.99H17C17.55 10.99 18 11.44 18 11.99C18 12.54 17.55 12.99 17 12.99H15.52C15.68 13.32 16 13.61 16 14C16 14.55 15.55 15 15 15C14.45 15 14 14.55 14 14C14 13.61 14.32 13.32 14.48 12.99H9.52C9.68 13.32 10 13.61 10 14C10 14.55 9.55 15 9 15C8.45 15 8 14.55 8 14C8 13.61 8.32 13.32 8.48 12.99H7C6.45 12.99 6 12.54 6 11.99C6 11.44 6.45 10.99 7 10.99H8.48Z" fill="currentColor"></path><path d="M3 5L21 19" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg> <span>ABC</span> </button>
+                    </div>
+                    <div class="question-text" id="question-text-main"></div>
+                    <div id="answer-area">
+                        <div class="answer-options" id="answer-options-main"></div>
+                        <div class="spr-input-container" id="spr-input-container-main" style="display: none;"> <input type="text" class="spr-input-field" id="spr-input-field-main" maxlength="6"> <div class="spr-answer-preview" id="spr-answer-preview-main">Answer Preview: </div> </div>
+                    </div>
+                </div>
+            </main>
+            <footer class="app-footer">
+                <div class="footer-left" id="user-name-footer">Sabir Ghias</div>
+                <div class="footer-center"> <button id="qNavBtnFooter"> <span>Question </span><span id="current-q-footer">1</span> of <span id="total-q-footer">0</span> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg> </button> </div>
+                <div class="footer-right"> <button class="nav-button primary" id="back-btn-footer">Back</button> <button class="nav-button primary" id="next-btn-footer">Next</button> </div>
+            </footer>
+        </div>
+
+        <!-- Module Over View -->
+        <div class="app-view fullscreen-transition-view" id="module-over-view">
+            <h1>This Module Is Over</h1>
+            <p class="message">All your work has been saved.<br>You'll move on automatically in just a moment.</p>
+            <div class="spinner"></div>
+        </div>
+
+
+  <!-- Finished Test View -->
+        <div class="app-view fullscreen-transition-view" id="finished-view" style="z-index: 1;">
+            <canvas id="confetti-canvas"></canvas>
+            <div style="position: relative; z-index: 2;">
+                <h1>You're All Finished!</h1>
+                <div class="finished-screen-content-box">
+                    <div class="finished-img-placeholder">😄</div>
+                    <p class="reminder">Return to the homepage to start the preview again.<br><strong>Reminder:</strong> there are no scores or feedback in this preview.</p>
+                    <p class="test-day-msg">When you see this page on test day, you'll know your scores have been submitted.</p>
+                    <button class="return-home-btn" id="return-to-home-btn">Return to Home</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Review Page View -->
+        <div class="app-view review-page-view" id="review-page-view">
+            <header class="app-header">
+                <div class="header-left"> <div class="directions-btn" id="review-directions-btn"> <span class="section-title-header" id="review-section-title-header">Section Review</span> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg> </div> </div>
+                <div class="header-center"> <div class="timer-display-container" id="review-timer-display-container"> <span class="timer-text" id="review-timer-text">0:00</span> <svg id="review-timer-clock-icon" class="timer-icon hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> <button id="review-timer-toggle-btn" class="timer-toggle">[Hide]</button> </div> </div>
+                <div class="header-right"> </div>
+            </header>
+            <div class="test-preview-banner">THIS IS A TEST PREVIEW</div>
+            <main class="main-review-content custom-scrollbar">
+                <div class="review-box">
+                    <h1>Check Your Work</h1>
+                    <p class="subtitle">On test day, you won’t be able to move on to the next module until time expires.<br>For these practice questions, you can click Next when you’re ready to move on.</p>
+                    <div class="review-section-header">
+                        <h2 id="review-page-section-name">Section 1: Reading and Writing Questions</h2>
+                        <div class="review-legend">
+                            <div class="legend-item"><span class="legend-icon unanswered" style="border: 1.5px dashed var(--bluebook-border-color);"></span> Unanswered</div>
+                            <div class="legend-item"><span class="legend-icon for-review"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 1em; height: 1em; fill: var(--bluebook-red-flag);"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15" stroke="var(--bluebook-red-flag)" stroke-width="2"/></svg></span> For Review</div>
+                        </div>
+                    </div>
+                    <div class="review-q-grid qnav-grid" id="review-page-qnav-grid">
+                    </div>
+                </div>
+            </main>
+            <footer class="app-footer">
+                <div class="footer-left" id="review-user-name-footer">Sabir Ghias</div>
+                <div class="footer-center"></div>
+                <div class="footer-right"> <button class="nav-button primary" id="review-back-btn-footer">Back</button> <button class="nav-button primary" id="review-next-btn-footer">Next</button> </div>
+            </footer>
+        </div>
+
