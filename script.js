@@ -341,7 +341,6 @@ function getAnswerState(moduleIdx = currentModuleIndex, qNum = currentQuestionNu
         console.error("Error saving session state to localStorage:", error);
         // Potentially alert user if localStorage is full or other issues occur, though rare.
     }
-}
 
 function recordTimeOnCurrentQuestion() { 
     if (questionStartTime > 0 && currentQuizQuestions && currentQuizQuestions.length > 0 && currentQuestionNumber > 0 && currentQuestionNumber <= currentQuizQuestions.length) {
