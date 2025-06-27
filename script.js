@@ -1241,8 +1241,167 @@ if (submitEmailBtn) {
 }
 
 // --- DOMContentLoaded ---
-document.addEventListener('DOMContentLoaded', async () => {
+//document.addEventListener('DOMContentLoaded', async () => {
     // Paste your full, corrected DOMContentLoaded listener from the previous step here.
     // It should contain the session resume prompt and logic.
     // This is the version from my previous message that you confirmed worked.
+// --- script.js (Final and Correct DOMContentLoaded Listener) ---
+
+// --- DOMContentLoaded ---
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log("DEBUG DOMContentLoaded: Initializing application.");
+    const emailIsValid = initializeStudentIdentifier();
+    const urlParams = new URLSearchParams(window.location.search);
+    const quizNameFromUrl = urlParams.get('quiz_name');
+    const testIdFromUrl = urlParams.get('test_id');
+    const sourceFromUrl = urlParams.get('source');
+    globalOriginPageId = urlParams.get('originPageId');
+
+    if (sourceFromUrl) {
+        globalQuizSource = sourceFromUrl;
+        console.log(`DEBUG DOMContentLoaded: URL 'source' parameter found: ${globalQuizSource}`);
+    }
+    if (globalOriginPageId) {
+        console.log(`DEBUG DOMContentLoaded: URL 'originPageId' parameter found: ${globalOriginPageId}`);
+    }
+
+    const savedSessionJSON = localStorage.getItem(SESSION_STORAGE_KEY);
+    let sessionResumed = false;
+
+    if (savedSessionJSON) {
+        console.log("DEBUG DOMContentLoaded: Found saved session data.");
+        try {
+            const savedSession = JSON.parse(savedSessionJSON);
+            if (savedSession && typeof savedSession.currentModuleIndex === 'number' && savedSession.currentTestFlow && savedSession.currentTestFlow.length > 0) {
+                const resumeConfirmation = confirm("An unfinished session was found. Would you like to resume it?");
+                if (resumeConfirmation) {
+                    console.log("DEBUG DOMContentLoaded: User chose to RESUME session.");
+                    sessionResumed = true;
+
+                    if (savedSession.studentEmailForSubmission) {
+                        studentEmailForSubmission = savedSession.studentEmailForSubmission;
+                        localStorage.setItem('bluebookStudentEmail', studentEmailForSubmission);
+                        const homeUserNameEl = document.getElementById('home-user-name');
+                        if(homeUserNameEl && studentEmailForSubmission) homeUserNameEl.textContent = studentEmailForSubmission.split('@')[0];
+                    }
+
+                    currentInteractionMode = savedSession.currentInteractionMode || 'full_test';
+                    currentTestFlow = savedSession.currentTestFlow;
+                    currentModuleIndex = savedSession.currentModuleIndex;
+                    currentQuestionNumber = savedSession.currentQuestionNumber;
+                    userAnswers = savedSession.userAnswers || {};
+                    currentModuleTimeLeft = savedSession.currentModuleTimeLeft || 0;
+                    practiceQuizTimeElapsed = savedSession.practiceQuizTimeElapsed || 0;
+                    isTimerHidden = savedSession.isTimerHidden || false;
+                    globalOriginPageId = savedSession.globalOriginPageId || globalOriginPageId;
+                    globalQuizSource = savedSession.globalQuizSource || globalQuizSource;
+
+                    // Restore timer visibility
+                    if (timerTextEl && timerClockIconEl && timerToggleBtn) {
+                        timerTextEl.classList.toggle('hidden', isTimerHidden);
+                        timerClockIconEl.classList.toggle('hidden', !isTimerHidden);
+                        timerToggleBtn.textContent = isTimerHidden ? '[Show]' : '[Hide]';
+                    }
+
+                    const quizNameToLoadForResume = currentTestFlow[currentModuleIndex];
+                    if (quizNameToLoadForResume) {
+                        const success = await loadQuizData(quizNameToLoadForResume);
+                        if (success && currentQuizQuestions.length > 0) {
+                            const currentModInfoForResume = getCurrentModule();
+                            const isResumedDtT0Module = currentModInfoForResume && currentModInfoForResume.name && currentModInfoForResume.name.includes("(Diagnostic)");
+
+                            if (currentInteractionMode === 'full_test') {
+                                if (isResumedDtT0Module) {
+                                    startPracticeQuizTimer();
+                                    practiceQuizTimeElapsed = savedSession.practiceQuizTimeElapsed || 0;
+                                    updatePracticeQuizTimerDisplay(practiceQuizTimeElapsed);
+                                    currentModuleTimeUp = true;
+                                } else {
+                                    startModuleTimer(currentModuleTimeLeft);
+                                }
+                            } else if (currentInteractionMode === 'single_quiz') {
+                                startPracticeQuizTimer();
+                                practiceQuizTimeElapsed = savedSession.practiceQuizTimeElapsed || 0;
+                                updatePracticeQuizTimerDisplay(practiceQuizTimeElapsed);
+                            }
+                            populateQNavGrid();
+                            showView('test-interface-view');
+                        } else {
+                            alert("Could not resume session: error loading quiz data. Starting fresh.");
+                            clearSessionState();
+                            sessionResumed = false;
+                        }
+                    } else {
+                        alert("Could not resume session: invalid session data. Starting fresh.");
+                        clearSessionState();
+                        sessionResumed = false;
+                    }
+                } else {
+                    console.log("DEBUG DOMContentLoaded: User chose NOT to resume. Clearing saved session.");
+                    clearSessionState();
+                }
+            } else {
+                console.warn("DEBUG DOMContentLoaded: Saved session data is invalid or incomplete. Clearing it.");
+                clearSessionState();
+            }
+        } catch (parseError) {
+            console.error("DEBUG DOMContentLoaded: Error parsing saved session JSON. Clearing it.", parseError);
+            clearSessionState();
+        }
+    } else {
+        console.log("DEBUG DOMContentLoaded: No saved session found.");
+    }
+
+    if (!sessionResumed) {
+        console.log("DEBUG DOMContentLoaded: No session resumed. Proceeding with standard launch checks (email/URL).");
+        if (!emailIsValid) {
+            showView('email-input-view');
+        } else {
+            if (testIdFromUrl) {
+                console.log(`DEBUG DOMContentLoaded: Launching NEW full test from URL: ${testIdFromUrl}`);
+                if (fullTestDefinitions[testIdFromUrl]) {
+                    currentInteractionMode = 'full_test';
+                    currentTestFlow = fullTestDefinitions[testIdFromUrl].flow;
+                    currentModuleIndex = 0; currentQuestionNumber = 1; userAnswers = {};
+                    isTimerHidden = false; isCrossOutToolActive = false; isHighlightingActive = false;
+                    currentModuleTimeUp = false; questionStartTime = 0;
+
+                    if (currentTestFlow && currentTestFlow.length > 0) {
+                        const firstQuizName = currentTestFlow[currentModuleIndex];
+                        const moduleInfo = moduleMetadata[firstQuizName];
+                        const isDtT0Module = firstQuizName.startsWith("DT-T0-");
+                        const success = await loadQuizData(firstQuizName);
+                        if (success && currentQuizQuestions.length > 0) {
+                            if (isDtT0Module) {
+                                startPracticeQuizTimer(); currentModuleTimeUp = true;
+                            } else if (moduleInfo && typeof moduleInfo.durationSeconds === 'number' && moduleInfo.durationSeconds > 0) {
+                                startModuleTimer(moduleInfo.durationSeconds);
+                            } else {
+                                updateModuleTimerDisplay(0); currentModuleTimeUp = true;
+                            }
+                            populateQNavGrid();
+                            showView('test-interface-view');
+                        } else { alert(`Could not load initial module for test: ${testIdFromUrl}.`); showView('home-view'); }
+                    } else { alert(`Test ID '${testIdFromUrl}' has no defined flow.`); showView('home-view'); }
+                } else { alert(`Unknown Test ID: ${testIdFromUrl}.`); showView('home-view'); }
+            } else if (quizNameFromUrl) {
+                console.log(`DEBUG DOMContentLoaded: Launching NEW single quiz from URL: ${quizNameFromUrl}`);
+                currentInteractionMode = 'single_quiz';
+                currentTestFlow = [quizNameFromUrl];
+                currentModuleIndex = 0; currentQuestionNumber = 1; userAnswers = {};
+                isTimerHidden = false; isCrossOutToolActive = false; isHighlightingActive = false;
+                currentModuleTimeUp = false; questionStartTime = 0;
+
+                const success = await loadQuizData(quizNameFromUrl);
+                if (success && currentQuizQuestions.length > 0) {
+                    startPracticeQuizTimer();
+                    populateQNavGrid();
+                    showView('test-interface-view');
+                } else { alert(`Could not load quiz: ${quizNameFromUrl}.`); showView('home-view'); }
+            } else {
+                console.log("DEBUG DOMContentLoaded: Email valid, no direct launch params, no session resumed. Displaying home screen (informational message).");
+                showView('home-view');
+            }
+        }
+    }
 });
