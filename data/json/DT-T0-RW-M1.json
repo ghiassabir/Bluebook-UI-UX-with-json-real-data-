@@ -135,7 +135,7 @@
     "feedback_a": "This is incorrect. The text discusses a lack of knowledge about his birth, not memory loss due to old age (senility).",
     "feedback_b": "This is incorrect. While the passage is about his identity, its primary purpose is to emphasize the uncertainty and vagueness of that identity, not to simply express it.",
     "feedback_c": "This is incorrect. Washington does not mention or critique his family; he critiques the circumstances of his birth under slavery.",
-    "feedback_d": "This is the correct answer. The repeated statements of not knowing the specifics of his own birth serve to emphasize, or 'underscore,' the lack of a defined origin, which is the essence of 'rootlessness.'.",
+    "feedback_d": "This is the correct answer. The repeated statements of not knowing the specifics of his own birth serve to emphasize, or 'underscore,' the lack of a defined origin, which is the essence of 'rootlessness.'",
     "passage_content": "The text is from Booker T. Washington's 1901 autobiography. I was born a slave on a plantation in Franklin County, Virginia. I am not quite sure of the exact place or exact date of my birth, but at any rate I suspect I must have been born somewhere and at some time. As nearly as I have been able to learn, I was born near a cross-roads post-office called Hale's Ford, and the year was 1858 or 1859. I do not know the month or the day. The earliest impressions I can now recall are of the plantation and the slave quarters—the latter being the part of the plantation where the slaves had their cabins.",
     "question_stem": "Washington's primary purpose in the text above is most likely"
   },
@@ -248,8 +248,7 @@
     "feedback_b": "This is incorrect. The text argues the exact opposite: that ignorance, not truth, leads to bliss and happiness.",
     "feedback_c": "This is the correct answer. The main idea is that preoccupation with the future destroys the present, so one should live in the now, which is to 'focus on the moment.'",
     "feedback_d": "This is incorrect. This is a well-known ethical rule (the Golden Rule) that is not discussed in the text. The passage is about epistemology and happiness, not interpersonal ethics.",
-    "passage_content": "The text is from Anatole France's 1912 novel The Gods Will Have Blood.Those who make a trade out of foretelling the future rarely grow rich. Their attempts to deceive are too easily found out and arouse detestation. And yet
-it would be necessary to detest them much, much more if they foretold the future correctly. For a man’s life would become intolerable, if he knew what was going to happen to him. He would be made aware of future evils, and would suffer their agonies in advance, while he would get no joy of present blessings since he would know how they would end. Ignorance is the necessary condition of human happiness, and it must be admitted that on the whole mankind observes that condition well. We are almost entirely ignorant of ourselves, absolutely of others. In ignorance, we find our bliss, in illusions, our happiness.",
+    "passage_content": "<p><em>The text is from Anatole France's 1912 novel The Gods Will Have Blood.</em></p> Those who make a trade out of foretelling the future rarely grow rich. Their attempts to deceive are too easily found out and arouse detestation. And yet\nit would be necessary to detest them much, much more if they foretold the future correctly. For a man’s life would become intolerable, if he knew what was going to happen to him. He would be made aware of future evils, and would suffer their agonies in advance, while he would get no joy of present blessings since he would know how they would end. Ignorance is the necessary condition of human happiness, and it must be admitted that on the whole mankind observes that condition well. We are almost entirely ignorant of ourselves, absolutely of others. In ignorance, we find our bliss, in illusions, our happiness.",
     "question_stem": "The main idea conveyed in the above monologue can best be summarized as"
   },
   {
@@ -669,13 +668,7 @@ it would be necessary to detest them much, much more if they foretold the future
     "feedback_b": "This is the correct answer. The notes explicitly mention that both models involve planetary bodies 'revolving,' which is a form of rotational movement.",
     "feedback_c": "This is incorrect. The notes state that Aristotle and Ptolemy were ancient Greek proponents, but they do not provide any information about how widely known these theories were among the general populace.",
     "feedback_d": "This is incorrect. The notes identify Aristotle as an ancient Greek proponent, but they give no information about Copernicus's time period or location, other than that his work came later.",
-    "passage_content": "While researching a topic, a student has made the following notes: 
-• The Heliocentric Model has the Earth and other planets revolving around the sun. 
-• Ancient Greek philosopher Aristotle was a proponent of the Heliocentric Model.
-• The Geocentric Model has the sun and other planetary bodies revolving around the Earth.
-• Ancient Greek philosopher Ptolemy was a proponent of the Geocentric Model.
-• The Heliocentric Model eventually became dominant after Copernicus demonstrated that it better utilized mathematics to
-explain astronomical observations.",
+    "passage_content": "While researching a topic, a student has made the following notes: \n• The Heliocentric Model has the Earth and other planets revolving around the sun. \n• Ancient Greek philosopher Aristotle was a proponent of the Heliocentric Model.\n• The Geocentric Model has the sun and other planetary bodies revolving around the Earth.\n• Ancient Greek philosopher Ptolemy was a proponent of the Geocentric Model.\n• The Heliocentric Model eventually became dominant after Copernicus demonstrated that it better utilized mathematics to\nexplain astronomical observations.",
     "question_stem": "The student wants to emphasize a similarity between the Heliocentric and Geocentric theories. Which choice most effectively uses relevant information to accomplish this goal?"
   },
   {
